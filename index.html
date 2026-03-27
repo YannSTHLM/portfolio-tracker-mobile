@@ -305,7 +305,7 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
               Import Data
             </button>
-            <input type="file" id="importDataInput" accept=".json" onchange="handleDataImport(event)">
+            <input type="file" id="importDataInput" accept=".json" >
 
             <!-- Export Data Button -->
             <button onclick="exportData()" class="btn-secondary flex items-center gap-2 text-sm">
@@ -644,6 +644,9 @@
       const fileInput = document.getElementById('fileInput');
       const dropZone = document.getElementById('dropZone');
 
+
+      const importDataInput = document.getElementById('importDataInput');
+      importDataInput.addEventListener('change', handleDataImport);
       fileInput.addEventListener('change', handleFileSelect);
       
       dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
