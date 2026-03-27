@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0f1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Portfolio Tracker">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -386,6 +391,7 @@
           <button class="tab-btn" data-tab="rebalancing">Rebalancing</button>
           <button class="tab-btn" data-tab="evolution">Evolution</button>
           <button class="tab-btn" data-tab="comparison">Compare</button>
+          <button class="tab-btn" data-tab="analytics">Analytics</button>
         </div>
       </div>
 
@@ -570,6 +576,35 @@
                     <table>
                         <thead><tr><th>Asset Name</th><th>Category</th><th>From Value</th><th>To Value</th><th>Change</th><th>Change %</th></tr></thead>
                         <tbody id="comparisonTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Analytics Tab -->
+        <div id="analyticsTab" class="tab-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-2">Correlation Matrix</h3>
+                    <p class="text-sm text-[var(--fg-muted)] mb-4">How categories move together across snapshots (Pearson correlation). Values range from -1 (inverse) to +1 (perfect sync).</p>
+                    <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin">
+                        <div class="flex items-center justify-center h-64 text-[var(--fg-muted)]">
+                            <p>At least 2 snapshots needed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-2">Risk vs. Return</h3>
+                    <p class="text-sm text-[var(--fg-muted)] mb-4">Category volatility (std dev of % changes) vs. cumulative return across snapshots.</p>
+                    <div class="h-80"><canvas id="riskReturnChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card p-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-2">Category Correlation Details</h3>
+                <p class="text-sm text-[var(--fg-muted)] mb-4">Percentage change per category between consecutive snapshots.</p>
+                <div class="table-container scrollbar-thin">
+                    <table>
+                        <thead id="correlationTableHead"><tr><th>Category</th></tr></thead>
+                        <tbody id="correlationTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -1428,6 +1463,187 @@
           </tr>`; 
       }).join('');
     }
+
+    // --- ANALYTICS: Correlation Matrix & Risk/Return ---
+    let riskReturnChart = null;
+
+    function pearsonCorrelation(x, y) {
+      const n = x.length;
+      if (n < 2) return 0;
+      const meanX = x.reduce((a, b) => a + b, 0) / n;
+      const meanY = y.reduce((a, b) => a + b, 0) / n;
+      let num = 0, denX = 0, denY = 0;
+      for (let i = 0; i < n; i++) {
+        const dx = x[i] - meanX;
+        const dy = y[i] - meanY;
+        num += dx * dy;
+        denX += dx * dx;
+        denY += dy * dy;
+      }
+      const den = Math.sqrt(denX * denY);
+      return den === 0 ? 0 : num / den;
+    }
+
+    function getCategoryPercentChanges() {
+      if (snapshots.length < 2) return {};
+      const categories = [...new Set(snapshots.flatMap(s => s.holdings.map(h => h.category)))];
+      const changes = {};
+      categories.forEach(cat => {
+        changes[cat] = [];
+        for (let i = 1; i < snapshots.length; i++) {
+          const prev = snapshots[i - 1].holdings.filter(h => h.category === cat).reduce((s, h) => s + h.value, 0);
+          const curr = snapshots[i].holdings.filter(h => h.category === cat).reduce((s, h) => s + h.value, 0);
+          changes[cat].push(prev > 0 ? ((curr - prev) / prev) * 100 : 0);
+        }
+      });
+      return changes;
+    }
+
+    function renderCorrelationMatrix() {
+      const container = document.getElementById('correlationMatrixContainer');
+      if (!container) return;
+      if (snapshots.length < 2) {
+        container.innerHTML = '<div class="flex items-center justify-center h-64 text-[var(--fg-muted)]"><p>At least 2 snapshots needed</p></div>';
+        return;
+      }
+      const changes = getCategoryPercentChanges();
+      const cats = Object.keys(changes).sort();
+      if (cats.length < 2) {
+        container.innerHTML = '<div class="flex items-center justify-center h-64 text-[var(--fg-muted)]"><p>Need at least 2 categories</p></div>';
+        return;
+      }
+      const cellSize = Math.max(60, Math.min(80, 500 / cats.length));
+      const labelW = 120;
+      let html = '<table style="border-collapse:collapse;">';
+      html += '<tr><td style="width:' + labelW + 'px"></td>';
+      cats.forEach(c => { html += '<td class="text-center text-xs font-medium" style="width:' + cellSize + 'px;padding:4px;writing-mode:vertical-rl;transform:rotate(180deg);max-height:90px;overflow:hidden;color:var(--fg-muted);">' + c + '</td>'; });
+      html += '</tr>';
+      cats.forEach((rowCat, ri) => {
+        html += '<tr><td class="text-xs pr-2 text-right" style="white-space:nowrap;color:var(--fg-muted);">' + rowCat + '</td>';
+        cats.forEach((colCat, ci) => {
+          const corr = ri === ci ? 1 : pearsonCorrelation(changes[rowCat], changes[colCat]);
+          const abs = Math.abs(corr);
+          let bg;
+          if (corr >= 0) bg = 'rgba(16,185,129,' + (abs * 0.5) + ')';
+          else bg = 'rgba(239,68,68,' + (abs * 0.5) + ')';
+          html += '<td class="text-center font-mono text-xs" style="width:' + cellSize + 'px;height:' + cellSize + 'px;background:' + bg + ';border:1px solid var(--border-subtle);padding:2px;">' + corr.toFixed(2) + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    function renderRiskReturnChart() {
+      const ctx = document.getElementById('riskReturnChart');
+      if (!ctx || snapshots.length < 2) {
+        if (ctx) ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-[var(--fg-muted)]"><p>At least 2 snapshots needed</p></div>';
+        return;
+      }
+      if (riskReturnChart) riskReturnChart.destroy();
+      const changes = getCategoryPercentChanges();
+      const cats = Object.keys(changes).sort();
+      const points = cats.map(cat => {
+        const vals = changes[cat];
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        const std = Math.sqrt(vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length);
+        const cumulativeReturn = vals.reduce((s, v) => s + v, 0);
+        return { label: cat, x: std, y: cumulativeReturn };
+      });
+      riskReturnChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: points.map((p, i) => ({
+            label: p.label,
+            data: [{ x: p.x, y: p.y }],
+            backgroundColor: (categoryColors[p.label] || { chart: 'rgba(148,163,184,0.8)' }).chart,
+            pointRadius: 10,
+            pointHoverRadius: 14
+          }))
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 10 }, usePointStyle: true } },
+            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': Risk=' + ctx.parsed.x.toFixed(2) + '%, Return=' + ctx.parsed.y.toFixed(2) + '%' } } },
+          scales: {
+            x: { title: { display: true, text: 'Volatility (Std Dev %)', color: '#94a3b8' }, grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8' } },
+            y: { title: { display: true, text: 'Cumulative Return (%)', color: '#94a3b8' }, grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+    }
+
+    function renderCorrelationDetailsTable() {
+      const thead = document.getElementById('correlationTableHead');
+      const tbody = document.getElementById('correlationTableBody');
+      if (!thead || !tbody || snapshots.length < 2) return;
+      const changes = getCategoryPercentChanges();
+      const cats = Object.keys(changes).sort();
+      const periods = [];
+      for (let i = 1; i < snapshots.length; i++) periods.push(snapshots[i - 1].dateStr + ' → ' + snapshots[i].dateStr);
+      thead.innerHTML = '<tr><th>Category</th>' + periods.map(p => '<th class="text-right">' + p + '</th>').join('') + '</tr>';
+      tbody.innerHTML = cats.map(cat => {
+        const color = categoryColors[cat] || { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8' };
+        return '<tr><td><span class="badge" style="background:' + color.bg + ';color:' + color.text + '">' + cat + '</span></td>' +
+          changes[cat].map(v => '<td class="text-right font-mono ' + (v >= 0 ? 'change-positive' : 'change-negative') + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</td>').join('') + '</tr>';
+      }).join('');
+    }
+
+    // --- LOCALSTORAGE PERSISTENCE ---
+    const LS_KEY = 'portfolioTracker_snapshots';
+
+    function saveToLocalStorage() {
+      try {
+        const data = snapshots.map(s => ({
+          date: s.date.toISOString(), dateStr: s.dateStr, holdings: s.holdings,
+          totalValue: s.totalValue, nordnetValue: s.nordnetValue, avanzaValue: s.avanzaValue
+        }));
+        localStorage.setItem(LS_KEY, JSON.stringify(data));
+      } catch (e) { console.warn('localStorage save failed:', e); }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!Array.isArray(data) || data.length === 0) return false;
+        snapshots = data.map(s => ({
+          ...s, date: new Date(s.date)
+        }));
+        snapshots.sort((a, b) => a.date - b.date);
+        currentSnapshot = snapshots[snapshots.length - 1];
+        return true;
+      } catch (e) { console.warn('localStorage load failed:', e); return false; }
+    }
+
+    // --- PWA REGISTRATION ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      });
+    }
+
+    // Override switchTab to also render analytics
+    const _origSwitchTab = switchTab;
+    switchTab = function(tabId) {
+      _origSwitchTab(tabId);
+      if (tabId === 'analytics') { renderCorrelationMatrix(); renderRiskReturnChart(); renderCorrelationDetailsTable(); }
+    };
+
+    // Override data loading to auto-save
+    const _origShowDashboard = showDashboard;
+    showDashboard = function() {
+      _origShowDashboard();
+      saveToLocalStorage();
+    };
+
+    // On load, try restoring from localStorage
+    const _origSetup = setupEventListeners;
+    setupEventListeners = function() {
+      _origSetup();
+      if (loadFromLocalStorage()) showDashboard();
+    };
 
     function loadDemoData() {
       const demoData1 = { 
