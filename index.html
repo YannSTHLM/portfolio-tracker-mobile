@@ -918,10 +918,12 @@
       if (activePanel) activePanel.classList.remove('hidden');
 
       if (tabId === 'overview') setTimeout(() => { renderDistributionChart(); renderBrokerageChart(); renderCategoryBreakdown(); }, 100);
+      else if (tabId === 'holdings') renderHoldingsTable();
       else if (tabId === 'evolution') setTimeout(() => { renderEvolutionChart(); renderCategoryEvolutionChart(); }, 100);
       else if (tabId === 'rebalancing') renderRebalancingTables();
       else if (tabId === 'comparison') populateCompareSelects();
     }
+  +++++++ REPLACE
 
     // --- EDITING LOGIC ---
 
