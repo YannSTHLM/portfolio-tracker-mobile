@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-elevated: #232d42;
+      --fg-primary: #f1f5f9;
+      --fg-secondary: #94a3b8;
+      --fg-muted: #64748b;
+      --accent-primary: #10b981;
+      --accent-secondary: #06b6d4;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --border: #2d3a52;
+      --border-subtle: #1e293b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
+
+    .bg-grid {
+      background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .gradient-orb {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb-1 { background: var(--accent-primary); top: -200px; right: -200px; }
+    .orb-2 { background: var(--accent-secondary); bottom: -300px; left: -200px; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      background: rgba(16, 185, 129, 0.02);
+      transition: all 0.3s ease;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent-primary);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), #059669);
+      color: white;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--fg-primary);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover { background: var(--border); }
+
+    .table-container { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--fg-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 14px;
+    }
+
+    tr:hover td { background: rgba(16, 185, 129, 0.03); }
+    tr.highlight-row td { background: rgba(245, 158, 11, 0.05); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-bucket-1 { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+    .badge-bucket-2 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge-bucket-3 { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .badge-sell { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .badge-other { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+    .badge-unassigned { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    .badge-new { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    }
+
+    .change-positive { color: var(--accent-primary); }
+    .change-negative { color: var(--accent-danger); }
+
+    .tab-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--fg-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-elevated);
+      color: var(--fg-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .tab-btn:hover:not(.active) { color: var(--fg-secondary); }
+
+    .snapshot-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .snapshot-chip:hover { border-color: var(--accent-primary); }
+
+    .snapshot-chip.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    
+    .animate-fade-in { animation: fadeIn 0.5s ease forwards; }
+    .animate-pulse { animation: pulse 2s infinite; }
+
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-fade-in, .animate-pulse { animation: none; opacity: 1; transform: none; }
+    }
+
+    input[type="file"] { display: none; }
+
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .rebalance-table th.highlight-col,
+    .rebalance-table td.highlight-col {
+      background: rgba(16, 185, 129, 0.1);
+      font-weight: 600;
+    }
+    
+    .target-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      margin-left: 4px;
+    }
+    
+    .sum-row td {
+        background: var(--bg-secondary) !important;
+        border-top: 2px solid var(--border);
+        font-weight: 700;
+    }
+
+    select.edit-select {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        color: var(--fg-primary);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    select.edit-select:hover { border-color: var(--accent-primary); }
+    select.edit-select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+
+  </style>
+</head>
+<body class="bg-grid">
+  <div class="gradient-orb orb-1"></div>
+  <div class="gradient-orb orb-2"></div>
+
+  <div class="relative z-10 min-h-screen">
+    <!-- Header -->
+    <header class="border-b border-[var(--border)] bg-[var(--bg-secondary)]/80 backdrop-blur-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-lg font-bold">Portfolio Tracker</h1>
+              <p class="text-xs text-[var(--fg-muted)]">Consolidated Dashboard</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+             <!-- Import Data Button -->
+             <button onclick="document.getElementById('importDataInput').click()" class="btn-secondary flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Import Data
+            </button>
+            <input type="file" id="importDataInput" accept=".json" onchange="handleDataImport(event)">
+
+            <!-- Export Data Button -->
+            <button onclick="exportData()" class="btn-secondary flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export Data
+            </button>
+
+            <span id="lastUpdated" class="text-sm text-[var(--fg-muted)] hidden md:block"></span>
+            
+            <!-- Import CSV Snapshot -->
+            <button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Add Snapshot
+            </button>
+            <input type="file" id="fileInput" accept=".csv" multiple>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Upload Zone -->
+      <div id="uploadSection" class="mb-8">
+        <div id="dropZone" class="upload-zone rounded-xl p-12 text-center">
+          <svg class="w-16 h-16 mx-auto mb-4 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <h3 class="text-xl font-semibold mb-2">Import Portfolio Snapshots</h3>
+          <p class="text-[var(--fg-muted)] mb-6 max-w-md mx-auto">Drag and drop CSV files here, or use the <strong>Import Data</strong> button to load a saved session.</p>
+          <button onclick="document.getElementById('fileInput').click()" class="btn-primary">Select CSV Files</button>
+          <p class="text-xs text-[var(--fg-muted)] mt-4">Reference point: March 22, 2026</p>
+        </div>
+      </div>
+
+      <!-- Snapshots Bar -->
+      <div id="snapshotsBar" class="hidden mb-6 animate-fade-in">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-sm text-[var(--fg-muted)] mr-2">Snapshots:</span>
+          <div id="snapshotChips" class="flex gap-2 flex-wrap"></div>
+          <button onclick="document.getElementById('fileInput').click()" class="snapshot-chip border-dashed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div id="statsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="card stat-card p-6 animate-fade-in stagger-1">
+          <p class="text-sm text-[var(--fg-muted)] mb-1">Total Portfolio Value</p>
+          <p id="totalValue" class="text-2xl font-bold">--</p>
+          <p id="totalChange" class="text-sm mt-1">--</p>
+        </div>
+        <div class="card stat-card p-6 animate-fade-in stagger-2">
+          <p class="text-sm text-[var(--fg-muted)] mb-1">Nordnet Holdings</p>
+          <p id="nordnetValue" class="text-2xl font-bold">--</p>
+          <p id="nordnetPercent" class="text-sm text-[var(--fg-muted)] mt-1">--</p>
+        </div>
+        <div class="card stat-card p-6 animate-fade-in stagger-3">
+          <p class="text-sm text-[var(--fg-muted)] mb-1">Avanza Holdings</p>
+          <p id="avanzaValue" class="text-2xl font-bold">--</p>
+          <p id="avanzaPercent" class="text-sm text-[var(--fg-muted)] mt-1">--</p>
+        </div>
+        <div class="card stat-card p-6 animate-fade-in stagger-4">
+          <p class="text-sm text-[var(--fg-muted)] mb-1">Number of Holdings</p>
+          <p id="holdingsCount" class="text-2xl font-bold">--</p>
+          <p class="text-sm text-[var(--fg-muted)] mt-1">Unique assets</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div id="tabsSection" class="hidden mb-6">
+        <div class="flex gap-2 p-1 bg-[var(--bg-card)] rounded-lg w-fit flex-wrap">
+          <button class="tab-btn active" data-tab="overview">Overview</button>
+          <button class="tab-btn" data-tab="holdings">All Holdings</button>
+          <button class="tab-btn" data-tab="rebalancing">Rebalancing</button>
+          <button class="tab-btn" data-tab="evolution">Evolution</button>
+          <button class="tab-btn" data-tab="comparison">Compare</button>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="tabContent">
+        <div id="overviewTab" class="tab-panel hidden">
+             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Portfolio Distribution</h3>
+                    <div class="h-64 flex items-center justify-center"><canvas id="distributionChart"></canvas></div>
+                </div>
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Holdings by Brokerage</h3>
+                    <div class="h-64 flex items-center justify-center"><canvas id="brokerageChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card p-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Category Breakdown</h3>
+                <div id="categoryBreakdown" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <div id="holdingsTab" class="tab-panel hidden">
+          <!-- Warning for Unassigned -->
+          <div id="unassignedWarning" class="hidden mb-4 bg-amber-900/20 border border-amber-500/30 text-amber-200 rounded-lg p-4 flex items-center gap-3 animate-pulse">
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+                <span class="font-bold">Schedule Mismatch:</span> <span id="unassignedCount">0</span> holdings are not in the Rebalancing Schedule (grouped as "Other").
+                <button onclick="filterUnassigned()" class="ml-2 underline font-bold hover:text-white">Filter & Edit</button>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden animate-fade-in">
+            <div class="p-4 border-b border-[var(--border)]">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <h3 class="text-lg font-semibold">All Holdings (Editable)</h3>
+                <div class="flex gap-2">
+                  <select id="brokerageFilter" class="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm">
+                    <option value="all">All Brokerages</option>
+                    <option value="Nordnet">Nordnet</option>
+                    <option value="Avanza">Avanza</option>
+                  </select>
+                  <select id="categoryFilter" class="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm">
+                    <option value="all">All Categories</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="table-container scrollbar-thin">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Asset Name</th>
+                    <th>Brokerage</th>
+                    <th>Category</th>
+                    <th>Bucket</th>
+                    <th>Market Value (SEK)</th>
+                    <th>% of Portfolio</th>
+                    <th>Change</th>
+                  </tr>
+                </thead>
+                <tbody id="holdingsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rebalancing Tab -->
+        <div id="rebalancingTab" class="tab-panel hidden">
+          <div class="mb-6 animate-fade-in">
+            <!-- Consolidated Bucket Summary -->
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">Consolidated Bucket Summary</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Avanza Summary -->
+                    <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold text-cyan-400 mb-3">Avanza</h4>
+                        <div id="avanzaSummary" class="space-y-3"></div>
+                    </div>
+                    <!-- Nordnet Summary -->
+                    <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold text-cyan-400 mb-3">Nordnet</h4>
+                        <div id="nordnetSummary" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                    <h3 class="text-lg font-semibold">10-Month Rebalancing Schedule</h3>
+                    <p class="text-sm text-[var(--fg-muted)]">Starting March 2026. Columns sum to 100%.</p>
+                </div>
+                <div class="flex gap-4 text-xs">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400"></span> Bucket 1 (Cash)</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Bucket 2 (Credit)</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Bucket 3 (Equity)</span>
+                </div>
+            </div>
+            
+            <!-- Avanza Schedule -->
+            <div class="card overflow-hidden mb-6">
+              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                <h4 class="font-semibold text-cyan-400">Avanza Account Rebalancing</h4>
+              </div>
+              <div class="table-container scrollbar-thin">
+                <table class="rebalance-table">
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th class="text-right">Current</th>
+                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
+                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
+                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
+                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="avanzaRebalanceTable"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Nordnet Schedule -->
+            <div class="card overflow-hidden">
+              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                <h4 class="font-semibold text-cyan-400">Nordnet Account Rebalancing</h4>
+              </div>
+              <div class="table-container scrollbar-thin">
+                <table class="rebalance-table">
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th class="text-right">Current</th>
+                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
+                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
+                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
+                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="nordnetRebalanceTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="evolutionTab" class="tab-panel hidden">
+            <div class="card p-6 mb-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Portfolio Value Over Time</h3>
+                <div class="h-80"><canvas id="evolutionChart"></canvas></div>
+            </div>
+            <div class="card p-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Category Evolution</h3>
+                <div class="h-80"><canvas id="categoryEvolutionChart"></canvas></div>
+            </div>
+        </div>
+
+        <div id="comparisonTab" class="tab-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Select Snapshots to Compare</h3>
+                    <div class="flex gap-4 mb-4">
+                        <div class="flex-1">
+                            <label class="block text-sm text-[var(--fg-muted)] mb-2">From:</label>
+                            <select id="compareFrom" class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2"></select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm text-[var(--fg-muted)] mb-2">To:</label>
+                            <select id="compareTo" class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2"></select>
+                        </div>
+                    </div>
+                    <button onclick="runComparison()" class="btn-primary w-full">Compare</button>
+                </div>
+                <div class="card p-6 animate-fade-in">
+                    <h3 class="text-lg font-semibold mb-4">Comparison Summary</h3>
+                    <div id="comparisonSummary" class="space-y-3"></div>
+                </div>
+            </div>
+            <div class="card p-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Holdings Changes</h3>
+                <div class="table-container scrollbar-thin">
+                    <table>
+                        <thead><tr><th>Asset Name</th><th>Category</th><th>From Value</th><th>To Value</th><th>Change</th><th>Change %</th></tr></thead>
+                        <tbody id="comparisonTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Data store
+    let snapshots = [];
+    let currentSnapshot = null;
+    let referenceDate = new Date('2026-03-22');
+    let distributionChart = null;
+    let brokerageChart = null;
+    let evolutionChart = null;
+    let categoryEvolutionChart = null;
+
+    // Configuration
+    const BUCKETS = {
+        1: { name: 'Cash/Short', class: 'badge-bucket-1' },
+        2: { name: 'Credit', class: 'badge-bucket-2' },
+        3: { name: 'Equity', class: 'badge-bucket-3' },
+        0: { name: 'Sell/Other', class: 'badge-sell' }
+    };
+
+    const CATEGORIES = [
+        'Corporate / Credit', 'Short Duration', 'Sweden Index', 
+        'Global Index', 'Cash', 'Energy', 'Materials', 'Other', 'Unassigned'
+    ];
+
+    // Rebalancing static schedule data (M1-M10)
+    const rebalancingSchedule = {
+      avanza: [
+        { bucket: 1, name: 'AMF Räntefond Kort', schedule: [26.3, 23.4, 20.5, 17.6, 14.6, 11.7, 8.8, 5.8, 2.9, 0.0] },
+        { bucket: 1, name: 'Avanza Ränta Kort', schedule: [23.0, 22.1, 21.2, 20.3, 19.5, 18.6, 17.7, 16.8, 15.9, 15.0] },
+        { bucket: 2, name: 'AMF Företagsobligationsfond', schedule: [38.8, 37.3, 35.7, 34.2, 32.7, 31.1, 29.6, 28.1, 26.5, 25.0] },
+        { bucket: 3, name: 'Avanza Global', schedule: [5.6, 10.3, 15.0, 19.8, 24.5, 29.2, 33.9, 38.6, 43.3, 48.0] },
+        { bucket: 3, name: 'Avanza Zero', schedule: [5.2, 5.9, 6.7, 7.4, 8.2, 9.0, 9.7, 10.5, 11.3, 12.0] },
+        { bucket: 0, name: 'Range Resources', schedule: [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0] },
+        { bucket: 0, name: 'Newmont', schedule: [0.2, 0.2, 0.2, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0] }
+      ],
+      nordnet: [
+        { bucket: 1, name: 'Spiltan Räntefond Sverige', schedule: [3.8, 4.5, 5.2, 5.9, 6.6, 7.2, 7.9, 8.6, 9.3, 10.0] },
+        { bucket: 1, name: 'Cash', schedule: [4.6, 4.6, 4.7, 4.7, 4.8, 4.8, 4.9, 4.9, 5.0, 5.0] },
+        { bucket: 2, name: 'Pareto Räntefond A', schedule: [46.1, 42.4, 38.7, 34.9, 31.2, 27.4, 23.7, 20.0, 16.2, 12.5] },
+        { bucket: 2, name: 'SEB FRN Fond A', schedule: [35.3, 32.7, 30.2, 27.7, 25.1, 22.6, 20.1, 17.6, 15.0, 12.5] },
+        { bucket: 3, name: 'Nordea Global Passive A Acc SEK', schedule: [6.2, 10.8, 15.5, 20.1, 24.8, 29.4, 34.1, 38.7, 43.4, 48.0] },
+        { bucket: 3, name: 'Nordnet Sverige Index', schedule: [4.0, 5.0, 5.7, 6.7, 7.5, 8.6, 9.3, 10.2, 11.1, 12.0] }
+      ]
+    };
+
+    const categoryColors = {
+      'Corporate / Credit': { bg: 'rgba(6, 182, 212, 0.15)', text: '#22d3ee', chart: 'rgba(6, 182, 212, 0.8)' },
+      'Short Duration': { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399', chart: 'rgba(16, 185, 129, 0.8)' },
+      'Sweden Index': { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', chart: 'rgba(245, 158, 11, 0.8)' },
+      'Global Index': { bg: 'rgba(99, 102, 241, 0.15)', text: '#818cf8', chart: 'rgba(99, 102, 241, 0.8)' },
+      'Cash': { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8', chart: 'rgba(148, 163, 184, 0.8)' },
+      'Energy': { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171', chart: 'rgba(239, 68, 68, 0.8)' },
+      'Materials': { bg: 'rgba(168, 85, 247, 0.15)', text: '#c084fc', chart: 'rgba(168, 85, 247, 0.8)' },
+      'Other': { bg: 'rgba(148, 163, 184, 0.1)', text: '#94a3b8', chart: 'rgba(148, 163, 184, 0.5)' },
+      'Unassigned': { bg: 'rgba(239, 68, 68, 0.15)', text: '#fca5a5', chart: 'rgba(239, 68, 68, 0.5)' }
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      checkUrlParams();
+    });
+
+    function setupEventListeners() {
+      const fileInput = document.getElementById('fileInput');
+      const dropZone = document.getElementById('dropZone');
+
+      fileInput.addEventListener('change', handleFileSelect);
+      
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+      dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+      document.getElementById('brokerageFilter').addEventListener('change', renderHoldingsTable);
+      document.getElementById('categoryFilter').addEventListener('change', renderHoldingsTable);
+    }
+
+    function checkUrlParams() {
+      if (window.location.search.includes('demo')) loadDemoData();
+    }
+
+    // --- Import / Export Logic ---
+
+    function exportData() {
+        if (snapshots.length === 0) {
+            alert("No data to export.");
+            return;
+        }
+
+        try {
+            // Prepare data
+            const dataStr = JSON.stringify(snapshots, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            // Create link
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Generate filename
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.download = `portfolio_data_${dateStr}.json`;
+            
+            // Add to body (required for Firefox/Edge)
+            document.body.appendChild(a);
+            
+            // Trigger download
+            a.click();
+            
+            // Cleanup: Remove element after a short delay to ensure download starts
+            setTimeout(() => {
+                document.body.removeChild(a);
+                // Note: Not revoking URL immediately to ensure slow browsers have time to grab it
+                // window.URL.revokeObjectURL(url); 
+            }, 100);
+
+        } catch (err) {
+            console.error("Export failed", err);
+            alert("Failed to export data. Error: " + err.message);
+        }
+    }
+
+    function handleDataImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (Array.isArray(importedData)) {
+                    if (importedData[0].date && importedData[0].holdings) {
+                        importedData.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                        snapshots = importedData;
+                        snapshots.sort((a, b) => a.date - b.date);
+                        currentSnapshot = snapshots[snapshots.length - 1];
+                        showDashboard();
+                        alert("Data imported successfully!");
+                    } else { alert("Invalid JSON structure."); }
+                } else { alert("Invalid JSON format."); }
+            } catch (err) { console.error(err); alert("Failed to parse JSON file."); }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    // --- End Import / Export ---
+
+    function handleFileSelect(e) {
+      handleFiles(e.target.files);
+      e.target.value = '';
+    }
+
+    async function handleFiles(files) {
+      let filesProcessed = 0;
+      for (const file of files) {
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          try {
+            const text = await file.text();
+            const data = parseCSV(text);
+            if (data) { snapshots.push(data); filesProcessed++; }
+          } catch (err) { console.error("Error processing file:", err); }
+        }
+      }
+      if (filesProcessed > 0) {
+        snapshots.sort((a, b) => a.date - b.date);
+        currentSnapshot = snapshots[snapshots.length - 1];
+        showDashboard();
+      }
+    }
+
+    function isInSchedule(name, broker) {
+        const schedule = rebalancingSchedule[broker.toLowerCase()];
+        if (!schedule) return false;
+        return schedule.some(s => s.name === name || name.includes(s.name) || s.name.includes(name));
+    }
+
+    function findBucketForName(name, broker) {
+        const schedule = rebalancingSchedule[broker.toLowerCase()];
+        if (!schedule) return 0; 
+        const item = schedule.find(s => s.name === name || name.includes(s.name) || s.name.includes(name));
+        return item ? item.bucket : 0; 
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return null;
+
+      const holdings = [];
+      let totalValue = 0, nordnetValue = 0, avanzaValue = 0, snapshotDate = null;
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+
+        const parts = line.split('|');
+        const dataStr = parts.length > 1 ? parts[1].trim() : line;
+        const fields = dataStr.split(';');
+        
+        if (fields.length >= 7) {
+          const date = parseDate(fields[0]);
+          if (!snapshotDate) snapshotDate = date;
+          
+          const name = fields[1].trim();
+          const brokerage = fields[2].trim();
+          const rawCategory = fields[3].trim();
+          
+          holdings.push({
+            name: name,
+            brokerage: brokerage,
+            category: rawCategory || "Unassigned",
+            value: parseFloat(fields[4]) || 0,
+            percentage: parseFloat(fields[5]) || 0,
+            bucket: findBucketForName(name, brokerage),
+            isScheduled: isInSchedule(name, brokerage)
+          });
+          
+          totalValue = parseFloat(fields[6]) || 0;
+          nordnetValue = parseFloat(fields[7]) || 0;
+          avanzaValue = parseFloat(fields[8]) || 0;
+        }
+      }
+
+      if (!snapshotDate || holdings.length === 0) return null;
+      return { date: snapshotDate, dateStr: formatDate(snapshotDate), holdings, totalValue, nordnetValue, avanzaValue };
+    }
+
+    function parseDate(dateStr) {
+      const parts = dateStr.trim().split('-');
+      if (parts.length === 3) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      return new Date(dateStr);
+    }
+
+    function formatDate(date) { return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function formatCurrency(value) { return 'SEK ' + value.toLocaleString('sv-SE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+
+    function showDashboard() {
+      document.getElementById('uploadSection').classList.add('hidden');
+      document.getElementById('snapshotsBar').classList.remove('hidden');
+      document.getElementById('statsGrid').classList.remove('hidden');
+      document.getElementById('tabsSection').classList.remove('hidden');
+      renderSnapshotChips();
+      updateStats();
+      switchTab('overview');
+      populateFilters();
+      populateCompareSelects();
+      checkUnassigned();
+    }
+
+    function checkUnassigned() {
+        const unassigned = currentSnapshot.holdings.filter(h => !h.isScheduled);
+        const warningDiv = document.getElementById('unassignedWarning');
+        const countSpan = document.getElementById('unassignedCount');
+        
+        if (unassigned.length > 0) {
+            countSpan.textContent = unassigned.length;
+            warningDiv.classList.remove('hidden');
+        } else {
+            warningDiv.classList.add('hidden');
+        }
+    }
+
+    function filterUnassigned() {
+        document.getElementById('categoryFilter').value = 'all';
+        document.getElementById('brokerageFilter').value = 'all';
+        switchTab('holdings');
+        renderHoldingsTable(true);
+    }
+
+    function renderSnapshotChips() {
+      const container = document.getElementById('snapshotChips');
+      container.innerHTML = '';
+      snapshots.forEach((snapshot, index) => {
+        const chip = document.createElement('button');
+        chip.className = `snapshot-chip ${snapshot === currentSnapshot ? 'active' : ''}`;
+        chip.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> ${snapshot.dateStr} <svg class="w-3 h-3 ml-1 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" onclick="event.stopPropagation(); deleteSnapshot(${index})"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
+        chip.onclick = () => selectSnapshot(index);
+        container.appendChild(chip);
+      });
+    }
+
+    function deleteSnapshot(index) {
+      if (snapshots.length <= 1) {
+        alert("Cannot delete the last snapshot. Use Import Data to replace it.");
+        return;
+      }
+      if (confirm(`Delete snapshot from ${snapshots[index].dateStr}?`)) {
+        snapshots.splice(index, 1);
+        currentSnapshot = snapshots[snapshots.length - 1];
+        renderSnapshotChips();
+        updateStats();
+        updateCharts();
+        renderHoldingsTable();
+        populateCompareSelects();
+        checkUnassigned();
+      }
+    }
+
+    function selectSnapshot(index) {
+      currentSnapshot = snapshots[index];
+      renderSnapshotChips();
+      updateStats();
+      updateCharts();
+      renderHoldingsTable();
+      checkUnassigned();
+      if (!document.getElementById('rebalancingTab').classList.contains('hidden')) renderRebalancingTables();
+    }
+
+    function updateStats() {
+      if (!currentSnapshot) return;
+      document.getElementById('totalValue').textContent = formatCurrency(currentSnapshot.totalValue);
+      document.getElementById('nordnetValue').textContent = formatCurrency(currentSnapshot.nordnetValue);
+      document.getElementById('avanzaValue').textContent = formatCurrency(currentSnapshot.avanzaValue);
+      document.getElementById('holdingsCount').textContent = currentSnapshot.holdings.length;
+      
+      const nordnetPercent = ((currentSnapshot.nordnetValue / currentSnapshot.totalValue) * 100).toFixed(1);
+      const avanzaPercent = ((currentSnapshot.avanzaValue / currentSnapshot.totalValue) * 100).toFixed(1);
+      document.getElementById('nordnetPercent').textContent = `${nordnetPercent}% of total`;
+      document.getElementById('avanzaPercent').textContent = `${avanzaPercent}% of total`;
+
+      const reference = snapshots.find(s => s.date.getTime() === referenceDate.getTime());
+      if (reference && currentSnapshot !== reference) {
+        const change = currentSnapshot.totalValue - reference.totalValue;
+        const changePercent = ((change / reference.totalValue) * 100).toFixed(2);
+        const changeEl = document.getElementById('totalChange');
+        changeEl.textContent = `${changePercent > 0 ? '+' : ''}${formatCurrency(change)} (${changePercent > 0 ? '+' : ''}${changePercent}%)`;
+        changeEl.className = `text-sm mt-1 ${change >= 0 ? 'change-positive' : 'change-negative'}`;
+      } else {
+        document.getElementById('totalChange').textContent = 'Reference point';
+        document.getElementById('totalChange').className = 'text-sm mt-1 text-[var(--fg-muted)]';
+      }
+      document.getElementById('lastUpdated').textContent = `Updated: ${currentSnapshot.dateStr}`;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+      const activePanel = document.getElementById(`${tabId}Tab`);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      if (tabId === 'overview') setTimeout(() => { renderDistributionChart(); renderBrokerageChart(); renderCategoryBreakdown(); }, 100);
+      else if (tabId === 'evolution') setTimeout(() => { renderEvolutionChart(); renderCategoryEvolutionChart(); }, 100);
+      else if (tabId === 'rebalancing') renderRebalancingTables();
+      else if (tabId === 'comparison') populateCompareSelects();
+    }
+
+    // --- EDITING LOGIC ---
+
+    function handleCategoryChange(index, newCategory) {
+        currentSnapshot.holdings[index].category = newCategory;
+        populateFilters();
+        renderCategoryBreakdown(); 
+        renderDistributionChart();
+    }
+
+    function handleBucketChange(index, newBucket) {
+        currentSnapshot.holdings[index].bucket = parseInt(newBucket);
+        renderRebalancingTables(); 
+        renderHoldingsTable();
+    }
+
+    // --- END EDITING LOGIC ---
+
+    function renderRebalancingTables() {
+        const avanzaBody = document.getElementById('avanzaRebalanceTable');
+        const nordnetBody = document.getElementById('nordnetRebalanceTable');
+        
+        const calculateCurrent = (broker) => {
+            if(!currentSnapshot) return { assets: {}, unscheduled: [], totalBrokerValue: 0 };
+            
+            const brokerHoldings = currentSnapshot.holdings.filter(h => h.brokerage === broker);
+            const totalBrokerValue = broker === 'Nordnet' ? currentSnapshot.nordnetValue : currentSnapshot.avanzaValue;
+            
+            const assets = {};
+            const unscheduled = [];
+            
+            const scheduleKeys = rebalancingSchedule[broker.toLowerCase()].map(s => s.name);
+            
+            brokerHoldings.forEach(h => {
+                const match = scheduleKeys.find(key => h.name === key || h.name.includes(key) || key.includes(h.name));
+                
+                if (match) {
+                    if(!assets[match]) assets[match] = 0;
+                    assets[match] += (h.value / totalBrokerValue) * 100;
+                } else {
+                    unscheduled.push({
+                        name: h.name,
+                        bucket: h.bucket || 0,
+                        val: (h.value / totalBrokerValue) * 100
+                    });
+                }
+            });
+            
+            return { assets, unscheduled, totalBrokerValue };
+        };
+
+        const renderTable = (body, broker, scheduleData) => {
+            const currentData = calculateCurrent(broker);
+            body.innerHTML = '';
+            
+            let currentSum = 0;
+
+            scheduleData.forEach(item => {
+                const currentVal = currentData.assets[item.name] || 0;
+                currentSum += currentVal;
+                
+                const row = document.createElement('tr');
+                let cells = `<td class="font-medium">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>`;
+                
+                cells += `<td class="text-right font-mono">${currentVal.toFixed(1)}%</td>`;
+                item.schedule.forEach((val, idx) => {
+                    const isHighlight = (idx === 0 || idx === 9);
+                    cells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">${val.toFixed(1)}%</td>`;
+                });
+                
+                row.innerHTML = cells;
+                body.appendChild(row);
+            });
+
+            // Unscheduled Holdings (Individual Rows)
+            currentData.unscheduled
+              .sort((a, b) => {
+                  if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+                  return a.name.localeCompare(b.name);
+              })
+              .forEach(item => {
+                  currentSum += item.val;
+                  
+                  const bucket = BUCKETS[item.bucket];
+                  const otherRow = document.createElement('tr');
+                  let otherCells = `<td class="font-medium text-[var(--fg-muted)]">${item.name} <span class="badge ${bucket.class} ml-2">B${item.bucket}</span></td>`;
+                  
+                  otherCells += `<td class="text-right font-mono">${item.val.toFixed(1)}%</td>`;
+                  
+                  for(let i=0; i<10; i++) {
+                      const isHighlight = (i === 0 || i === 9);
+                      otherCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">0.0%</td>`;
+                  }
+                  otherRow.innerHTML = otherCells;
+                  body.appendChild(otherRow);
+              });
+
+            const sumRow = document.createElement('tr');
+            sumRow.className = 'sum-row';
+            let sumCells = `<td>TOTAL</td>`;
+            sumCells += `<td class="text-right font-mono">${currentSum.toFixed(1)}%</td>`;
+            for(let i=0; i<10; i++) {
+                const isHighlight = (i === 0 || i === 9);
+                sumCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : ''}">100.0%</td>`;
+            }
+            sumRow.innerHTML = sumCells;
+            body.appendChild(sumRow);
+        };
+
+        renderTable(avanzaBody, 'Avanza', rebalancingSchedule.avanza);
+        renderTable(nordnetBody, 'Nordnet', rebalancingSchedule.nordnet);
+        
+        // Render bucket summaries
+        renderBucketSummary('avanza', 'avanzaSummary', rebalancingSchedule.avanza);
+        renderBucketSummary('nordnet', 'nordnetSummary', rebalancingSchedule.nordnet);
+    }
+
+    function renderBucketSummary(broker, elementId, scheduleData) {
+        const container = document.getElementById(elementId);
+        if (!container || !currentSnapshot) return;
+
+        const calculateCurrent = (broker) => {
+            const brokerHoldings = currentSnapshot.holdings.filter(h => h.brokerage.toLowerCase() === broker);
+            const totalBrokerValue = broker === 'nordnet' ? currentSnapshot.nordnetValue : currentSnapshot.avanzaValue;
+            
+            const bucketTotals = { 0: 0, 1: 0, 2: 0, 3: 0 };
+            const scheduleKeys = scheduleData.map(s => s.name);
+            
+            brokerHoldings.forEach(h => {
+                const match = scheduleKeys.find(key => h.name === key || h.name.includes(key) || key.includes(h.name));
+                if (match) {
+                    const item = scheduleData.find(s => s.name === match);
+                    bucketTotals[item.bucket] += (h.value / totalBrokerValue) * 100;
+                } else {
+                    bucketTotals[h.bucket || 0] += (h.value / totalBrokerValue) * 100;
+                }
+            });
+
+            return { bucketTotals, totalBrokerValue };
+        };
+
+        const getTargetTotals = () => {
+            const bucketTargetsM1 = { 0: 0, 1: 0, 2: 0, 3: 0 };
+            const bucketTargetsFinal = { 0: 0, 1: 0, 2: 0, 3: 0 };
+            scheduleData.forEach(item => {
+                bucketTargetsM1[item.bucket] += item.schedule[0]; // M1 target
+                bucketTargetsFinal[item.bucket] += item.schedule[9]; // Final target (M10)
+            });
+            return { m1: bucketTargetsM1, final: bucketTargetsFinal };
+        };
+
+        const data = calculateCurrent(broker);
+        const targets = getTargetTotals();
+
+        const bucketNames = {
+            0: { name: 'Sell/Other', color: '#f87171' },
+            1: { name: 'Cash/Short', color: '#22d3ee' },
+            2: { name: 'Credit', color: '#fbbf24' },
+            3: { name: 'Equity', color: '#34d399' }
+        };
+
+        container.innerHTML = Object.entries(bucketNames).map(([bucket, info]) => {
+            const current = data.bucketTotals[bucket];
+            const targetM1 = targets.m1[bucket];
+            const targetFinal = targets.final[bucket];
+            const diffM1 = current - targetM1;
+            const diffClass = diffM1 >= 0 ? 'text-emerald-400' : 'text-red-400';
+            const diffSign = diffM1 >= 0 ? '+' : '';
+
+            return `
+                <div class="p-2 bg-[var(--bg-elevated)] rounded">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-3 h-3 rounded-full" style="background: ${info.color}"></span>
+                        <span class="text-sm font-medium">${info.name}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div class="text-center">
+                            <div class="text-[var(--fg-muted)]">Current</div>
+                            <div class="text-sm font-mono">${current.toFixed(1)}%</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[var(--fg-muted)]">M1 Target</div>
+                            <div class="text-sm font-mono">${targetM1.toFixed(1)}%</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-[var(--fg-muted)]">Final Target</div>
+                            <div class="text-sm font-mono">${targetFinal.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-center mt-1 ${diffClass}">${diffSign}${diffM1.toFixed(1)}% vs M1 target</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderDistributionChart() {
+      const ctx = document.getElementById('distributionChart');
+      if (!ctx || !currentSnapshot) return;
+      const categories = {};
+      currentSnapshot.holdings.forEach(h => { if (!categories[h.category]) categories[h.category] = 0; categories[h.category] += h.value; });
+      const labels = Object.keys(categories);
+      const data = Object.values(categories);
+      const colors = labels.map(cat => categoryColors[cat]?.chart || 'rgba(148, 163, 184, 0.8)');
+      if (distributionChart) distributionChart.destroy();
+      distributionChart = new Chart(ctx, {
+        type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 }, padding: 12, usePointStyle: true, pointStyle: 'circle' } } } }
+      });
+    }
+
+    function renderBrokerageChart() {
+      const ctx = document.getElementById('brokerageChart');
+      if (!ctx || !currentSnapshot) return;
+      if (brokerageChart) brokerageChart.destroy();
+      brokerageChart = new Chart(ctx, {
+        type: 'doughnut', data: { labels: ['Nordnet', 'Avanza'], datasets: [{ data: [currentSnapshot.nordnetValue, currentSnapshot.avanzaValue], backgroundColor: ['rgba(6, 182, 212, 0.8)', 'rgba(16, 185, 129, 0.8)'], borderWidth: 0, hoverOffset: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 }, padding: 12, usePointStyle: true, pointStyle: 'circle' } } } }
+      });
+    }
+
+    function renderCategoryBreakdown() {
+      const container = document.getElementById('categoryBreakdown');
+      if (!container || !currentSnapshot) return;
+      const categories = {};
+      currentSnapshot.holdings.forEach(h => { if (!categories[h.category]) categories[h.category] = { value: 0, holdings: [] }; categories[h.category].value += h.value; categories[h.category].holdings.push(h); });
+      const sorted = Object.entries(categories).sort((a, b) => b[1].value - a[1].value);
+      const total = currentSnapshot.totalValue;
+      container.innerHTML = sorted.map(([cat, data]) => {
+        const percent = ((data.value / total) * 100).toFixed(1);
+        const color = categoryColors[cat] || { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8', chart: 'rgba(148, 163, 184, 0.8)' };
+        return `<div class="bg-[var(--bg-secondary)] rounded-lg p-4"><div class="flex items-center justify-between mb-2"><span class="badge" style="background: ${color.bg}; color: ${color.text}">${cat}</span><span class="text-sm text-[var(--fg-muted)]">${data.holdings.length} holdings</span></div><div class="flex items-end justify-between mb-2"><span class="text-xl font-bold">${formatCurrency(data.value)}</span><span class="text-lg font-semibold">${percent}%</span></div><div class="progress-bar"><div class="progress-fill" style="width: ${percent}%; background: ${color.chart}"></div></div></div>`;
+      }).join('');
+    }
+
+    function renderEvolutionChart() {
+      const ctx = document.getElementById('evolutionChart');
+      if (!ctx || snapshots.length < 2) {
+        if (ctx) {
+          const parent = ctx.parentElement;
+          parent.innerHTML = '<div class="flex items-center justify-center h-full text-[var(--fg-muted)]"><p>At least 2 snapshots needed to show evolution</p></div>';
+        }
+        return;
+      }
+
+      if (evolutionChart) evolutionChart.destroy();
+
+      const labels = snapshots.map(s => s.dateStr);
+      const data = snapshots.map(s => s.totalValue);
+      const nordnetData = snapshots.map(s => s.nordnetValue);
+      const avanzaData = snapshots.map(s => s.avanzaValue);
+
+      evolutionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Total', data, borderColor: 'rgba(16, 185, 129, 1)', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 },
+            { label: 'Nordnet', data: nordnetData, borderColor: 'rgba(6, 182, 212, 1)', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.3 },
+            { label: 'Avanza', data: avanzaData, borderColor: 'rgba(16, 185, 129, 0.7)', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans' } } } },
+          scales: {
+            x: { grid: { color: 'rgba(45, 58, 82, 0.5)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(45, 58, 82, 0.5)' }, ticks: { color: '#94a3b8', callback: (v) => 'SEK ' + (v / 1e6).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+
+    function renderCategoryEvolutionChart() {
+      const ctx = document.getElementById('categoryEvolutionChart');
+      if (!ctx || snapshots.length < 2) {
+        if (ctx) {
+          const parent = ctx.parentElement;
+          parent.innerHTML = '<div class="flex items-center justify-center h-full text-[var(--fg-muted)]"><p>At least 2 snapshots needed to show evolution</p></div>';
+        }
+        return;
+      }
+
+      if (categoryEvolutionChart) categoryEvolutionChart.destroy();
+
+      const labels = snapshots.map(s => s.dateStr);
+      const allCategories = [...new Set(snapshots.flatMap(s => s.holdings.map(h => h.category)))];
+      
+      const datasets = allCategories.map(cat => {
+        const data = snapshots.map(s => {
+          return s.holdings.filter(h => h.category === cat).reduce((sum, h) => sum + h.value, 0);
+        });
+        const color = categoryColors[cat] || { chart: 'rgba(148, 163, 184, 0.8)' };
+        return { label: cat, data, borderColor: color.chart, backgroundColor: 'transparent', tension: 0.3 };
+      });
+
+      categoryEvolutionChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 10 }, usePointStyle: true, pointStyle: 'circle' } } },
+          scales: {
+            x: { grid: { color: 'rgba(45, 58, 82, 0.5)' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: 'rgba(45, 58, 82, 0.5)' }, ticks: { color: '#94a3b8', callback: (v) => 'SEK ' + (v / 1e6).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+
+    function populateFilters() {
+      const categoryFilter = document.getElementById('categoryFilter');
+      const currentCategories = [...new Set(currentSnapshot.holdings.map(h => h.category))];
+      const allCategories = [...new Set([...CATEGORIES, ...currentCategories])].sort();
+      if (allCategories.includes('Unassigned')) {
+        const idx = allCategories.indexOf('Unassigned');
+        allCategories.splice(idx, 1);
+        allCategories.push('Unassigned');
+      }
+      categoryFilter.innerHTML = '<option value="all">All Categories</option>' + allCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+
+    function populateCompareSelects() {
+      const fromSelect = document.getElementById('compareFrom');
+      const toSelect = document.getElementById('compareTo');
+      if (!fromSelect || !toSelect || snapshots.length < 1) return;
+
+      fromSelect.innerHTML = snapshots.map((s, i) => `<option value="${i}">${s.dateStr}</option>`).join('');
+      toSelect.innerHTML = snapshots.map((s, i) => `<option value="${i}" ${i === snapshots.length - 1 ? 'selected' : ''}>${s.dateStr}</option>`).join('');
+    }
+
+    function updateCharts() {
+      if (!document.getElementById('overviewTab').classList.contains('hidden')) {
+        renderDistributionChart();
+        renderBrokerageChart();
+        renderCategoryBreakdown();
+      }
+      if (!document.getElementById('evolutionTab').classList.contains('hidden')) {
+        renderEvolutionChart();
+        renderCategoryEvolutionChart();
+      }
+    }
+
+    function renderHoldingsTable(filterUnassignedFlag = false) {
+      const tbody = document.getElementById('holdingsTable');
+      if (!tbody || !currentSnapshot) return;
+      
+      const brokerageFilter = document.getElementById('brokerageFilter').value;
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      
+      let filtered = [...currentSnapshot.holdings];
+      
+      if (brokerageFilter !== 'all') filtered = filtered.filter(h => h.brokerage === brokerageFilter);
+      if (categoryFilter !== 'all') filtered = filtered.filter(h => h.category === categoryFilter);
+      if (filterUnassignedFlag) filtered = filtered.filter(h => !h.isScheduled);
+      
+      filtered.sort((a, b) => b.value - a.value);
+      
+      const reference = snapshots.find(s => s.date.getTime() === referenceDate.getTime());
+      
+      tbody.innerHTML = filtered.map((h) => {
+        const originalIndex = currentSnapshot.holdings.findIndex(oh => oh === h);
+        const color = categoryColors[h.category] || { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' };
+        
+        const statusBadge = h.isScheduled ? '' : `<span class="badge badge-unassigned">OTHER</span>`;
+        const rowClass = !h.isScheduled ? 'highlight-row' : '';
+
+        const catOptions = CATEGORIES.map(c => `<option value="${c}" ${h.category === c ? 'selected' : ''}>${c}</option>`).join('');
+        const catSelect = `<select class="edit-select" onchange="handleCategoryChange(${originalIndex}, this.value)">${catOptions}</select>`;
+        
+        const bucketOptions = Object.entries(BUCKETS).map(([k, v]) => `<option value="${k}" ${h.bucket == k ? 'selected' : ''}>B${k}: ${v.name}</option>`).join('');
+        const bucketSelect = `<select class="edit-select" onchange="handleBucketChange(${originalIndex}, this.value)">${bucketOptions}</select>`;
+
+        let changeCell = '<td class="text-[var(--fg-muted)]">--</td>';
+        if (reference && currentSnapshot !== reference) {
+          const refHolding = reference.holdings.find(rh => rh.name === h.name && rh.brokerage === h.brokerage);
+          if (refHolding) {
+            const change = h.value - refHolding.value;
+            const changePercent = ((change / refHolding.value) * 100).toFixed(2);
+            changeCell = `<td class="${change >= 0 ? 'change-positive' : 'change-negative'}">${change >= 0 ? '+' : ''}${formatCurrency(change)} (${changePercent > 0 ? '+' : ''}${changePercent}%)</td>`;
+          }
+        }
+        
+        return `<tr class="${rowClass}">
+            <td>${statusBadge}</td>
+            <td class="font-medium">${h.name}</td>
+            <td>${h.brokerage}</td>
+            <td>${catSelect}</td>
+            <td>${bucketSelect}</td>
+            <td class="font-mono">${formatCurrency(h.value)}</td>
+            <td class="font-mono">${h.percentage.toFixed(2)}%</td>
+            ${changeCell}
+        </tr>`;
+      }).join('');
+    }
+
+    // --- COMPARISON LOGIC (FIXED) ---
+    
+    function runComparison() {
+      const fromIndex = parseInt(document.getElementById('compareFrom').value); 
+      const toIndex = parseInt(document.getElementById('compareTo').value);
+      if (fromIndex === toIndex) return;
+      
+      const fromSnapshot = snapshots[fromIndex]; 
+      const toSnapshot = snapshots[toIndex];
+      
+      const valueChange = toSnapshot.totalValue - fromSnapshot.totalValue; 
+      const valueChangePercent = ((valueChange / fromSnapshot.totalValue) * 100).toFixed(2);
+      
+      document.getElementById('comparisonSummary').innerHTML = `
+        <div class="flex justify-between items-center py-2 border-b border-[var(--border)]"><span class="text-[var(--fg-muted)]">From</span><span class="font-medium">${fromSnapshot.dateStr}</span></div>
+        <div class="flex justify-between items-center py-2 border-b border-[var(--border)]"><span class="text-[var(--fg-muted)]">To</span><span class="font-medium">${toSnapshot.dateStr}</span></div>
+        <div class="flex justify-between items-center py-2 border-b border-[var(--border)]"><span class="text-[var(--fg-muted)]">Starting Value</span><span class="font-mono">${formatCurrency(fromSnapshot.totalValue)}</span></div>
+        <div class="flex justify-between items-center py-2 border-b border-[var(--border)]"><span class="text-[var(--fg-muted)]">Ending Value</span><span class="font-mono">${formatCurrency(toSnapshot.totalValue)}</span></div>
+        <div class="flex justify-between items-center py-2"><span class="text-[var(--fg-muted)]">Total Change</span><span class="font-bold ${valueChange >= 0 ? 'change-positive' : 'change-negative'}">${valueChange >= 0 ? '+' : ''}${formatCurrency(valueChange)} (${valueChangePercent}%)</span></div>
+      `;
+
+      const changes = []; 
+      const processedKeys = new Set();
+
+      // 1. Process holdings currently in 'To' snapshot
+      toSnapshot.holdings.forEach(h => {
+          const key = `${h.name}-${h.brokerage}`;
+          processedKeys.add(key);
+          
+          const fromHolding = fromSnapshot.holdings.find(fh => fh.name === h.name && fh.brokerage === h.brokerage);
+          
+          let changeData;
+          
+          if (fromHolding) {
+              // Existing holding
+              const change = h.value - fromHolding.value;
+              const changePercent = fromHolding.value > 0 ? ((change / fromHolding.value) * 100).toFixed(2) : (h.value > 0 ? 100 : 0).toFixed(2);
+              changeData = {
+                  name: h.name,
+                  category: h.category,
+                  fromValue: fromHolding.value,
+                  toValue: h.value,
+                  change,
+                  changePercent,
+                  status: 'held'
+              };
+          } else {
+              // NEW holding
+              changeData = {
+                  name: h.name,
+                  category: h.category,
+                  fromValue: 0,
+                  toValue: h.value,
+                  change: h.value,
+                  changePercent: 'NEW',
+                  status: 'new'
+              };
+          }
+          changes.push(changeData);
+      });
+
+      // 2. Process holdings that were in 'From' but not in 'To' (SOLD)
+      fromSnapshot.holdings.forEach(h => {
+          const key = `${h.name}-${h.brokerage}`;
+          
+          if (!processedKeys.has(key)) {
+              changes.push({
+                  name: h.name,
+                  category: h.category,
+                  fromValue: h.value,
+                  toValue: 0,
+                  change: -h.value,
+                  changePercent: 'SOLD',
+                  status: 'sold'
+              });
+          }
+      });
+      
+      // Sort by magnitude of change
+      changes.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+
+      document.getElementById('comparisonTable').innerHTML = changes.map(c => { 
+          const color = categoryColors[c.category] || { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' }; 
+          
+          let changeDisplay;
+          let changePercentDisplay;
+
+          if (c.status === 'new') {
+              changeDisplay = `<span class="badge badge-new">NEW</span>`;
+              changePercentDisplay = `<span class="badge badge-bucket-3">+100%</span>`;
+          } else if (c.status === 'sold') {
+              changeDisplay = `<span class="badge badge-sell">SOLD</span>`;
+              changePercentDisplay = `<span class="badge badge-sell">-100%</span>`;
+          } else {
+              changeDisplay = `<span class="${c.change >= 0 ? 'change-positive' : 'change-negative'}">${c.change >= 0 ? '+' : ''}${formatCurrency(c.change)}</span>`;
+              changePercentDisplay = `<span class="${c.change >= 0 ? 'change-positive' : 'change-negative'}">${c.changePercent > 0 ? '+' : ''}${c.changePercent}%</span>`;
+          }
+
+          return `<tr>
+              <td class="font-medium">${c.name}</td>
+              <td><span class="badge" style="background: ${color.bg}; color: ${color.text}">${c.category}</span></td>
+              <td class="font-mono">${formatCurrency(c.fromValue)}</td>
+              <td class="font-mono">${formatCurrency(c.toValue)}</td>
+              <td class="font-mono">${changeDisplay}</td>
+              <td class="font-mono">${changePercentDisplay}</td>
+          </tr>`; 
+      }).join('');
+    }
+
+    function loadDemoData() {
+      const demoData1 = { 
+          date: new Date(2026, 2, 22), 
+          dateStr: 'Mar 22, 2026', 
+          holdings: [ 
+              { name: 'AMF Företagsobligationsfond', brokerage: 'Avanza', category: 'Corporate / Credit', value: 4907776.25, percentage: 23.51, bucket: 2, isScheduled: true }, 
+              { name: 'AMF Räntefond Kort', brokerage: 'Avanza', category: 'Short Duration', value: 3551980.95, percentage: 17.02, bucket: 1, isScheduled: true }, 
+              { name: 'Avanza Ränta Kort', brokerage: 'Avanza', category: 'Short Duration', value: 2903968.27, percentage: 13.91, bucket: 1, isScheduled: true }, 
+              { name: 'AMF Företagsobligationsfond', brokerage: 'Nordnet', category: 'Corporate / Credit', value: 1982381.25, percentage: 9.50, bucket: 0, isScheduled: false }, 
+              { name: 'AMF Räntefond Kort', brokerage: 'Nordnet', category: 'Short Duration', value: 1541640.45, percentage: 7.39, bucket: 0, isScheduled: false }, 
+              { name: 'SEB FRN Fond A', brokerage: 'Nordnet', category: 'Short Duration', value: 1534563.61, percentage: 7.35, bucket: 1, isScheduled: true }, 
+              { name: 'Spiltan Räntefond Sverige', brokerage: 'Nordnet', category: 'Short Duration', value: 1213850.54, percentage: 5.81, bucket: 1, isScheduled: true }, 
+              { name: 'Pareto Räntefond A', brokerage: 'Nordnet', category: 'Short Duration', value: 1002001.86, percentage: 4.80, bucket: 2, isScheduled: true }, 
+              { name: 'SEB FRN Fond A', brokerage: 'Avanza', category: 'Short Duration', value: 518874.34, percentage: 2.49, bucket: 1, isScheduled: true }, 
+              { name: 'Avanza Zero', brokerage: 'Avanza', category: 'Sweden Index', value: 486490.07, percentage: 2.33, bucket: 3, isScheduled: true }, 
+              { name: 'Pareto Räntefond A', brokerage: 'Avanza', category: 'Short Duration', value: 371892.10, percentage: 1.78, bucket: 2, isScheduled: true }, 
+              { name: 'AMF Räntefond Mix', brokerage: 'Avanza', category: 'Short Duration', value: 239088.07, percentage: 1.15, bucket: 1, isScheduled: true }, 
+              { name: 'Cash', brokerage: 'Nordnet', category: 'Cash', value: 176160.11, percentage: 0.84, bucket: 1, isScheduled: true }, 
+              { name: 'Nordnet Sverige Index', brokerage: 'Nordnet', category: 'Sweden Index', value: 122526.16, percentage: 0.59, bucket: 3, isScheduled: true }, 
+              { name: 'Range Resources', brokerage: 'Avanza', category: 'Energy', value: 120483.68, percentage: 0.58, bucket: 0, isScheduled: true }, 
+              { name: 'Avanza Global', brokerage: 'Avanza', category: 'Global Index', value: 111091.27, percentage: 0.53, bucket: 3, isScheduled: true }, 
+              { name: 'Nordea Global Passive A Acc SEK', brokerage: 'Nordnet', category: 'Global Index', value: 59593.13, percentage: 0.29, bucket: 3, isScheduled: true }, 
+              { name: 'Newmont', brokerage: 'Avanza', category: 'Materials', value: 30430.39, percentage: 0.15, bucket: 0, isScheduled: true } 
+          ], 
+          totalValue: 20874792.50, 
+          nordnetValue: 7632717.11, 
+          avanzaValue: 13242075.39 
+      };
+
+      snapshots = [demoData1]; 
+      currentSnapshot = demoData1; 
+      showDashboard();
+    }
+  </script>
+</body>
+</html>
