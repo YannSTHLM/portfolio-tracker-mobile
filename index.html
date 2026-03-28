@@ -282,6 +282,24 @@
     select.edit-select:hover { border-color: var(--accent-primary); }
     select.edit-select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
 
+    .perf-period-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--fg-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .perf-period-btn.active {
+      background: var(--bg-elevated);
+      color: var(--fg-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .perf-period-btn:hover:not(.active) { color: var(--fg-secondary); }
+
   </style>
 </head>
 <body class="bg-grid">
@@ -582,31 +600,95 @@
         </div>
         <!-- Analytics Tab -->
         <div id="analyticsTab" class="tab-panel hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div class="card p-6 animate-fade-in">
-                    <h3 class="text-lg font-semibold mb-2">Correlation Matrix</h3>
-                    <p class="text-sm text-[var(--fg-muted)] mb-4">How categories move together across snapshots (Pearson correlation). Values range from -1 (inverse) to +1 (perfect sync).</p>
-                    <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin">
-                        <div class="flex items-center justify-center h-64 text-[var(--fg-muted)]">
-                            <p>At least 2 snapshots needed</p>
-                        </div>
-                    </div>
+            <!-- Upload Zone for Historical Performance -->
+            <div id="perfUploadCard" class="card p-6 mb-6 animate-fade-in">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                  <h3 class="text-lg font-semibold">Historical Performance Data</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">Upload a CSV with asset returns (European format: comma as decimal separator)</p>
                 </div>
-                <div class="card p-6 animate-fade-in">
-                    <h3 class="text-lg font-semibold mb-2">Risk vs. Return</h3>
-                    <p class="text-sm text-[var(--fg-muted)] mb-4">Category volatility (std dev of % changes) vs. cumulative return across snapshots.</p>
-                    <div class="h-80"><canvas id="riskReturnChart"></canvas></div>
+                <div class="flex gap-2">
+                  <button onclick="document.getElementById('perfFileInput').click()" class="btn-primary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Upload CSV
+                  </button>
+                  <input type="file" id="perfFileInput" accept=".csv">
+                  <button onclick="clearPerformanceData()" class="btn-secondary flex items-center gap-2 text-sm" id="clearPerfBtn" style="display:none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Clear
+                  </button>
                 </div>
+              </div>
+              <div id="perfDropZone" class="upload-zone rounded-lg p-8 text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <p class="text-[var(--fg-muted)] mb-2">Drag and drop your performance CSV here</p>
+                <p class="text-xs text-[var(--fg-muted)]">Expected: Asset Type, Name, Country, Holding, 1 Week, 1 Month, 3 Months, 1 Year, 3 Years, 5 Years</p>
+              </div>
             </div>
-            <div class="card p-6 animate-fade-in">
-                <h3 class="text-lg font-semibold mb-2">Category Correlation Details</h3>
-                <p class="text-sm text-[var(--fg-muted)] mb-4">Percentage change per category between consecutive snapshots.</p>
-                <div class="table-container scrollbar-thin">
-                    <table>
-                        <thead id="correlationTableHead"><tr><th>Category</th></tr></thead>
-                        <tbody id="correlationTableBody"></tbody>
-                    </table>
+
+            <!-- Performance Content (hidden until data loaded) -->
+            <div id="perfContent" class="hidden">
+              <!-- Top/Bottom Performers -->
+              <div id="performerCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
+
+              <!-- Period Selector + Bar Chart -->
+              <div class="card p-6 mb-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h3 class="text-lg font-semibold">Returns Comparison</h3>
+                  <div class="flex gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
+                    <button class="perf-period-btn active" data-period="1W">1 Week</button>
+                    <button class="perf-period-btn" data-period="1M">1 Month</button>
+                    <button class="perf-period-btn" data-period="3M">3 Months</button>
+                    <button class="perf-period-btn" data-period="1Y">1 Year</button>
+                    <button class="perf-period-btn" data-period="3Y">3 Years</button>
+                    <button class="perf-period-btn" data-period="5Y">5 Years</button>
+                  </div>
                 </div>
+                <div class="h-96"><canvas id="returnsChart"></canvas></div>
+              </div>
+
+              <!-- Correlation Matrix -->
+              <div class="card p-6 mb-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h3 class="text-lg font-semibold">Asset Correlation Matrix</h3>
+                  <span class="text-xs text-[var(--fg-muted)]">Based on returns across available time periods (Pearson). <em>Note: limited data points — correlations are indicative.</em></span>
+                </div>
+                <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin"></div>
+              </div>
+
+              <!-- Heatmap -->
+              <div class="card p-6 mb-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Performance Heatmap</h3>
+                <div id="heatmapContainer" class="overflow-x-auto scrollbar-thin"></div>
+              </div>
+
+              <!-- Detailed Table -->
+              <div class="card overflow-hidden animate-fade-in">
+                <div class="p-4 border-b border-[var(--border)]">
+                  <h3 class="text-lg font-semibold">Detailed Performance Table</h3>
+                </div>
+                <div class="table-container scrollbar-thin">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Asset Name</th>
+                        <th>Country</th>
+                        <th>Holding</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1W')">1 Week ⇅</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1M')">1 Month ⇅</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3M')">3 Months ⇅</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1Y')">1 Year ⇅</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3Y')">3 Years ⇅</th>
+                        <th class="text-right cursor-pointer" onclick="sortPerfTable('5Y')">5 Years ⇅</th>
+                      </tr>
+                    </thead>
+                    <tbody id="perfTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
         </div>
       </div>
@@ -1464,8 +1546,105 @@
       }).join('');
     }
 
-    // --- ANALYTICS: Correlation Matrix & Risk/Return ---
-    let riskReturnChart = null;
+    // --- ANALYTICS: Historical Performance ---
+    let performanceData = null;
+    let returnsChart = null;
+    let perfSortKey = null;
+    let perfSortAsc = true;
+
+    const PERF_LS_KEY = 'portfolioTracker_performance';
+
+    function parsePerformanceCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return null;
+
+      const periodKeys = ['1W', '1M', '3M', '1Y', '3Y', '5Y'];
+      const periodLabels = ['1 Week', '1 Month', '3 Months', '1 Year', '3 Years', '5 Years'];
+
+      const assets = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const fields = line.split(',');
+        if (fields.length < 5) continue;
+
+        const assetType = fields[0].trim();
+        const name = fields[1].trim();
+        const country = fields[2].trim();
+        const holding = fields[3].trim();
+
+        const returns = {};
+        for (let p = 0; p < 6; p++) {
+          const idx = 4 + p * 2;
+          if (idx + 1 < fields.length) {
+            const part1 = fields[idx].trim();
+            const part2 = fields[idx + 1].trim().replace('%', '');
+            if (part1 === '' && part2 === '') {
+              returns[periodKeys[p]] = null;
+            } else {
+              const raw = part1 + '.' + part2;
+              const val = parseFloat(raw);
+              returns[periodKeys[p]] = isNaN(val) ? null : val;
+            }
+          } else {
+            returns[periodKeys[p]] = null;
+          }
+        }
+
+        assets.push({ assetType, name, country, holding, returns });
+      }
+
+      return { assets, periodKeys, periodLabels };
+    }
+
+    function loadPerformanceCSV(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = parsePerformanceCSV(e.target.result);
+          if (data && data.assets.length > 0) {
+            performanceData = data;
+            savePerformanceData();
+            renderPerformanceContent();
+          } else {
+            alert('Could not parse the CSV. Please check the format.');
+          }
+        } catch (err) {
+          console.error('Error parsing performance CSV:', err);
+          alert('Failed to parse CSV: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearPerformanceData() {
+      if (confirm('Clear all historical performance data?')) {
+        performanceData = null;
+        localStorage.removeItem(PERF_LS_KEY);
+        renderPerformanceContent();
+      }
+    }
+
+    function savePerformanceData() {
+      try {
+        if (performanceData) {
+          localStorage.setItem(PERF_LS_KEY, JSON.stringify(performanceData));
+        }
+      } catch (e) { console.warn('Failed to save performance data:', e); }
+    }
+
+    function loadPerformanceDataFromStorage() {
+      try {
+        const raw = localStorage.getItem(PERF_LS_KEY);
+        if (raw) {
+          performanceData = JSON.parse(raw);
+          return true;
+        }
+      } catch (e) { console.warn('Failed to load performance data:', e); }
+      return false;
+    }
 
     function pearsonCorrelation(x, y) {
       const n = x.length;
@@ -1484,109 +1663,338 @@
       return den === 0 ? 0 : num / den;
     }
 
-    function getCategoryPercentChanges() {
-      if (snapshots.length < 2) return {};
-      const categories = [...new Set(snapshots.flatMap(s => s.holdings.map(h => h.category)))];
-      const changes = {};
-      categories.forEach(cat => {
-        changes[cat] = [];
-        for (let i = 1; i < snapshots.length; i++) {
-          const prev = snapshots[i - 1].holdings.filter(h => h.category === cat).reduce((s, h) => s + h.value, 0);
-          const curr = snapshots[i].holdings.filter(h => h.category === cat).reduce((s, h) => s + h.value, 0);
-          changes[cat].push(prev > 0 ? ((curr - prev) / prev) * 100 : 0);
-        }
-      });
-      return changes;
-    }
-
     function renderCorrelationMatrix() {
       const container = document.getElementById('correlationMatrixContainer');
-      if (!container) return;
-      if (snapshots.length < 2) {
-        container.innerHTML = '<div class="flex items-center justify-center h-64 text-[var(--fg-muted)]"><p>At least 2 snapshots needed</p></div>';
+      if (!container || !performanceData) return;
+
+      const { assets, periodKeys } = performanceData;
+
+      // Only include assets that have at least 2 return values for meaningful correlation
+      const usable = assets.filter(a => {
+        const vals = periodKeys.map(k => a.returns[k]).filter(v => v !== null && !isNaN(v));
+        return vals.length >= 2;
+      });
+
+      if (usable.length < 2) {
+        container.innerHTML = '<div class="flex items-center justify-center h-32 text-[var(--fg-muted)]"><p>Need at least 2 assets with ≥2 return periods each</p></div>';
         return;
       }
-      const changes = getCategoryPercentChanges();
-      const cats = Object.keys(changes).sort();
-      if (cats.length < 2) {
-        container.innerHTML = '<div class="flex items-center justify-center h-64 text-[var(--fg-muted)]"><p>Need at least 2 categories</p></div>';
-        return;
-      }
-      const cellSize = Math.max(60, Math.min(80, 500 / cats.length));
-      const labelW = 120;
+
+      // Build return vectors (only overlapping non-null periods)
+      const names = usable.map(a => a.name);
+
+      const cellSize = Math.max(50, Math.min(70, 600 / usable.length));
+      const labelW = 140;
+
       let html = '<table style="border-collapse:collapse;">';
+      // Header row
       html += '<tr><td style="width:' + labelW + 'px"></td>';
-      cats.forEach(c => { html += '<td class="text-center text-xs font-medium" style="width:' + cellSize + 'px;padding:4px;writing-mode:vertical-rl;transform:rotate(180deg);max-height:90px;overflow:hidden;color:var(--fg-muted);">' + c + '</td>'; });
+      names.forEach(name => {
+        html += '<td class="text-center text-xs font-medium" style="width:' + cellSize + 'px;padding:4px;writing-mode:vertical-rl;transform:rotate(180deg);max-height:100px;overflow:hidden;color:var(--fg-muted);">' + name + '</td>';
+      });
       html += '</tr>';
-      cats.forEach((rowCat, ri) => {
-        html += '<tr><td class="text-xs pr-2 text-right" style="white-space:nowrap;color:var(--fg-muted);">' + rowCat + '</td>';
-        cats.forEach((colCat, ci) => {
-          const corr = ri === ci ? 1 : pearsonCorrelation(changes[rowCat], changes[colCat]);
-          const abs = Math.abs(corr);
-          let bg;
-          if (corr >= 0) bg = 'rgba(16,185,129,' + (abs * 0.5) + ')';
-          else bg = 'rgba(239,68,68,' + (abs * 0.5) + ')';
-          html += '<td class="text-center font-mono text-xs" style="width:' + cellSize + 'px;height:' + cellSize + 'px;background:' + bg + ';border:1px solid var(--border-subtle);padding:2px;">' + corr.toFixed(2) + '</td>';
+
+      usable.forEach((rowAsset, ri) => {
+        html += '<tr><td class="text-xs pr-2 text-right" style="white-space:nowrap;color:var(--fg-muted);max-width:' + labelW + 'px;overflow:hidden;text-overflow:ellipsis;">' + rowAsset.name + '</td>';
+
+        usable.forEach((colAsset, ci) => {
+          if (ri === ci) {
+            // Diagonal
+            html += '<td class="text-center font-mono text-xs" style="width:' + cellSize + 'px;height:' + cellSize + 'px;background:rgba(16,185,129,0.15);border:1px solid var(--border-subtle);padding:2px;">1.00</td>';
+          } else {
+            // Compute correlation using overlapping non-null period returns
+            const x = [], y = [];
+            periodKeys.forEach(k => {
+              const v1 = rowAsset.returns[k];
+              const v2 = colAsset.returns[k];
+              if (v1 !== null && !isNaN(v1) && v2 !== null && !isNaN(v2)) {
+                x.push(v1);
+                y.push(v2);
+              }
+            });
+
+            const corr = x.length >= 2 ? pearsonCorrelation(x, y) : 0;
+            const abs = Math.abs(corr);
+            let bg;
+            if (corr >= 0) {
+              bg = 'rgba(16,185,129,' + (abs * 0.5) + ')';
+            } else {
+              bg = 'rgba(239,68,68,' + (abs * 0.5) + ')';
+            }
+
+            html += '<td class="text-center font-mono text-xs" style="width:' + cellSize + 'px;height:' + cellSize + 'px;background:' + bg + ';border:1px solid var(--border-subtle);padding:2px;">' + corr.toFixed(2) + '</td>';
+          }
         });
+
         html += '</tr>';
       });
+
       html += '</table>';
       container.innerHTML = html;
     }
 
-    function renderRiskReturnChart() {
-      const ctx = document.getElementById('riskReturnChart');
-      if (!ctx || snapshots.length < 2) {
-        if (ctx) ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-[var(--fg-muted)]"><p>At least 2 snapshots needed</p></div>';
+    function renderPerformanceContent() {
+      const content = document.getElementById('perfContent');
+      const dropZone = document.getElementById('perfDropZone');
+      const clearBtn = document.getElementById('clearPerfBtn');
+
+      if (!performanceData || !performanceData.assets || performanceData.assets.length === 0) {
+        if (content) content.classList.add('hidden');
+        if (dropZone) dropZone.style.display = '';
+        if (clearBtn) clearBtn.style.display = 'none';
         return;
       }
-      if (riskReturnChart) riskReturnChart.destroy();
-      const changes = getCategoryPercentChanges();
-      const cats = Object.keys(changes).sort();
-      const points = cats.map(cat => {
-        const vals = changes[cat];
-        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-        const std = Math.sqrt(vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length);
-        const cumulativeReturn = vals.reduce((s, v) => s + v, 0);
-        return { label: cat, x: std, y: cumulativeReturn };
+
+      if (content) content.classList.remove('hidden');
+      if (dropZone) dropZone.style.display = 'none';
+      if (clearBtn) clearBtn.style.display = '';
+
+      renderPerformerCards();
+      renderReturnsChart('1W');
+      renderCorrelationMatrix();
+      renderPerformanceHeatmap();
+      renderPerformanceTable();
+    }
+
+    function renderPerformerCards() {
+      const container = document.getElementById('performerCards');
+      if (!container || !performanceData) return;
+
+      const cards = [];
+      const periods = ['1W', '1M', '1Y'];
+      const periodNames = { '1W': '1 Week', '1M': '1 Month', '1Y': '1 Year' };
+
+      periods.forEach(period => {
+        const withReturns = performanceData.assets.filter(a => a.returns[period] !== null && !isNaN(a.returns[period]));
+        if (withReturns.length === 0) return;
+
+        const sorted = [...withReturns].sort((a, b) => b.returns[period] - a.returns[period]);
+        const best = sorted[0];
+        const worst = sorted[sorted.length - 1];
+        const avg = withReturns.reduce((s, a) => s + a.returns[period], 0) / withReturns.length;
+
+        cards.push(`
+          <div class="card stat-card p-5 animate-fade-in">
+            <p class="text-sm text-[var(--fg-muted)] mb-3">${periodNames[period]} Performance</p>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-[var(--fg-muted)]">🏆 Best</span>
+                <span class="text-sm font-medium truncate">${best.name}</span>
+                <span class="text-sm font-bold change-positive whitespace-nowrap">+${best.returns[period].toFixed(2)}%</span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-[var(--fg-muted)]">📉 Worst</span>
+                <span class="text-sm font-medium truncate">${worst.name}</span>
+                <span class="text-sm font-bold ${worst.returns[period] >= 0 ? 'change-positive' : 'change-negative'} whitespace-nowrap">${worst.returns[period] >= 0 ? '+' : ''}${worst.returns[period].toFixed(2)}%</span>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-[var(--fg-muted)]">📊 Average</span>
+                <span class="text-sm font-medium">${withReturns.length} assets</span>
+                <span class="text-sm font-bold ${avg >= 0 ? 'change-positive' : 'change-negative'} whitespace-nowrap">${avg >= 0 ? '+' : ''}${avg.toFixed(2)}%</span>
+              </div>
+            </div>
+          </div>
+        `);
       });
-      riskReturnChart = new Chart(ctx, {
-        type: 'scatter',
+
+      container.innerHTML = cards.join('');
+    }
+
+    function renderReturnsChart(period) {
+      const ctx = document.getElementById('returnsChart');
+      if (!ctx || !performanceData) return;
+
+      if (returnsChart) returnsChart.destroy();
+
+      const withReturns = performanceData.assets.filter(a => a.returns[period] !== null && !isNaN(a.returns[period]));
+      const sorted = [...withReturns].sort((a, b) => b.returns[period] - a.returns[period]);
+
+      const labels = sorted.map(a => a.name);
+      const data = sorted.map(a => a.returns[period]);
+      const colors = data.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)');
+      const borderColors = data.map(v => v >= 0 ? 'rgba(16, 185, 129, 1)' : 'rgba(239, 68, 68, 1)');
+
+      returnsChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-          datasets: points.map((p, i) => ({
-            label: p.label,
-            data: [{ x: p.x, y: p.y }],
-            backgroundColor: (categoryColors[p.label] || { chart: 'rgba(148,163,184,0.8)' }).chart,
-            pointRadius: 10,
-            pointHoverRadius: 14
-          }))
+          labels,
+          datasets: [{
+            label: 'Return (%)',
+            data,
+            backgroundColor: colors,
+            borderColor: borderColors,
+            borderWidth: 1,
+            borderRadius: 4
+          }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 10 }, usePointStyle: true } },
-            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': Risk=' + ctx.parsed.x.toFixed(2) + '%, Return=' + ctx.parsed.y.toFixed(2) + '%' } } },
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.parsed.x >= 0 ? '+' : ''}${ctx.parsed.x.toFixed(2)}%`
+              }
+            }
+          },
           scales: {
-            x: { title: { display: true, text: 'Volatility (Std Dev %)', color: '#94a3b8' }, grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8' } },
-            y: { title: { display: true, text: 'Cumulative Return (%)', color: '#94a3b8' }, grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8' } }
+            x: {
+              grid: { color: 'rgba(45, 58, 82, 0.5)' },
+              ticks: {
+                color: '#94a3b8',
+                callback: (v) => v + '%'
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 } }
+            }
           }
         }
       });
     }
 
-    function renderCorrelationDetailsTable() {
-      const thead = document.getElementById('correlationTableHead');
-      const tbody = document.getElementById('correlationTableBody');
-      if (!thead || !tbody || snapshots.length < 2) return;
-      const changes = getCategoryPercentChanges();
-      const cats = Object.keys(changes).sort();
-      const periods = [];
-      for (let i = 1; i < snapshots.length; i++) periods.push(snapshots[i - 1].dateStr + ' → ' + snapshots[i].dateStr);
-      thead.innerHTML = '<tr><th>Category</th>' + periods.map(p => '<th class="text-right">' + p + '</th>').join('') + '</tr>';
-      tbody.innerHTML = cats.map(cat => {
-        const color = categoryColors[cat] || { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8' };
-        return '<tr><td><span class="badge" style="background:' + color.bg + ';color:' + color.text + '">' + cat + '</span></td>' +
-          changes[cat].map(v => '<td class="text-right font-mono ' + (v >= 0 ? 'change-positive' : 'change-negative') + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</td>').join('') + '</tr>';
+    function renderPerformanceHeatmap() {
+      const container = document.getElementById('heatmapContainer');
+      if (!container || !performanceData) return;
+
+      const { assets, periodKeys, periodLabels } = performanceData;
+
+      // Find max absolute value for color scaling
+      let maxAbs = 1;
+      assets.forEach(a => {
+        periodKeys.forEach(k => {
+          if (a.returns[k] !== null && !isNaN(a.returns[k])) {
+            maxAbs = Math.max(maxAbs, Math.abs(a.returns[k]));
+          }
+        });
+      });
+
+      let html = '<table style="border-collapse:separate;border-spacing:3px;">';
+      html += '<tr><td style="min-width:160px;"></td>';
+      periodLabels.forEach(label => {
+        html += `<td class="text-center text-xs font-semibold px-2 py-1" style="color:var(--fg-muted);min-width:80px;">${label}</td>`;
+      });
+      html += '</tr>';
+
+      assets.forEach(asset => {
+        html += `<tr><td class="text-sm font-medium pr-3 whitespace-nowrap">${asset.name} <span class="text-xs text-[var(--fg-muted)]">(${asset.country})</span></td>`;
+        periodKeys.forEach(key => {
+          const val = asset.returns[key];
+          if (val !== null && !isNaN(val)) {
+            const intensity = Math.abs(val) / maxAbs;
+            let bg;
+            if (val >= 0) {
+              bg = `rgba(16, 185, 129, ${Math.min(0.85, intensity * 0.85)})`;
+            } else {
+              bg = `rgba(239, 68, 68, ${Math.min(0.85, intensity * 0.85)})`;
+            }
+            html += `<td class="text-center font-mono text-xs rounded px-2 py-2 font-semibold" style="background:${bg};min-width:80px;">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</td>`;
+          } else {
+            html += `<td class="text-center font-mono text-xs rounded px-2 py-2" style="background:var(--bg-secondary);color:var(--fg-muted);min-width:80px;">—</td>`;
+          }
+        });
+        html += '</tr>';
+      });
+
+      html += '</table>';
+      container.innerHTML = html;
+    }
+
+    function sortPerfTable(key) {
+      if (perfSortKey === key) {
+        perfSortAsc = !perfSortAsc;
+      } else {
+        perfSortKey = key;
+        perfSortAsc = false; // default descending for returns
+      }
+      renderPerformanceTable();
+    }
+
+    function renderPerformanceTable() {
+      const tbody = document.getElementById('perfTableBody');
+      if (!tbody || !performanceData) return;
+
+      const { assets, periodKeys } = performanceData;
+
+      const holdingBadges = {
+        'Köp': '<span class="badge badge-bucket-3">BUY</span>',
+        'Byt': '<span class="badge badge-bucket-2">SWITCH</span>',
+        'Sälj': '<span class="badge badge-sell">SELL</span>'
+      };
+
+      let sorted = [...assets];
+      if (perfSortKey) {
+        sorted.sort((a, b) => {
+          const va = a.returns[perfSortKey];
+          const vb = b.returns[perfSortKey];
+          if (va === null && vb === null) return 0;
+          if (va === null) return 1;
+          if (vb === null) return -1;
+          return perfSortAsc ? va - vb : vb - va;
+        });
+      }
+
+      tbody.innerHTML = sorted.map(asset => {
+        const typeBadge = asset.assetType === 'Aktie'
+          ? '<span class="badge badge-bucket-1">STOCK</span>'
+          : '<span class="badge badge-bucket-3">FUND</span>';
+
+        const holdingBadge = holdingBadges[asset.holding] || `<span class="badge badge-other">${asset.holding}</span>`;
+
+        const returnCells = periodKeys.map(key => {
+          const val = asset.returns[key];
+          if (val !== null && !isNaN(val)) {
+            return `<td class="text-right font-mono ${val >= 0 ? 'change-positive' : 'change-negative'}">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</td>`;
+          }
+          return '<td class="text-right font-mono text-[var(--fg-muted)]">—</td>';
+        }).join('');
+
+        return `<tr>
+          <td>${typeBadge}</td>
+          <td class="font-medium">${asset.name}</td>
+          <td>${asset.country}</td>
+          <td>${holdingBadge}</td>
+          ${returnCells}
+        </tr>`;
       }).join('');
+    }
+
+    function setupPerformanceListeners() {
+      const perfFileInput = document.getElementById('perfFileInput');
+      const perfDropZone = document.getElementById('perfDropZone');
+
+      if (perfFileInput) {
+        perfFileInput.addEventListener('change', (e) => {
+          if (e.target.files[0]) {
+            loadPerformanceCSV(e.target.files[0]);
+            e.target.value = '';
+          }
+        });
+      }
+
+      if (perfDropZone) {
+        perfDropZone.addEventListener('dragover', (e) => { e.preventDefault(); perfDropZone.classList.add('dragover'); });
+        perfDropZone.addEventListener('dragleave', () => perfDropZone.classList.remove('dragover'));
+        perfDropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          perfDropZone.classList.remove('dragover');
+          if (e.dataTransfer.files[0]) {
+            loadPerformanceCSV(e.dataTransfer.files[0]);
+          }
+        });
+      }
+
+      // Period selector buttons
+      document.querySelectorAll('.perf-period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.perf-period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderReturnsChart(btn.dataset.period);
+        });
+      });
     }
 
     // --- LOCALSTORAGE PERSISTENCE ---
@@ -1628,7 +2036,7 @@
     const _origSwitchTab = switchTab;
     switchTab = function(tabId) {
       _origSwitchTab(tabId);
-      if (tabId === 'analytics') { renderCorrelationMatrix(); renderRiskReturnChart(); renderCorrelationDetailsTable(); }
+      if (tabId === 'analytics') { renderPerformanceContent(); }
     };
 
     // Override data loading to auto-save
@@ -1643,6 +2051,10 @@
     setupEventListeners = function() {
       _origSetup();
       if (loadFromLocalStorage()) showDashboard();
+      setupPerformanceListeners();
+      if (loadPerformanceDataFromStorage()) {
+        // Performance data restored; will render when Analytics tab is opened
+      }
     };
 
     function loadDemoData() {
