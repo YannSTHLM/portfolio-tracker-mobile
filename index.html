@@ -1006,8 +1006,8 @@
       'Sweden Index': 3,
       'Global Index': 3,
       'Cash': 1,
-      'Energy': 0,
-      'Materials': 0,
+      'Energy': 3,
+      'Materials': 3,
       'Other': 0,
       'Unassigned': 0
     };
@@ -1017,8 +1017,8 @@
     // M1-M10 schedule is interpolated between current% and target%, following bucket-level targets.
     const DEFAULT_REBALANCING_TARGETS = {
       avanza: [
-        { bucket: 0, name: 'Range Resources', target: 0 },
-        { bucket: 0, name: 'Newmont', target: 0 },
+        { bucket: 3, name: 'Range Resources', target: 0 },
+        { bucket: 3, name: 'Newmont', target: 0 },
         { bucket: 1, name: 'AMF Räntefond Kort', target: 0 },
         { bucket: 1, name: 'Avanza Ränta Kort', target: 15 },
         { bucket: 1, name: 'SEB FRN Fond A', target: 0 },
@@ -1316,22 +1316,22 @@
     // --- Import / Export Logic ---
 
     function downloadTemplate() {
-        const csvContent = `Date|Asset Name|Brokerage|Category|Value|Percentage|Total|Nordnet Value|Avanza Value
-|2026-03-22|AMF Företagsobligationsfond|Avanza|Corporate / Credit|4907776.25|23.51|20874792.50|0|13242075.39
-|2026-03-22|AMF Räntefond Kort|Avanza|Short Duration|3551980.95|17.02|20874792.50|0|13242075.39
-|2026-03-22|Avanza Ränta Kort|Avanza|Short Duration|2903968.27|13.91|20874792.50|0|13242075.39
-|2026-03-22|SEB FRN Fond A|Avanza|Short Duration|518874.34|2.49|20874792.50|0|13242075.39
-|2026-03-22|Avanza Zero|Avanza|Sweden Index|486490.07|2.33|20874792.50|0|13242075.39
-|2026-03-22|Avanza Global|Avanza|Global Index|111091.27|0.53|20874792.50|0|13242075.39
-|2026-03-22|Range Resources|Avanza|Energy|120483.68|0.58|20874792.50|0|13242075.39
-|2026-03-22|AMF Företagsobligationsfond|Nordnet|Corporate / Credit|1982381.25|9.50|20874792.50|7632717.11|0
-|2026-03-22|AMF Räntefond Kort|Nordnet|Short Duration|1541640.45|7.39|20874792.50|7632717.11|0
-|2026-03-22|Spiltan Räntefond Sverige|Nordnet|Short Duration|1213850.54|5.81|20874792.50|7632717.11|0
-|2026-03-22|Pareto Räntefond A|Nordnet|Short Duration|1002001.86|4.80|20874792.50|7632717.11|0
-|2026-03-22|SEB FRN Fond A|Nordnet|Short Duration|1534563.61|7.35|20874792.50|7632717.11|0
-|2026-03-22|Nordea Global Passive A Acc SEK|Nordnet|Global Index|59593.13|0.29|20874792.50|7632717.11|0
-|2026-03-22|Nordnet Sverige Index|Nordnet|Sweden Index|122526.16|0.59|20874792.50|7632717.11|0
-|2026-03-22|Cash|Nordnet|Cash|176160.11|0.84|20874792.50|7632717.11|0`;
+        const csvContent = `Date;Asset Name;Brokerage;Category;Value;Percentage;Total;Nordnet Value;Avanza Value
+2026-03-22;AMF Företagsobligationsfond;Avanza;Corporate / Credit;4907776.25;23.51;20874792.50;0;13242075.39
+2026-03-22;AMF Räntefond Kort;Avanza;Short Duration;3551980.95;17.02;20874792.50;0;13242075.39
+2026-03-22;Avanza Ränta Kort;Avanza;Short Duration;2903968.27;13.91;20874792.50;0;13242075.39
+2026-03-22;SEB FRN Fond A;Avanza;Short Duration;518874.34;2.49;20874792.50;0;13242075.39
+2026-03-22;Avanza Zero;Avanza;Sweden Index;486490.07;2.33;20874792.50;0;13242075.39
+2026-03-22;Avanza Global;Avanza;Global Index;111091.27;0.53;20874792.50;0;13242075.39
+2026-03-22;Range Resources;Avanza;Energy;120483.68;0.58;20874792.50;0;13242075.39
+2026-03-22;AMF Företagsobligationsfond;Nordnet;Corporate / Credit;1982381.25;9.50;20874792.50;7632717.11;0
+2026-03-22;AMF Räntefond Kort;Nordnet;Short Duration;1541640.45;7.39;20874792.50;7632717.11;0
+2026-03-22;Spiltan Räntefond Sverige;Nordnet;Short Duration;1213850.54;5.81;20874792.50;7632717.11;0
+2026-03-22;Pareto Räntefond A;Nordnet;Short Duration;1002001.86;4.80;20874792.50;7632717.11;0
+2026-03-22;SEB FRN Fond A;Nordnet;Short Duration;1534563.61;7.35;20874792.50;7632717.11;0
+2026-03-22;Nordea Global Passive A Acc SEK;Nordnet;Global Index;59593.13;0.29;20874792.50;7632717.11;0
+2026-03-22;Nordnet Sverige Index;Nordnet;Sweden Index;122526.16;0.59;20874792.50;7632717.11;0
+2026-03-22;Cash;Nordnet;Cash;176160.11;0.84;20874792.50;7632717.11;0`;
 
         try {
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1677,7 +1677,7 @@
           <div class="card p-6 w-full max-w-3xl mx-4" style="max-height:80vh;display:flex;flex-direction:column;">
             <h3 class="text-lg font-semibold mb-2">📄 PDF Debug: ${filename}</h3>
             <p class="text-sm text-[var(--fg-muted)] mb-4">Extracted text from PDF. Copy this to share for analysis.</p>
-            <textarea id="pdfDebugText" readonly style="flex:1;min-height:300px;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;">${text.replace(/</g, '<').replace(/>/g, '>')}</textarea>
+            <textarea id="pdfDebugText" readonly style="flex:1;min-height:300px;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;">${text.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')}</textarea>
             <div class="flex gap-3 mt-4">
               <button onclick="navigator.clipboard.writeText(document.getElementById('pdfDebugText').value);this.textContent='Copied!'" class="btn-secondary flex-1">📋 Copy to Clipboard</button>
               <button onclick="document.getElementById('pdfDebugModal').remove();window._pdfDebugResolve(true)" class="btn-primary flex-1">Continue to AI</button>
@@ -1959,6 +1959,7 @@ ${text}`;
       if (confirm(`Delete snapshot from ${snapshots[index].dateStr}?`)) {
         snapshots.splice(index, 1);
         currentSnapshot = snapshots[snapshots.length - 1];
+        saveToLocalStorage();
         renderSnapshotChips();
         updateStats();
         updateCharts();
