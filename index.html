@@ -1551,6 +1551,7 @@
         showLoadingOverlay('Extracting text from PDF and calling AI...');
       }
 
+      try {
       for (const file of fileArr) {
         try {
           const name = file.name.toLowerCase();
@@ -1582,6 +1583,9 @@
             }
           }
         } catch (err) { console.error("Error processing file:", err); alert('Error processing ' + file.name + ': ' + err.message); }
+      }
+      } finally {
+        hideLoadingOverlay();
       }
       if (filesProcessed > 0) {
         snapshots.sort((a, b) => a.date - b.date);
