@@ -25,6 +25,9 @@ self.addEventListener('activate', (event) => {
 
 // Fetch: network-first with cache fallback for CDN resources, cache-first for local files
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests (e.g. POST to AI API) — Cache API only supports GET
+  if (event.request.method !== 'GET') return;
+
   const url = new URL(event.request.url);
 
   // For CDN resources (tailwind, chart.js, fonts), try cache-first then network
