@@ -1359,8 +1359,21 @@
         }
 
         try {
-            // Prepare data
-            const dataStr = JSON.stringify(snapshots, null, 2);
+            // Bundle all site data (except API keys) into structured export
+            const exportBundle = {
+                version: 1,
+                exportDate: new Date().toISOString(),
+                snapshots: snapshots.map(s => ({
+                    date: s.date.toISOString(), dateStr: s.dateStr, holdings: s.holdings,
+                    totalValue: s.totalValue, nordnetValue: s.nordnetValue, avanzaValue: s.avanzaValue
+                })),
+                classificationReference: classificationReference,
+                rebalancingTargets: rebalancingTargets,
+                excludedAssets: [...excludedAssets],
+                performanceData: performanceData
+            };
+
+            const dataStr = JSON.stringify(exportBundle, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             
@@ -1381,8 +1394,6 @@
             // Cleanup: Remove element after a short delay to ensure download starts
             setTimeout(() => {
                 document.body.removeChild(a);
-                // Note: Not revoking URL immediately to ensure slow browsers have time to grab it
-                // window.URL.revokeObjectURL(url); 
             }, 100);
 
         } catch (err) {
@@ -1398,17 +1409,56 @@
         reader.onload = function(e) {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (Array.isArray(importedData)) {
+                
+                // Handle new structured export format (v1)
+                if (importedData && importedData.version === 1 && importedData.snapshots) {
+                    const bundle = importedData;
+                    
+                    // Restore snapshots
+                    bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                    snapshots = bundle.snapshots;
+                    snapshots.sort((a, b) => a.date - b.date);
+                    currentSnapshot = snapshots[snapshots.length - 1];
+                    
+                    // Restore classification reference
+                    if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
+                        classificationReference = bundle.classificationReference;
+                        try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
+                    }
+                    
+                    // Restore rebalancing targets
+                    if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
+                        rebalancingTargets = bundle.rebalancingTargets;
+                        saveRebalancingTargets();
+                    }
+                    
+                    // Restore excluded assets
+                    if (Array.isArray(bundle.excludedAssets)) {
+                        excludedAssets = new Set(bundle.excludedAssets);
+                        saveExcludedAssets();
+                    }
+                    
+                    // Restore performance data
+                    if (bundle.performanceData && bundle.performanceData.assets) {
+                        performanceData = bundle.performanceData;
+                        savePerformanceData();
+                    }
+                    
+                    showDashboard();
+                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
+                    
+                // Handle legacy array format (backward compatible)
+                } else if (Array.isArray(importedData)) {
                     if (importedData[0].date && importedData[0].holdings) {
                         importedData.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
                         snapshots = importedData;
                         snapshots.sort((a, b) => a.date - b.date);
                         currentSnapshot = snapshots[snapshots.length - 1];
                         showDashboard();
-                        alert("Data imported successfully!");
+                        alert("Snapshots imported successfully!\n\nNote: This was a legacy export file. Only snapshot data was restored.");
                     } else { alert("Invalid JSON structure."); }
-                } else { alert("Invalid JSON format."); }
-            } catch (err) { console.error(err); alert("Failed to parse JSON file."); }
+                } else { alert("Invalid JSON format. Expected a Portfolio Tracker export file."); }
+            } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
         };
         reader.readAsText(file);
         event.target.value = '';
@@ -1582,6 +1632,16 @@
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
         for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); fullText += content.items.map(item => item.str).join(' ') + '\n'; }
+        
+        // DEBUG: Show extracted text for analysis
+        console.log('=== NORDNET PDF EXTRACTED TEXT ===');
+        console.log(fullText);
+        console.log('=== END EXTRACTED TEXT ===');
+        
+        // Show debug modal with extracted text
+        const debugProceed = await showPdfDebugModal(fullText, file.name);
+        if (!debugProceed) return null;
+        
         const aiResult = await callAiForNordnetExtraction(fullText, file.name);
         if (!aiResult) return null;
         const snapshotDate = aiResult.date ? parseDate(aiResult.date) : new Date();
@@ -1601,6 +1661,27 @@
         if (holdings.length === 0) return null;
         return { date: snapshotDate, dateStr: formatDate(snapshotDate), holdings, totalValue, nordnetValue: totalValue, avanzaValue: 0 };
       } catch (err) { console.error('PDF parsing error:', err); alert('Failed to parse Nordnet PDF: ' + err.message); return null; }
+    }
+
+    function showPdfDebugModal(text, filename) {
+      return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.id = 'pdfDebugModal';
+        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/60';
+        modal.innerHTML = `
+          <div class="card p-6 w-full max-w-3xl mx-4" style="max-height:80vh;display:flex;flex-direction:column;">
+            <h3 class="text-lg font-semibold mb-2">📄 PDF Debug: ${filename}</h3>
+            <p class="text-sm text-[var(--fg-muted)] mb-4">Extracted text from PDF. Copy this to share for analysis.</p>
+            <textarea id="pdfDebugText" readonly style="flex:1;min-height:300px;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;">${text.replace(/</g, '<').replace(/>/g, '>')}</textarea>
+            <div class="flex gap-3 mt-4">
+              <button onclick="navigator.clipboard.writeText(document.getElementById('pdfDebugText').value);this.textContent='Copied!'" class="btn-secondary flex-1">📋 Copy to Clipboard</button>
+              <button onclick="document.getElementById('pdfDebugModal').remove();resolve(true)" class="btn-primary flex-1">Continue to AI</button>
+              <button onclick="document.getElementById('pdfDebugModal').remove();resolve(false)" class="btn-secondary flex-1" style="color:var(--accent-danger)">Cancel</button>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) { modal.remove(); resolve(false); } });
+      });
     }
 
     function repairJsonString(str) {
