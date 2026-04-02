@@ -1103,9 +1103,10 @@
       const targets = rebalancingTargets[broker];
       if (!targets || !currentSnapshot) return targets || [];
 
-      const schedFt = calculateFilteredTotals(currentSnapshot);
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const schedFt = calculateFilteredTotals(effective);
       const totalBrokerValue = broker === 'nordnet' ? schedFt.nordnetValue : schedFt.avanzaValue;
-      const brokerHoldings = getFilteredHoldings(currentSnapshot).filter(h => h.brokerage.toLowerCase() === broker);
+      const brokerHoldings = getFilteredHoldings(effective).filter(h => h.brokerage.toLowerCase() === broker);
 
       // Calculate current % for each scheduled asset
       const assetCurrents = {};
@@ -2040,9 +2041,10 @@ ${text}`;
     function calculateBrokerCurrents(broker) {
         if(!currentSnapshot) return { assets: {}, unscheduled: [], totalBrokerValue: 0 };
         
-        const filteredHoldings = getFilteredHoldings(currentSnapshot);
+        const effective = getEffectiveSnapshot(currentSnapshot);
+        const filteredHoldings = getFilteredHoldings(effective);
         const brokerHoldings = filteredHoldings.filter(h => h.brokerage === broker);
-        const ft = calculateFilteredTotals(currentSnapshot);
+        const ft = calculateFilteredTotals(effective);
         const totalBrokerValue = broker === 'Nordnet' ? ft.nordnetValue : ft.avanzaValue;
         
         const assets = {};
@@ -2148,7 +2150,8 @@ ${text}`;
         const tbody = document.getElementById('consolidatedBucketTable');
         if (!tbody || !currentSnapshot) return;
 
-        const conFt = calculateFilteredTotals(currentSnapshot);
+        const effective = getEffectiveSnapshot(currentSnapshot);
+        const conFt = calculateFilteredTotals(effective);
         const totalPortfolio = conFt.totalValue;
         const avanzaWeight = conFt.avanzaValue / totalPortfolio;
         const nordnetWeight = conFt.nordnetValue / totalPortfolio;
@@ -2163,8 +2166,8 @@ ${text}`;
         // Calculate current bucket allocations (weighted by portfolio share)
         const calcCurrentBuckets = (broker) => {
             const brokerKey = broker.toLowerCase();
-            const holdings = getFilteredHoldings(currentSnapshot).filter(h => h.brokerage === broker);
-            const cbFt = calculateFilteredTotals(currentSnapshot);
+            const holdings = getFilteredHoldings(effective).filter(h => h.brokerage === broker);
+            const cbFt = calculateFilteredTotals(effective);
             const brokerValue = broker === 'Avanza' ? cbFt.avanzaValue : cbFt.nordnetValue;
             const scheduleData = rebalancingSchedule[brokerKey] || [];
             const scheduleKeys = scheduleData.map(s => s.name);
@@ -2246,9 +2249,11 @@ ${text}`;
         const container = document.getElementById(elementId);
         if (!container || !currentSnapshot) return;
 
+        const effective = getEffectiveSnapshot(currentSnapshot);
+
         const calculateCurrent = (broker) => {
-            const brokerHoldings = getFilteredHoldings(currentSnapshot).filter(h => h.brokerage.toLowerCase() === broker);
-            const brokerFt = calculateFilteredTotals(currentSnapshot);
+            const brokerHoldings = getFilteredHoldings(effective).filter(h => h.brokerage.toLowerCase() === broker);
+            const brokerFt = calculateFilteredTotals(effective);
             const totalBrokerValue = broker === 'nordnet' ? brokerFt.nordnetValue : brokerFt.avanzaValue;
             
             const bucketTotals = { 0: 0, 1: 0, 2: 0, 3: 0 };
