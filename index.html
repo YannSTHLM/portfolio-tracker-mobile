@@ -2312,15 +2312,17 @@ ${text}`;
         const avanzaFinal = calcFinalTargets('avanza');
         const nordnetFinal = calcFinalTargets('nordnet');
 
-        const renderBar = (current, target, color, maxVal) => {
+        const renderBar = (current, m1Target, finalTarget, color, maxVal) => {
             const cPct = Math.min((current / maxVal) * 100, 100);
-            const tPct = Math.min((target / maxVal) * 100, 100);
-            const delta = current - target;
-            const deltaColor = Math.abs(delta) < 2 ? '#34d399' : (delta > 0 ? '#f87171' : '#fbbf24');
+            const m1Pct = Math.min((m1Target / maxVal) * 100, 100);
+            const fPct = Math.min((finalTarget / maxVal) * 100, 100);
             return `<div class="relative h-5 bg-[var(--bg-secondary)] rounded-full overflow-visible" style="min-width:100%">
                 <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-500" style="width:${cPct}%;background:${color};opacity:0.7;"></div>
-                <div class="absolute top-0 h-full w-0.5" style="left:${tPct}%;background:${deltaColor};">
-                    <div class="absolute -top-0.5 left-1/2 -translate-x-1/2 text-[8px] leading-none" style="color:${deltaColor};">▼</div>
+                <div class="absolute top-0 h-full w-0.5" style="left:${m1Pct}%;background:#fbbf24;" title="M1 Target: ${m1Target.toFixed(1)}%">
+                    <div class="absolute -top-0.5 left-1/2 -translate-x-1/2 text-[8px] leading-none" style="color:#fbbf24;">▼</div>
+                </div>
+                <div class="absolute top-0 h-full w-0.5" style="left:${fPct}%;background:#34d399;" title="Final Target: ${finalTarget.toFixed(1)}%">
+                    <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] leading-none" style="color:#34d399;">▼</div>
                 </div>
             </div>`;
         };
@@ -2330,15 +2332,20 @@ ${text}`;
         const b0combined = (avanzaCurrent[0] * avanzaWeight) + (nordnetCurrent[0] * nordnetWeight);
         if (b0combined > 0.5) bucketsToShow.push(0);
 
+        // M1 targets from bucketTargets schedule
+        const getM1Target = (b) => bucketTargets[b] ? bucketTargets[b][0] : 0;
+
         container.innerHTML = bucketsToShow.map(b => {
             const info = bucketInfo[b];
+            const m1 = getM1Target(b);
             const aCurrent = avanzaCurrent[b];
             const nCurrent = nordnetCurrent[b];
             const aTarget = avanzaFinal[b];
             const nTarget = nordnetFinal[b];
             const combinedCurrent = (aCurrent * avanzaWeight) + (nCurrent * nordnetWeight);
             const combinedTarget = (aTarget * avanzaWeight) + (nTarget * nordnetWeight);
-            const maxVal = Math.max(aCurrent, nCurrent, combinedCurrent, aTarget, nTarget, combinedTarget, 10) * 1.2;
+            const combinedM1 = m1;
+            const maxVal = Math.max(aCurrent, nCurrent, combinedCurrent, aTarget, nTarget, combinedTarget, combinedM1, m1, 10) * 1.2;
             const delta = combinedCurrent - combinedTarget;
             const deltaSign = delta >= 0 ? '+' : '';
             const deltaColor = Math.abs(delta) < 2 ? 'text-emerald-400' : (delta > 0 ? 'text-red-400' : 'text-amber-400');
@@ -2349,29 +2356,33 @@ ${text}`;
                         <span class="badge ${info.class}">B${b}</span>
                         <span class="text-sm font-semibold">${info.shortName}</span>
                     </div>
-                    <span class="text-xs font-mono font-bold ${deltaColor}">${deltaSign}${delta.toFixed(1)}%</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] flex items-center gap-1"><span style="color:#fbbf24">▼</span> <span class="text-[var(--fg-muted)]">M1</span></span>
+                        <span class="text-[10px] flex items-center gap-1"><span style="color:#34d399">▼</span> <span class="text-[var(--fg-muted)]">Final</span></span>
+                        <span class="text-xs font-mono font-bold ${deltaColor}">${deltaSign}${delta.toFixed(1)}%</span>
+                    </div>
                 </div>
                 <div class="space-y-2">
                     <div>
                         <div class="flex justify-between text-xs mb-0.5">
                             <span class="text-[var(--fg-muted)]">Avanza</span>
-                            <span class="font-mono">${aCurrent.toFixed(1)}% → <span class="text-[var(--fg-muted)]">${aTarget.toFixed(1)}%</span></span>
+                            <span class="font-mono">${aCurrent.toFixed(1)}% <span class="text-amber-400">→${m1.toFixed(1)}%</span> → <span class="text-emerald-400">${aTarget.toFixed(1)}%</span></span>
                         </div>
-                        ${renderBar(aCurrent, aTarget, info.color, maxVal)}
+                        ${renderBar(aCurrent, m1, aTarget, info.color, maxVal)}
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-0.5">
                             <span class="text-[var(--fg-muted)]">Nordnet</span>
-                            <span class="font-mono">${nCurrent.toFixed(1)}% → <span class="text-[var(--fg-muted)]">${nTarget.toFixed(1)}%</span></span>
+                            <span class="font-mono">${nCurrent.toFixed(1)}% <span class="text-amber-400">→${m1.toFixed(1)}%</span> → <span class="text-emerald-400">${nTarget.toFixed(1)}%</span></span>
                         </div>
-                        ${renderBar(nCurrent, nTarget, info.color, maxVal)}
+                        ${renderBar(nCurrent, m1, nTarget, info.color, maxVal)}
                     </div>
                     <div class="pt-1 border-t border-[var(--border-subtle)]">
                         <div class="flex justify-between text-xs mb-0.5">
                             <span class="font-semibold">Combined</span>
-                            <span class="font-mono font-semibold">${combinedCurrent.toFixed(1)}% → <span class="text-[var(--fg-muted)]">${combinedTarget.toFixed(1)}%</span></span>
+                            <span class="font-mono font-semibold">${combinedCurrent.toFixed(1)}% <span class="text-amber-400">→${combinedM1.toFixed(1)}%</span> → <span class="text-emerald-400">${combinedTarget.toFixed(1)}%</span></span>
                         </div>
-                        ${renderBar(combinedCurrent, combinedTarget, info.color, maxVal)}
+                        ${renderBar(combinedCurrent, combinedM1, combinedTarget, info.color, maxVal)}
                     </div>
                 </div>
             </div>`;
