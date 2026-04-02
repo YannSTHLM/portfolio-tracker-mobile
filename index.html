@@ -2023,15 +2023,26 @@ ${text}`;
     }
     // --- EDITING LOGIC ---
 
-    function handleCategoryChange(index, newCategory) {
-        currentSnapshot.holdings[index].category = newCategory;
+    function handleCategoryChange(name, brokerage, newCategory) {
+        if (!currentSnapshot) return;
+        // Find holding in currentSnapshot by name+brokerage (not index, since table may be filtered)
+        const holding = currentSnapshot.holdings.find(h => h.name === name && h.brokerage === brokerage);
+        if (holding) {
+            holding.category = newCategory;
+            holding.bucket = categoryRules[newCategory] !== undefined ? categoryRules[newCategory] : holding.bucket;
+        }
         populateFilters();
         renderCategoryBreakdown(); 
         renderDistributionChart();
+        renderHoldingsTable();
     }
 
-    function handleBucketChange(index, newBucket) {
-        currentSnapshot.holdings[index].bucket = parseInt(newBucket);
+    function handleBucketChange(name, brokerage, newBucket) {
+        if (!currentSnapshot) return;
+        const holding = currentSnapshot.holdings.find(h => h.name === name && h.brokerage === brokerage);
+        if (holding) {
+            holding.bucket = parseInt(newBucket);
+        }
         renderRebalancingTables(); 
         renderHoldingsTable();
     }
@@ -2570,10 +2581,17 @@ ${text}`;
       tbody.innerHTML = filtered.map((h) => {
         const excluded = isAssetExcluded(h.name, h.brokerage);
         const catColor = categoryColors[h.category] || { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' };
-        const catBadge = `<span class="badge" style="background:${catColor.bg};color:${catColor.text}">${h.category}</span>`;
+        const escapedName = h.name.replace(/'/g, "\\'");
+        const catOptions = [...new Set([...CATEGORIES, ...currentSnapshot.holdings.map(hh => hh.category)])].sort().map(c => 
+          `<option value="${c}" ${h.category === c ? 'selected' : ''}>${c}</option>`
+        ).join('');
+        const catBadge = `<select class="edit-select" onchange="handleCategoryChange('${escapedName}','${h.brokerage}',this.value)">${catOptions}</select>`;
         
         const bucketInfo = BUCKETS[h.bucket] || { name: 'Unknown', class: 'badge-other' };
-        const bucketBadge = `<span class="badge ${bucketInfo.class}">B${h.bucket}: ${bucketInfo.name}</span>`;
+        const bucketOptions = Object.entries(BUCKETS).map(([k, v]) => 
+          `<option value="${k}" ${h.bucket == k ? 'selected' : ''}>B${k}: ${v.name}</option>`
+        ).join('');
+        const bucketBadge = `<select class="edit-select" onchange="handleBucketChange('${escapedName}','${h.brokerage}',this.value)">${bucketOptions}</select>`;
         
         const pct = displayTotal > 0 ? ((h.value / displayTotal) * 100).toFixed(2) : '0.00';
         
