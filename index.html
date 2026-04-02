@@ -2686,12 +2686,19 @@ ${text}`;
       const changes = []; 
       const processedKeys = new Set();
 
+      // Helper: get category from reference table
+      const getCat = (h) => {
+          const cls = getClassificationFromReference(h.name, h.brokerage);
+          return cls.found ? cls.category : (h.category || 'Unassigned');
+      };
+
       // 1. Process holdings currently in 'To' snapshot
       toHoldings.forEach(h => {
           const key = `${h.name}-${h.brokerage}`;
           processedKeys.add(key);
           
           const fromHolding = fromHoldings.find(fh => fh.name === h.name && fh.brokerage === h.brokerage);
+          const cat = getCat(h);
           
           let changeData;
           
@@ -2701,7 +2708,7 @@ ${text}`;
               const changePercent = fromHolding.value > 0 ? ((change / fromHolding.value) * 100).toFixed(2) : (h.value > 0 ? 100 : 0).toFixed(2);
               changeData = {
                   name: h.name,
-                  category: h.category,
+                  category: cat,
                   fromValue: fromHolding.value,
                   toValue: h.value,
                   change,
@@ -2712,7 +2719,7 @@ ${text}`;
               // NEW holding
               changeData = {
                   name: h.name,
-                  category: h.category,
+                  category: cat,
                   fromValue: 0,
                   toValue: h.value,
                   change: h.value,
@@ -2730,7 +2737,7 @@ ${text}`;
           if (!processedKeys.has(key)) {
               changes.push({
                   name: h.name,
-                  category: h.category,
+                  category: getCat(h),
                   fromValue: h.value,
                   toValue: 0,
                   change: -h.value,
