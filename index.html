@@ -2025,14 +2025,24 @@ ${text}`;
 
     function handleCategoryChange(name, brokerage, newCategory) {
         if (!currentSnapshot) return;
-        // Find holding in currentSnapshot by name+brokerage (not index, since table may be filtered)
         const holding = currentSnapshot.holdings.find(h => h.name === name && h.brokerage === brokerage);
         if (holding) {
             holding.category = newCategory;
             holding.bucket = categoryRules[newCategory] !== undefined ? categoryRules[newCategory] : holding.bucket;
         }
+        // Also update the reference table so the change persists across renders
+        const refKey = brokerage.toLowerCase() === 'nordnet' ? 'nordnet' : 'avanza';
+        const refEntry = classificationReference[refKey]?.find(r => r.name === name);
+        if (refEntry) {
+            refEntry.category = newCategory;
+            refEntry.bucket = categoryRules[newCategory] !== undefined ? categoryRules[newCategory] : refEntry.bucket;
+        } else {
+            // Add new entry to reference table if not found
+            if (!classificationReference[refKey]) classificationReference[refKey] = [];
+            classificationReference[refKey].push({ name, category: newCategory, bucket: categoryRules[newCategory] !== undefined ? categoryRules[newCategory] : 0 });
+        }
         populateFilters();
-        renderCategoryBreakdown(); 
+        renderCategoryBreakdown();
         renderDistributionChart();
         renderHoldingsTable();
     }
@@ -2043,7 +2053,16 @@ ${text}`;
         if (holding) {
             holding.bucket = parseInt(newBucket);
         }
-        renderRebalancingTables(); 
+        // Also update the reference table so the change persists across renders
+        const refKey = brokerage.toLowerCase() === 'nordnet' ? 'nordnet' : 'avanza';
+        const refEntry = classificationReference[refKey]?.find(r => r.name === name);
+        if (refEntry) {
+            refEntry.bucket = parseInt(newBucket);
+        } else {
+            if (!classificationReference[refKey]) classificationReference[refKey] = [];
+            classificationReference[refKey].push({ name, category: holding?.category || 'Unassigned', bucket: parseInt(newBucket) });
+        }
+        renderRebalancingTables();
         renderHoldingsTable();
     }
 
