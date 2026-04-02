@@ -2370,8 +2370,13 @@ ${text}`;
       if (!ctx || !currentSnapshot) return;
       const effective = getEffectiveSnapshot(currentSnapshot);
       const filteredHoldings = getFilteredHoldings(effective);
+      // Apply reference table classifications (same as holdings table)
+      const classifiedHoldings = filteredHoldings.map(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        return { ...h, category: cls.found ? cls.category : (h.category || 'Unassigned') };
+      });
       const categories = {};
-      filteredHoldings.forEach(h => { if (!categories[h.category]) categories[h.category] = 0; categories[h.category] += h.value; });
+      classifiedHoldings.forEach(h => { if (!categories[h.category]) categories[h.category] = 0; categories[h.category] += h.value; });
       const labels = Object.keys(categories);
       const data = Object.values(categories);
       const colors = labels.map(cat => categoryColors[cat]?.chart || 'rgba(148, 163, 184, 0.8)');
@@ -2399,9 +2404,14 @@ ${text}`;
       if (!container || !currentSnapshot) return;
       const effective = getEffectiveSnapshot(currentSnapshot);
       const filteredHoldings = getFilteredHoldings(effective);
+      // Apply reference table classifications (same as holdings table)
+      const classifiedHoldings = filteredHoldings.map(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        return { ...h, category: cls.found ? cls.category : (h.category || 'Unassigned') };
+      });
       const ft = calculateFilteredTotals(effective);
       const categories = {};
-      filteredHoldings.forEach(h => { if (!categories[h.category]) categories[h.category] = { value: 0, holdings: [] }; categories[h.category].value += h.value; categories[h.category].holdings.push(h); });
+      classifiedHoldings.forEach(h => { if (!categories[h.category]) categories[h.category] = { value: 0, holdings: [] }; categories[h.category].value += h.value; categories[h.category].holdings.push(h); });
       const sorted = Object.entries(categories).sort((a, b) => b[1].value - a[1].value);
       const total = ft.totalValue;
       container.innerHTML = sorted.map(([cat, data]) => {
