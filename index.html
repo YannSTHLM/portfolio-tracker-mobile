@@ -817,10 +817,28 @@
         0: { name: 'Sell/Other', class: 'badge-sell' }
     };
 
-    const CATEGORIES = [
-        'Corporate / Credit', 'Short Duration', 'Sweden Index', 
+    const DEFAULT_CATEGORIES = [
+        'Corporate / Credit', 'Short Duration', 'Sweden Index',
         'Global Index', 'Cash', 'Energy', 'Materials', 'Other', 'Unassigned'
     ];
+
+    let CATEGORIES = [...DEFAULT_CATEGORIES];
+
+    function updateCategories() {
+      const holdingsCategories = snapshots.flatMap(s => s.holdings.map(h => h.category).filter(Boolean));
+      const refCategories = [
+        ...classificationReference.avanza.map(r => r.category).filter(Boolean),
+        ...classificationReference.nordnet.map(r => r.category).filter(Boolean)
+      ];
+      const all = [...new Set([...DEFAULT_CATEGORIES, ...holdingsCategories, ...refCategories])].sort();
+      // Keep 'Unassigned' at the end
+      if (all.includes('Unassigned')) {
+        const idx = all.indexOf('Unassigned');
+        all.splice(idx, 1);
+        all.push('Unassigned');
+      }
+      CATEGORIES = all;
+    }
 
     // Classification Reference Table (Editable)
     const DEFAULT_REFERENCE = {
@@ -2524,15 +2542,9 @@ ${text}`;
     }
 
     function populateFilters() {
+      updateCategories();
       const categoryFilter = document.getElementById('categoryFilter');
-      const currentCategories = [...new Set(currentSnapshot.holdings.map(h => h.category))];
-      const allCategories = [...new Set([...CATEGORIES, ...currentCategories])].sort();
-      if (allCategories.includes('Unassigned')) {
-        const idx = allCategories.indexOf('Unassigned');
-        allCategories.splice(idx, 1);
-        allCategories.push('Unassigned');
-      }
-      categoryFilter.innerHTML = '<option value="all">All Categories</option>' + allCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+      categoryFilter.innerHTML = '<option value="all">All Categories</option>' + CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     }
 
     function populateCompareSelects() {
