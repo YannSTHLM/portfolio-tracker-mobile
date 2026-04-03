@@ -1781,9 +1781,15 @@
         // Parse using regex (no AI required)
         const result = parseNordnetPDFText(fullText);
         if (!result) {
-          // Show first 500 chars of extracted text for debugging
-          alert('Could not parse holdings from PDF.\n\nExtracted text (first 500 chars):\n' + fullText.substring(0, 500));
-          return null;
+          // Show debug modal with extracted text for debugging
+          const debugProceed = await showPdfDebugModal(fullText, file.name);
+          if (!debugProceed) return null;
+          // Try parsing again after user sees the text
+          const retryResult = parseNordnetPDFText(fullText);
+          if (!retryResult) {
+            return null;
+          }
+          return retryResult;
         }
 
         console.log('Parsed Nordnet PDF:', result);
