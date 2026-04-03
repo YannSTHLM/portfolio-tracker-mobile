@@ -1774,10 +1774,15 @@
           fullText += content.items.map(item => item.str).join(' ') + '\n'; 
         }
 
+        console.log('=== NORDNET PDF EXTRACTED TEXT ===');
+        console.log(fullText);
+        console.log('=== END EXTRACTED TEXT ===');
+
         // Parse using regex (no AI required)
         const result = parseNordnetPDFText(fullText);
         if (!result) {
-          alert('Could not parse holdings from PDF. Please check the format.');
+          // Show first 500 chars of extracted text for debugging
+          alert('Could not parse holdings from PDF.\n\nExtracted text (first 500 chars):\n' + fullText.substring(0, 500));
           return null;
         }
 
