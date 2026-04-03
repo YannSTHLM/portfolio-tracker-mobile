@@ -1655,10 +1655,10 @@
         if (!section || section.trim().length === 0) continue;
         
         // Extract fund holdings from this section
-        // Pattern: "FundName price SEKprice quantity market_value+/-result percentage%"
-        // Note: SEK may have NO space after it (e.g., "SEK122,40") and no spaces between numbers
-        // Example: "123,85 SEK122,4012 457,71 542 886,22+18 085,5521,44%"
-        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
+        // Pattern: "FundName   price   SEK   price   quantity   market_value   +/-result   percentage %"
+        // Note: There are spaces between all values
+        // Example: "Aktiespararna Topp Sverige A   38,08   SEK   36,68   1 090,58   41 529,38   +1 529,38   8,23 %"
+        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK\s+([\d\s]+,\d{2})\s+([\d\s]+,\d{2})\s+([\d\s]+,\d{2})\s+([+-][\d\s]+,\d{2})\s+(\d+,\d{2})\s*%/g;
         let match;
         while ((match = fundPattern.exec(section)) !== null) {
           const fundName = match[1].trim();
