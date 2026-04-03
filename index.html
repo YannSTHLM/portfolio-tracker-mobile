@@ -1648,71 +1648,86 @@
       const assetTotals = {};
       let totalValue = 0;
 
-      // Pattern 1: Extract fund holdings with market value
-      // Matches: "FundName\n[price] SEK[price][quantity][market_value][+/-result][percentage]%"
-      // The market value is the large number before the +/- sign
-      const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s]+?(?:A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
-      let match;
-      while ((match = fundPattern.exec(text)) !== null) {
-        const fundName = match[1].trim();
-        const marketValue = parseSwedishNumber(match[5]); // Market value is the 5th capture group
-        if (marketValue > 0) {
-          if (assetTotals[fundName]) {
-            assetTotals[fundName].value += marketValue;
-          } else {
-            assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
-          }
-        }
-      }
-
-      // Pattern 2: Extract cash (Likvida medel)
-      // Matches: "Likvida medel[value][percentage]%"
-      const cashPattern = /Likvida medel([\d\s]+,\d{2})(\d+,\d{2})%/g;
-      while ((match = cashPattern.exec(text)) !== null) {
-        const cashValue = parseSwedishNumber(match[1]);
-        if (cashValue > 0) {
-          if (assetTotals['Likvida medel']) {
-            assetTotals['Likvida medel'].value += cashValue;
-          } else {
-            assetTotals['Likvida medel'] = { name: 'Likvida medel', value: cashValue, isCash: true };
-          }
-        }
-      }
-
-      // Pattern 3: Extract total to verify
-      const totalPattern = /Totalt([\d\s]+,\d{2})/g;
-      while ((match = totalPattern.exec(text)) !== null) {
-        const total = parseSwedishNumber(match[1]);
-        if (total > totalValue) {
-          totalValue = total; // Use the largest total found
-        }
-      }
-
-      // If no funds found, try alternative pattern for simpler format
-      if (Object.keys(assetTotals).length === 0) {
-        // Alternative: Look for fund names followed by value lines
-        const lines = text.split('\n');
-        let currentFund = null;
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
-          // Check if line looks like a fund name (contains letters, not just numbers)
-          if (line.match(/^[A-ZÅÄÖa-zåäö]/) && !line.match(/^\d/) && !line.includes('SEK') && !line.includes('Totalt') && !line.includes('Likvida medel')) {
-            currentFund = line;
-          }
-          // Check if line contains market value pattern
-          if (currentFund && line.match(/[\d\s]+,\d{2}\s+SEK/)) {
-            const valueMatch = line.match(/([\d\s]+,\d{2})\s+SEK[\d\s]+[\d\s]+[\d\s]+[\d\s]+[+-][\d\s]+,\d{2}(\d+,\d{2})%/);
-            if (valueMatch) {
-              const marketValue = parseSwedishNumber(valueMatch[1]);
-              if (marketValue > 0) {
-                if (assetTotals[currentFund]) {
-                  assetTotals[currentFund].value += marketValue;
-                } else {
-                  assetTotals[currentFund] = { name: currentFund, value: marketValue, isCash: false };
-                }
-              }
-              currentFund = null;
+      // Split text by account sections (marked by "Le Merle Yann" + account number)
+      const accountSections = text.split(/Le Merle Yann\s+\d+\s*‧\s*Kontonr\s+\d+/);
+      
+      for (const section of accountSections) {
+        if (!section || section.trim().length === 0) continue;
+        
+        // Extract fund holdings from this section
+        // Pattern: "FundName [price] SEK[price][quantity][market_value][+/-result][percentage]%"
+        // The market value is the large number before the +/- sign
+        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
+        let match;
+        while ((match = fundPattern.exec(section)) !== null) {
+          const fundName = match[1].trim();
+          // The market value is the 5th capture group (the large number before +/-)
+          const marketValue = parseSwedishNumber(match[5]);
+          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt')) {
+            if (assetTotals[fundName]) {
+              assetTotals[fundName].value += marketValue;
+            } else {
+              assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
             }
+          }
+        }
+        
+        // Extract cash (Likvida medel) from this section
+        const cashPattern = /Likvida medel([\d\s]+,\d{2})(\d+,\d{2})%/g;
+        while ((match = cashPattern.exec(section)) !== null) {
+          const cashValue = parseSwedishNumber(match[1]);
+          if (cashValue > 0) {
+            if (assetTotals['Likvida medel']) {
+              assetTotals['Likvida medel'].value += cashValue;
+            } else {
+              assetTotals['Likvida medel'] = { name: 'Likvida medel', value: cashValue, isCash: true };
+            }
+          }
+        }
+        
+        // Extract total from this section
+        const totalPattern = /Totalt([\d\s]+,\d{2})/g;
+        while ((match = totalPattern.exec(section)) !== null) {
+          const total = parseSwedishNumber(match[1]);
+          if (total > totalValue) {
+            totalValue = total; // Use the largest total found
+          }
+        }
+      }
+
+      // If no funds found with account sections, try without splitting
+      if (Object.keys(assetTotals).length === 0) {
+        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
+        let match;
+        while ((match = fundPattern.exec(text)) !== null) {
+          const fundName = match[1].trim();
+          const marketValue = parseSwedishNumber(match[5]);
+          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt')) {
+            if (assetTotals[fundName]) {
+              assetTotals[fundName].value += marketValue;
+            } else {
+              assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
+            }
+          }
+        }
+        
+        const cashPattern = /Likvida medel([\d\s]+,\d{2})(\d+,\d{2})%/g;
+        while ((match = cashPattern.exec(text)) !== null) {
+          const cashValue = parseSwedishNumber(match[1]);
+          if (cashValue > 0) {
+            if (assetTotals['Likvida medel']) {
+              assetTotals['Likvida medel'].value += cashValue;
+            } else {
+              assetTotals['Likvida medel'] = { name: 'Likvida medel', value: cashValue, isCash: true };
+            }
+          }
+        }
+        
+        const totalPattern = /Totalt([\d\s]+,\d{2})/g;
+        while ((match = totalPattern.exec(text)) !== null) {
+          const total = parseSwedishNumber(match[1]);
+          if (total > totalValue) {
+            totalValue = total;
           }
         }
       }
@@ -1758,6 +1773,15 @@
           const content = await page.getTextContent(); 
           fullText += content.items.map(item => item.str).join(' ') + '\n'; 
         }
+
+        // Debug: Show extracted text
+        console.log('=== NORDNET PDF EXTRACTED TEXT ===');
+        console.log(fullText);
+        console.log('=== END EXTRACTED TEXT ===');
+        
+        // Show debug modal with extracted text
+        const debugProceed = await showPdfDebugModal(fullText, file.name);
+        if (!debugProceed) return null;
 
         // Parse using regex (no AI required)
         const result = parseNordnetPDFText(fullText);
