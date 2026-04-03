@@ -1675,8 +1675,8 @@
           }
         }
         
-        // Alternative pattern without strict spacing
-        const altFundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{2,}?)[\s]+([\d\s,]+)[\s]+SEK[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+[+-][\d\s,]+[\s]+(\d+,\d{2})[\s]*%/g;
+        // Alternative pattern without strict spacing - use greedy matching for numbers
+        const altFundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{2,}?)\s+([\d\s,]+)\s+SEK\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+[+-][\d\s,]+\s+(\d+,\d{2})\s*%/g;
         while ((match = altFundPattern.exec(section)) !== null) {
           const fundName = match[1].trim();
           const marketValue = parseSwedishNumber(match[5]);
