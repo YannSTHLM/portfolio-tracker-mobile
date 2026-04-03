@@ -1655,17 +1655,18 @@
         if (!section || section.trim().length === 0) continue;
         
         // Extract fund holdings from this section
-        // Pattern: "FundName   price   SEK   price   quantity   market_value   +/-result   percentage %"
-        // Strategy: Find fund names followed by lines containing SEK, then extract the 3rd number after SEK as market value
+        // Format: "FundName price SEK GAV quantity MARKET_VALUE +/-result percentage%"
         // Example: "Aktiespararna Topp Sverige A   38,08   SEK   36,68   1 090,58   41 529,38   +1 529,38   8,23 %"
-        // Note: Numbers can have spaces inside them (e.g., "1 090,58" or "41 529,38")
-        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s,]+)\s+SEK\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+([+-][\d\s,]+)\s+([\d\s,]+)\s*%/g;
+        // The market value is the 4th number after SEK (group 5)
+        
+        // Pattern: FundName + 4 numbers after SEK + +/-result + percentage
+        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{2,}?)\s+([\d\s,]+)\s+SEK\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+[+-][\d\s,]+\s+(\d+,\d{2})\s*%/g;
         let match;
         while ((match = fundPattern.exec(section)) !== null) {
           const fundName = match[1].trim();
-          // The market value is the 3rd number after SEK (group 5)
+          // Market value is the 4th number after SEK (group 5)
           const marketValue = parseSwedishNumber(match[5]);
-          if (marketValue > 0 && fundName.length > 1 && !fundName.match(/^\d/) && !fundName.includes('Totalt')) {
+          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt') && !fundName.includes('Likvida')) {
             if (assetTotals[fundName]) {
               assetTotals[fundName].value += marketValue;
             } else {
@@ -1674,14 +1675,12 @@
           }
         }
         
-        // Alternative: Simpler approach - find fund name followed by SEK pattern
-        // Look for: "FundName ... SEK ... market_value ... %"
-        // This catches funds that might be missed by the main pattern
-        const simpleFundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{1,}?)\s+[\d\s,]+\s+SEK\s+[\d\s,]+\s+[\d\s,]+\s+([\d\s,]+)\s+[+-][\d\s,]+\s+\d[\d\s,]*\s*%/g;
-        while ((match = simpleFundPattern.exec(section)) !== null) {
+        // Alternative pattern without strict spacing
+        const altFundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{2,}?)[\s]+([\d\s,]+)[\s]+SEK[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+([\d\s,]+)[\s]+[+-][\d\s,]+[\s]+(\d+,\d{2})[\s]*%/g;
+        while ((match = altFundPattern.exec(section)) !== null) {
           const fundName = match[1].trim();
-          const marketValue = parseSwedishNumber(match[2]);
-          if (marketValue > 0 && fundName.length > 1 && !fundName.match(/^\d/) && !fundName.includes('Totalt') && !fundName.includes('Likvida')) {
+          const marketValue = parseSwedishNumber(match[5]);
+          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt') && !fundName.includes('Likvida')) {
             if (!assetTotals[fundName]) {
               assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
             }
@@ -1720,12 +1719,13 @@
 
       // If no funds found with account sections, try without splitting
       if (Object.keys(assetTotals).length === 0) {
-        const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
+        // Find all SEK occurrences and extract surrounding context
+        const sekPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{2,}?)\s+([\d\s,]+)\s+SEK\s+([\d\s,]+)\s+([\d\s,]+)\s+([\d\s,]+)\s+[+-][\d\s,]+\s+\d[\d\s,]*\s*%/g;
         let match;
-        while ((match = fundPattern.exec(text)) !== null) {
+        while ((match = sekPattern.exec(text)) !== null) {
           const fundName = match[1].trim();
           const marketValue = parseSwedishNumber(match[5]);
-          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt')) {
+          if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt') && !fundName.includes('Likvida')) {
             if (assetTotals[fundName]) {
               assetTotals[fundName].value += marketValue;
             } else {
