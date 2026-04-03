@@ -1656,18 +1656,31 @@
         
         // Extract fund holdings from this section
         // Pattern: "FundName   price   SEK   price   quantity   market_value   +/-result   percentage %"
-        // Note: There are spaces between all values
+        // Strategy: Find fund names followed by lines containing SEK, then extract the 3rd number after SEK as market value
         // Example: "Aktiespararna Topp Sverige A   38,08   SEK   36,68   1 090,58   41 529,38   +1 529,38   8,23 %"
         const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]+?)\s+([\d\s]+,\d{2})\s+SEK\s+([\d\s]+,\d{2})\s+([\d\s]+,\d{2})\s+([\d\s]+,\d{2})\s+([+-][\d\s]+,\d{2})\s+(\d+,\d{2})\s*%/g;
         let match;
         while ((match = fundPattern.exec(section)) !== null) {
           const fundName = match[1].trim();
-          // The market value is the 5th capture group (the large number before +/-)
+          // The market value is the 3rd number after SEK (group 5)
           const marketValue = parseSwedishNumber(match[5]);
           if (marketValue > 0 && fundName.length > 2 && !fundName.match(/^\d/) && !fundName.includes('Totalt')) {
             if (assetTotals[fundName]) {
               assetTotals[fundName].value += marketValue;
             } else {
+              assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
+            }
+          }
+        }
+        
+        // Alternative: Simpler approach - find fund name followed by SEK pattern
+        // Look for: "FundName ... SEK ... market_value ... %"
+        const simpleFundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s\-\.]{3,}?)\s+[\d\s]+,\d{2}\s+SEK\s+[\d\s]+,\d{2}\s+[\d\s]+,\d{2}\s+([\d\s]+,\d{2})\s+[+-][\d\s]+,\d{2}\s+\d+,\d{2}\s*%/g;
+        while ((match = simpleFundPattern.exec(section)) !== null) {
+          const fundName = match[1].trim();
+          const marketValue = parseSwedishNumber(match[2]);
+          if (marketValue > 0 && fundName.length > 3 && !fundName.match(/^\d/) && !fundName.includes('Totalt') && !fundName.includes('Likvida')) {
+            if (!assetTotals[fundName]) {
               assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
             }
           }
