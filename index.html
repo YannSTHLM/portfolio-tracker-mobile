@@ -1555,7 +1555,7 @@
       const hasPdf = fileArr.some(f => f.name.toLowerCase().endsWith('.pdf'));
       
       if (hasPdf) {
-        showLoadingOverlay('Extracting text from PDF and calling AI...');
+        showLoadingOverlay('Extracting text from PDF...');
       }
 
       try {
@@ -1633,45 +1633,146 @@
       return { date: snapshotDate, dateStr: formatDate(snapshotDate), holdings, totalValue, nordnetValue: 0, avanzaValue: totalValue };
     }
 
-    // --- NORDNET PDF PARSER ---
+    // --- NORDNET PDF PARSER (Regex-based, no AI required) ---
+    function parseNordnetPDFText(text) {
+      // Helper: Parse Swedish number format (space as thousands separator, comma as decimal)
+      const parseSwedishNumber = (str) => {
+        if (!str) return 0;
+        return parseFloat(str.replace(/\s/g, '').replace(',', '.')) || 0;
+      };
+
+      // Extract date from document (format: YYYY-MM-DD)
+      const dateMatch = text.match(/(\d{4}-\d{2}-\d{2})/);
+      const snapshotDate = dateMatch ? parseDate(dateMatch[1]) : new Date();
+
+      const assetTotals = {};
+      let totalValue = 0;
+
+      // Pattern 1: Extract fund holdings with market value
+      // Matches: "FundName\n[price] SEK[price][quantity][market_value][+/-result][percentage]%"
+      // The market value is the large number before the +/- sign
+      const fundPattern = /([A-ZÅÄÖa-zåäö][A-ZÅÄÖa-zåäö\s]+?(?:A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)?)\s+([\d\s]+,\d{2})\s+SEK([\d\s]+,\d{2})([\d\s]+,\d{2})([\d\s]+,\d{2})([+-][\d\s]+,\d{2})(\d+,\d{2})%/g;
+      let match;
+      while ((match = fundPattern.exec(text)) !== null) {
+        const fundName = match[1].trim();
+        const marketValue = parseSwedishNumber(match[5]); // Market value is the 5th capture group
+        if (marketValue > 0) {
+          if (assetTotals[fundName]) {
+            assetTotals[fundName].value += marketValue;
+          } else {
+            assetTotals[fundName] = { name: fundName, value: marketValue, isCash: false };
+          }
+        }
+      }
+
+      // Pattern 2: Extract cash (Likvida medel)
+      // Matches: "Likvida medel[value][percentage]%"
+      const cashPattern = /Likvida medel([\d\s]+,\d{2})(\d+,\d{2})%/g;
+      while ((match = cashPattern.exec(text)) !== null) {
+        const cashValue = parseSwedishNumber(match[1]);
+        if (cashValue > 0) {
+          if (assetTotals['Likvida medel']) {
+            assetTotals['Likvida medel'].value += cashValue;
+          } else {
+            assetTotals['Likvida medel'] = { name: 'Likvida medel', value: cashValue, isCash: true };
+          }
+        }
+      }
+
+      // Pattern 3: Extract total to verify
+      const totalPattern = /Totalt([\d\s]+,\d{2})/g;
+      while ((match = totalPattern.exec(text)) !== null) {
+        const total = parseSwedishNumber(match[1]);
+        if (total > totalValue) {
+          totalValue = total; // Use the largest total found
+        }
+      }
+
+      // If no funds found, try alternative pattern for simpler format
+      if (Object.keys(assetTotals).length === 0) {
+        // Alternative: Look for fund names followed by value lines
+        const lines = text.split('\n');
+        let currentFund = null;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          // Check if line looks like a fund name (contains letters, not just numbers)
+          if (line.match(/^[A-ZÅÄÖa-zåäö]/) && !line.match(/^\d/) && !line.includes('SEK') && !line.includes('Totalt') && !line.includes('Likvida medel')) {
+            currentFund = line;
+          }
+          // Check if line contains market value pattern
+          if (currentFund && line.match(/[\d\s]+,\d{2}\s+SEK/)) {
+            const valueMatch = line.match(/([\d\s]+,\d{2})\s+SEK[\d\s]+[\d\s]+[\d\s]+[\d\s]+[+-][\d\s]+,\d{2}(\d+,\d{2})%/);
+            if (valueMatch) {
+              const marketValue = parseSwedishNumber(valueMatch[1]);
+              if (marketValue > 0) {
+                if (assetTotals[currentFund]) {
+                  assetTotals[currentFund].value += marketValue;
+                } else {
+                  assetTotals[currentFund] = { name: currentFund, value: marketValue, isCash: false };
+                }
+              }
+              currentFund = null;
+            }
+          }
+        }
+      }
+
+      // Build holdings array
+      const holdings = Object.values(assetTotals).map(h => {
+        const cls = getClassificationFromReference(h.name, 'Nordnet');
+        return {
+          name: h.name,
+          brokerage: 'Nordnet',
+          category: cls.found ? cls.category : (h.isCash ? 'Cash' : 'Unassigned'),
+          value: h.value,
+          percentage: totalValue > 0 ? (h.value / totalValue) * 100 : 0,
+          bucket: cls.found ? cls.bucket : (h.isCash ? 1 : 0)
+        };
+      }).sort((a, b) => b.value - a.value);
+
+      // Calculate total if not found in PDF
+      if (totalValue === 0) {
+        totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
+      }
+
+      if (holdings.length === 0) return null;
+
+      return {
+        date: snapshotDate,
+        dateStr: formatDate(snapshotDate),
+        holdings,
+        totalValue,
+        nordnetValue: totalValue,
+        avanzaValue: 0
+      };
+    }
+
     async function parseNordnetPDF(file) {
       if (typeof pdfjsLib === 'undefined') { alert('PDF.js library not loaded.'); return null; }
-      const apiKey = getApiKey();
-      if (!apiKey) { alert('Please configure your AI API key first (click the API button).'); return null; }
       try {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); fullText += content.items.map(item => item.str).join(' ') + '\n'; }
-        
-        // DEBUG: Show extracted text for analysis
-        console.log('=== NORDNET PDF EXTRACTED TEXT ===');
-        console.log(fullText);
-        console.log('=== END EXTRACTED TEXT ===');
-        
-        // Show debug modal with extracted text
-        const debugProceed = await showPdfDebugModal(fullText, file.name);
-        if (!debugProceed) return null;
-        
-        const aiResult = await callAiForNordnetExtraction(fullText, file.name);
-        if (!aiResult) return null;
-        const snapshotDate = aiResult.date ? parseDate(aiResult.date) : new Date();
-        const assetTotals = {};
-        (aiResult.holdings || []).forEach(h => {
-          if (!h.name || !h.value) return;
-          const value = typeof h.value === 'string' ? parseFloat(h.value.replace(/\s/g, '').replace(',', '.')) : h.value;
-          if (value <= 0) return;
-          if (assetTotals[h.name]) assetTotals[h.name].value += value;
-          else assetTotals[h.name] = { name: h.name, value, isCash: h.isCash || false };
-        });
-        const totalValue = Object.values(assetTotals).reduce((s, h) => s + h.value, 0);
-        const holdings = Object.values(assetTotals).map(h => {
-          const cls = getClassificationFromReference(h.name, 'Nordnet');
-          return { name: h.name, brokerage: 'Nordnet', category: cls.found ? cls.category : (h.isCash ? 'Cash' : 'Unassigned'), value: h.value, percentage: (h.value / totalValue) * 100, bucket: cls.found ? cls.bucket : (h.isCash ? 1 : 0) };
-        }).sort((a, b) => b.value - a.value);
-        if (holdings.length === 0) return null;
-        return { date: snapshotDate, dateStr: formatDate(snapshotDate), holdings, totalValue, nordnetValue: totalValue, avanzaValue: 0 };
-      } catch (err) { console.error('PDF parsing error:', err); alert('Failed to parse Nordnet PDF: ' + err.message); return null; }
+        for (let i = 1; i <= pdf.numPages; i++) { 
+          const page = await pdf.getPage(i); 
+          const content = await page.getTextContent(); 
+          fullText += content.items.map(item => item.str).join(' ') + '\n'; 
+        }
+
+        // Parse using regex (no AI required)
+        const result = parseNordnetPDFText(fullText);
+        if (!result) {
+          alert('Could not parse holdings from PDF. Please check the format.');
+          return null;
+        }
+
+        console.log('Parsed Nordnet PDF:', result);
+        return result;
+      } catch (err) { 
+        console.error('PDF parsing error:', err); 
+        alert('Failed to parse Nordnet PDF: ' + err.message); 
+        return null; 
+      }
     }
 
     function showPdfDebugModal(text, filename) {
