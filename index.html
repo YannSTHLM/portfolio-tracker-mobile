@@ -407,17 +407,24 @@
             </button>
             
             <!-- Import CSV Snapshot -->
-            <button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              <span class="hidden sm:inline">Add Snapshot</span>
-            </button>
-            <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
-            <button onclick="showApiSettings()" class="btn-secondary flex items-center gap-2 text-sm" title="AI API Settings">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span class="hidden sm:inline">API</span>
-            </button>
+<button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+               </svg>
+               <span class="hidden sm:inline">Add Snapshot</span>
+             </button>
+             <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
+             <button onclick="document.getElementById('importDataInput').click()" class="btn-primary flex items-center gap-2">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+               </svg>
+               <span class="hidden sm:inline">Import Data</span>
+             </button>
+             <input type="file" id="importDataInput" accept=".json" style="display:none" onchange="handleDataImport(this)">
+             <button onclick="showApiSettings()" class="btn-secondary flex items-center gap-2 text-sm" title="AI API Settings">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+               <span class="hidden sm:inline">API</span>
+             </button>
           </div>
         </div>
       </div>
@@ -1643,6 +1650,68 @@
       const files = e.target.files;
       // Don't clear input until processing is done
       handleFiles(files).finally(() => { e.target.value = ''; });
+    }
+
+    function handleDataImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          try {
+              const importedData = JSON.parse(e.target.result);
+
+              // Handle new structured export format (v1)
+              if (importedData && importedData.version === 1 && importedData.snapshots) {
+                  const bundle = importedData;
+
+                  // Restore snapshots
+                  bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                  snapshots = bundle.snapshots;
+                  snapshots.sort((a, b) => a.date - b.date);
+                  currentSnapshot = snapshots[snapshots.length - 1];
+
+                  // Restore classification reference
+                  if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
+                      classificationReference = bundle.classificationReference;
+                      try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
+                  }
+
+                  // Restore rebalancing targets
+                  if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
+                      rebalancingTargets = bundle.rebalancingTargets;
+                      saveRebalancingTargets();
+                  }
+
+                  // Restore excluded assets
+                  if (Array.isArray(bundle.excludedAssets)) {
+                      excludedAssets = new Set(bundle.excludedAssets);
+                      saveExcludedAssets();
+                  }
+
+                  // Restore performance data
+                  if (bundle.performanceData && bundle.performanceData.assets) {
+                      performanceData = bundle.performanceData;
+                      savePerformanceData();
+                  }
+
+                  showDashboard();
+                  alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
+
+              // Handle legacy array format (backward compatible)
+              } else if (Array.isArray(importedData)) {
+                  if (importedData[0].date && importedData[0].holdings) {
+                      importedData.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                      snapshots = importedData;
+                      snapshots.sort((a, b) => a.date - b.date);
+                      currentSnapshot = snapshots[snapshots.length - 1];
+                      showDashboard();
+                      alert("Snapshots imported successfully!\n\nNote: This was a legacy export file. Only snapshot data was restored.");
+                  } else { alert("Invalid JSON structure."); }
+              } else { alert("Invalid JSON format. Expected a Portfolio Tracker export file."); }
+          } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
     }
 
     function datesAreEqual(d1, d2) {
