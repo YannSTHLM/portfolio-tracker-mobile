@@ -329,6 +329,51 @@
       gap: 8px;
     }
 
+    /* Snapshots Tab Styles */
+    .snapshot-table th,
+    .snapshot-table td {
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+    .snapshot-table th {
+      font-size: 11px;
+    }
+    .snapshot-action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .snapshot-select-btn {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+    .snapshot-select-btn:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+    .snapshot-select-btn.is-current {
+      background: var(--accent-primary);
+      color: white;
+    }
+    .snapshot-delete-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+    .snapshot-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+    .snapshot-count-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
   </style>
 </head>
 <body class="bg-grid">
@@ -354,19 +399,6 @@
 
           <div class="flex items-center gap-3">
             <span id="lastUpdated" class="text-sm text-[var(--fg-muted)] hidden md:block"></span>
-
-            <!-- Download Template Button -->
-            <button onclick="downloadTemplate()" class="btn-secondary flex items-center gap-2 text-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-              <span class="hidden sm:inline">Template</span>
-            </button>
-
-            <!-- Import Data Button -->
-            <button onclick="document.getElementById('importDataInput').click()" class="btn-secondary flex items-center gap-2 text-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-              <span class="hidden sm:inline">Import</span>
-            </button>
-            <input type="file" id="importDataInput" accept=".json" >
 
             <!-- Export Data Button -->
             <button onclick="exportData()" class="btn-secondary flex items-center gap-2 text-sm">
@@ -405,17 +437,6 @@
         </div>
       </div>
 
-      <!-- Snapshots Bar -->
-      <div id="snapshotsBar" class="hidden mb-6 animate-fade-in">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-sm text-[var(--fg-muted)] mr-2">Snapshots:</span>
-          <div id="snapshotChips" class="flex gap-2 flex-wrap"></div>
-          <button onclick="document.getElementById('fileInput').click()" class="snapshot-chip border-dashed">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add
-          </button>
-        </div>
-      </div>
 
       <!-- Stats Grid -->
       <div id="statsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -450,6 +471,7 @@
           <button class="tab-btn" data-tab="rebalancing">Rebalancing</button>
           <button class="tab-btn" data-tab="evolution">Evolution</button>
           <button class="tab-btn" data-tab="comparison">Compare</button>
+          <button class="tab-btn" data-tab="snapshots">Snapshots</button>
           <button class="tab-btn" data-tab="analytics">Analytics</button>
         </div>
       </div>
@@ -604,13 +626,22 @@
 
             <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
-                    <h3 class="text-lg font-semibold">10-Month Rebalancing Schedule</h3>
+                    <h3 id="rebalancingScheduleHeader" class="text-lg font-semibold">10-Month Rebalancing Schedule</h3>
                     <p class="text-sm text-[var(--fg-muted)]">Dynamically computed from current holdings and final targets. Columns sum to 100%.</p>
                 </div>
-                <div class="flex gap-4 text-xs">
-                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400"></span> Bucket 1 (Cash)</span>
-                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Bucket 2 (Credit)</span>
-                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Bucket 3 (Equity)</span>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-[var(--fg-muted)] font-medium" for="rebalancingDurationInput">Duration:</label>
+                        <input type="number" id="rebalancingDurationInput" value="10" min="10" max="18" step="1"
+                            onchange="onDurationChange()" 
+                            class="w-16 bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm text-center font-mono focus:border-[var(--accent-primary)] outline-none">
+                        <span class="text-xs text-[var(--fg-muted)]">months</span>
+                    </div>
+                    <div class="flex gap-4 text-xs">
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400"></span> Bucket 1 (Cash/Short)</span>
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Bucket 2 (Fixed Income/Commodities)</span>
+                        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Bucket 3 (Equity)</span>
+                    </div>
                 </div>
             </div>
             
@@ -661,6 +692,43 @@
         </div>
         
         <div id="evolutionTab" class="tab-panel hidden">
+            <div id="targetTrackerCard" class="card p-6 mb-6 animate-fade-in">
+                <h3 class="text-lg font-semibold mb-4">Target Return Tracker</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Year Start Value (SEK)</label>
+                        <input type="number" id="yearStartValueInput" placeholder="e.g. 20000000" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Target EOY Return (%)</label>
+                        <input type="number" id="targetReturnInput" step="0.1" placeholder="7.0" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                    </div>
+                </div>
+                <div id="targetTrackerResults" class="hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div class="bg-[var(--bg-secondary)] rounded-lg p-3">
+                            <p class="text-xs text-[var(--fg-muted)] mb-1">Current Value</p>
+                            <p id="ttCurrentValue" class="text-lg font-bold font-mono">--</p>
+                        </div>
+                        <div class="bg-[var(--bg-secondary)] rounded-lg p-3">
+                            <p class="text-xs text-[var(--fg-muted)] mb-1">Target EOY Value</p>
+                            <p id="ttTargetEoy" class="text-lg font-bold font-mono">--</p>
+                        </div>
+                        <div class="bg-[var(--bg-secondary)] rounded-lg p-3">
+                            <p class="text-xs text-[var(--fg-muted)] mb-1">Actual Return YTD</p>
+                            <p id="ttActualReturn" class="text-lg font-bold font-mono">--</p>
+                        </div>
+                        <div class="bg-[var(--bg-secondary)] rounded-lg p-3">
+                            <p class="text-xs text-[var(--fg-muted)] mb-1">Target Return YTD</p>
+                            <p id="ttTargetReturn" class="text-lg font-bold font-mono">--</p>
+                        </div>
+                    </div>
+                    <div id="ttStatus" class="rounded-lg p-3 text-center font-semibold">--</div>
+                </div>
+                <div id="targetTrackerNoData" class="text-center text-[var(--fg-muted)] py-4">
+                    <p>Set Year Start Value and Target Return to track your progress.</p>
+                </div>
+            </div>
             <div class="card p-6 mb-6 animate-fade-in">
                 <h3 class="text-lg font-semibold mb-4">Portfolio Value Over Time</h3>
                 <div class="h-80"><canvas id="evolutionChart"></canvas></div>
@@ -669,6 +737,44 @@
                 <h3 class="text-lg font-semibold mb-4">Category Evolution</h3>
                 <div class="h-80"><canvas id="categoryEvolutionChart"></canvas></div>
             </div>
+        </div>
+
+        <!-- Snapshots Tab -->
+        <div id="snapshotsTab" class="tab-panel hidden">
+          <div class="card animate-fade-in">
+            <div class="p-6 border-b border-[var(--border)]">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-lg font-semibold">Snapshot Management</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">Manage all imported portfolio snapshots</p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Snapshot
+                  </button>
+                  <button onclick="exportData()" class="btn-secondary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export All
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="table-container scrollbar-thin">
+              <table class="snapshot-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Brokers</th>
+                    <th class="text-right">Total Value</th>
+                    <th class="text-right">Holdings</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="snapshotsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div id="comparisonTab" class="tab-panel hidden">
@@ -709,14 +815,14 @@
               <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
                   <h3 class="text-lg font-semibold">Historical Performance Data</h3>
-                  <p class="text-sm text-[var(--fg-muted)]">Upload a CSV with asset returns (European format: comma as decimal separator)</p>
+                  <p class="text-sm text-[var(--fg-muted)]">Upload an Avanza portfolio PDF report to extract asset returns</p>
                 </div>
                 <div class="flex gap-2">
                   <button onclick="document.getElementById('perfFileInput').click()" class="btn-primary flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Upload CSV
+                    Upload PDF
                   </button>
-                  <input type="file" id="perfFileInput" accept=".csv">
+                  <input type="file" id="perfFileInput" accept=".pdf">
                   <button onclick="clearPerformanceData()" class="btn-secondary flex items-center gap-2 text-sm" id="clearPerfBtn" style="display:none">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     Clear
@@ -727,8 +833,8 @@
                 <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                <p class="text-[var(--fg-muted)] mb-2">Drag and drop your performance CSV here</p>
-                <p class="text-xs text-[var(--fg-muted)]">Expected: Asset Type, Name, Country, Holding, 1 Week, 1 Month, 3 Months, 1 Year, 3 Years, 5 Years</p>
+                <p class="text-[var(--fg-muted)] mb-2">Drag and drop your Avanza performance PDF here</p>
+                <p class="text-xs text-[var(--fg-muted)]">Expected: Avanza portfolio report with period returns (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)</p>
               </div>
             </div>
 
@@ -812,14 +918,16 @@
     // Configuration
     const BUCKETS = {
         1: { name: 'Cash/Short', class: 'badge-bucket-1' },
-        2: { name: 'Credit', class: 'badge-bucket-2' },
+        2: { name: 'Fixed Income/Commodities', class: 'badge-bucket-2' },
         3: { name: 'Equity', class: 'badge-bucket-3' },
         0: { name: 'Sell/Other', class: 'badge-sell' }
     };
 
     const DEFAULT_CATEGORIES = [
-        'Corporate / Credit', 'Short Duration', 'Sweden Index',
-        'Global Index', 'Cash', 'Energy', 'Materials', 'Other', 'Unassigned'
+        'Communication Services', 'Consumer Discretionary', 'Consumer Staples', 'Energy', 'Financials', 'Health Care', 'Industrials', 'Information Technology', 'Materials', 'Real Estate', 'Utilities', 'Global Index', 'Sweden Index',
+        'Credit', 'Long Term Bond', 'Mix Term Bond',
+        'Precious Metals', 'Base Metals', 'Energy', 'Agriculture', 'Livestock',
+        'Cash', 'Corporate / Credit', 'Short Duration', 'Other', 'Unassigned'
     ];
 
     let CATEGORIES = [...DEFAULT_CATEGORIES];
@@ -1069,18 +1177,75 @@
       } catch (e) { console.warn('Failed to save rebalancing targets:', e); }
     }
 
-    // Bucket-level target percentages per month (M1-M10)
-    const bucketTargets = {
+    // Rebalancing duration configuration (10-18 months)
+    const REBALANCING_DURATION_LS_KEY = 'portfolioTracker_rebalancingDuration';
+    let REBALANCING_MONTHS = 10;
+
+    function loadRebalancingDuration() {
+      try {
+        const raw = localStorage.getItem(REBALANCING_DURATION_LS_KEY);
+        if (raw) {
+          const val = parseInt(raw);
+          if (val >= 10 && val <= 18) { REBALANCING_MONTHS = val; return; }
+        }
+      } catch (e) { console.warn('Failed to load rebalancing duration:', e); }
+      REBALANCING_MONTHS = 10;
+    }
+
+    function saveRebalancingDuration() {
+      try {
+        localStorage.setItem(REBALANCING_DURATION_LS_KEY, String(REBALANCING_MONTHS));
+      } catch (e) { console.warn('Failed to save rebalancing duration:', e); }
+    }
+
+    // Base bucket-level target percentages per month for first 10 months (M1-M10)
+    const baseBucketTargets = {
       0: [1.1, 1.0, 0.9, 0.8, 0.7, 0.5, 0.3, 0.2, 0.1, 0.0],
       1: [49.3, 45.5, 41.7, 37.9, 34.1, 30.3, 26.5, 22.7, 18.8, 15.0],
       2: [38.8, 37.3, 35.7, 34.2, 32.7, 31.1, 29.6, 28.1, 26.5, 25.0],
       3: [10.8, 16.2, 21.7, 27.1, 32.5, 38.1, 43.6, 49.0, 54.6, 60.0]
     };
 
+    // Generate bucket targets for configured duration (linearly extrapolate beyond month 10)
+    function getBucketTargets(months) {
+      const m = months || REBALANCING_MONTHS;
+      const result = {};
+      for (const bucket of [0, 1, 2, 3]) {
+        result[bucket] = [];
+        const base = baseBucketTargets[bucket];
+        for (let i = 0; i < m; i++) {
+          if (i < 10) {
+            result[bucket].push(base[i]);
+          } else {
+            // Linear extrapolation from month 9-10 trend to final target
+            const m9 = base[8];  // index 8 = M9
+            const m10 = base[9];  // index 9 = M10
+            const monthlyDelta = m10 - m9;
+            const extrapolated = m10 + monthlyDelta * (i - 9);
+            result[bucket].push(Math.round(extrapolated * 10) / 10);
+          }
+        }
+      }
+      return result;
+    }
+
     // Backward compatibility: build rebalancingSchedule dynamically
     const rebalancingSchedule = { avanza: [], nordnet: [] };
 
     function roundTo1(v) { return Math.round(v * 10) / 10; }
+
+    function onDurationChange() {
+      const val = parseInt(document.getElementById('rebalancingDurationInput').value);
+      if (val >= 10 && val <= 18) {
+        REBALANCING_MONTHS = val;
+        saveRebalancingDuration();
+        refreshRebalancingSchedule();
+        renderRebalancingTables();
+        // Update header text
+        const headerEl = document.getElementById('rebalancingScheduleHeader');
+        if (headerEl) headerEl.textContent = REBALANCING_MONTHS + '-Month Rebalancing Schedule';
+      }
+    }
 
     // Smart asset name matching that handles prefix differences (AMF vs Avanza etc.)
     function namesMatch(name1, name2) {
@@ -1130,21 +1295,24 @@
         buckets[t.bucket].push({ name: t.name, current: assetCurrents[t.name] || 0, target: t.target });
       });
 
+      const numMonths = REBALANCING_MONTHS;
+      const bTargets = getBucketTargets(numMonths);
+
       // Compute schedule for each asset
       const result = [];
       for (const [bk, items] of Object.entries(buckets)) {
         const b = parseInt(bk);
-        const bTargets = bucketTargets[b];
+        const bucketMonthlyTargets = bTargets[b];
         const totalCurrent = items.reduce((s, i) => s + i.current, 0);
         const totalTarget = items.reduce((s, i) => s + i.target, 0);
 
         items.forEach(item => {
           const schedule = [];
-          for (let m = 0; m < 10; m++) {
-            const bt = bTargets[m];
+          for (let m = 0; m < numMonths; m++) {
+            const bt = bucketMonthlyTargets[m];
             const fCurrent = totalCurrent > 0 ? item.current / totalCurrent : (totalTarget > 0 ? item.target / totalTarget : 1 / items.length);
             const fTarget = totalTarget > 0 ? item.target / totalTarget : fCurrent;
-            const frac = fCurrent + (fTarget - fCurrent) * (m / 9);
+            const frac = fCurrent + (fTarget - fCurrent) * (m / (numMonths - 1));
             schedule.push(bt * frac);
           }
           result.push({ bucket: b, name: item.name, schedule: schedule.map(roundTo1) });
@@ -1152,7 +1320,7 @@
       }
 
       // Adjust rounding so each column sums to exactly 100.0
-      for (let m = 0; m < 10; m++) {
+      for (let m = 0; m < numMonths; m++) {
         let sum = result.reduce((s, x) => s + x.schedule[m], 0);
         sum = roundTo1(sum);
         if (sum !== 100.0) {
@@ -1303,8 +1471,6 @@
       const dropZone = document.getElementById('dropZone');
 
 
-      const importDataInput = document.getElementById('importDataInput');
-      importDataInput.addEventListener('change', handleDataImport);
       fileInput.addEventListener('change', handleFileSelect);
       
       dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -2041,10 +2207,8 @@ ${text}`;
 
     function showDashboard() {
       document.getElementById('uploadSection').classList.add('hidden');
-      document.getElementById('snapshotsBar').classList.remove('hidden');
       document.getElementById('statsGrid').classList.remove('hidden');
       document.getElementById('tabsSection').classList.remove('hidden');
-      renderSnapshotChips();
       updateStats();
       switchTab('overview');
       populateFilters();
@@ -2097,10 +2261,11 @@ ${text}`;
 
     function selectSnapshot(index) {
       currentSnapshot = snapshots[index];
-      renderSnapshotChips();
       updateStats();
       updateCharts();
       renderHoldingsTable();
+      // Refresh snapshots tab if it's visible
+      if (!document.getElementById('snapshotsTab').classList.contains('hidden')) renderSnapshotsTab();
       if (!document.getElementById('rebalancingTab').classList.contains('hidden')) renderRebalancingTables();
     }
 
@@ -2142,10 +2307,59 @@ ${text}`;
 
       if (tabId === 'overview') setTimeout(() => { renderDistributionChart(); renderBrokerageChart(); renderCategoryBreakdown(); }, 100);
       else if (tabId === 'holdings') renderHoldingsTable();
-      else if (tabId === 'evolution') setTimeout(() => { renderEvolutionChart(); renderCategoryEvolutionChart(); }, 100);
+      else if (tabId === 'evolution') setTimeout(() => { renderTargetTracker(); renderEvolutionChart(); renderCategoryEvolutionChart(); }, 100);
       else if (tabId === 'rebalancing') renderRebalancingTables();
       else if (tabId === 'comparison') populateCompareSelects();
       else if (tabId === 'reference') renderReferenceTable();
+      else if (tabId === 'snapshots') renderSnapshotsTab();
+    }
+
+    function renderSnapshotsTab() {
+      const tbody = document.getElementById('snapshotsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      if (snapshots.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-[var(--fg-muted)] py-8">No snapshots imported yet</td></tr>';
+        return;
+      }
+      // Show in reverse order (newest first)
+      const reversed = [...snapshots].reverse();
+      reversed.forEach((snapshot, reverseIdx) => {
+        const realIndex = snapshots.length - 1 - reverseIdx;
+        const effective = getEffectiveSnapshot(snapshot);
+        const ft = calculateFilteredTotals(effective);
+        const { hasAvanza, hasNordnet } = getSnapshotBrokerInfo(snapshot);
+        const carried = effective._carriedForward || {};
+
+        // Build broker badges
+        let brokerBadges = '';
+        if (hasAvanza || carried.avanza) {
+          const carriedLabel = carried.avanza ? '↩' : '';
+          brokerBadges = `<span style="background:rgba(16,185,129,0.2);color:#34d399;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">Avanza${carriedLabel}</span>`;
+        }
+        if (hasNordnet || carried.nordnet) {
+          const carriedLabel = carried.nordnet ? '↩' : '';
+          brokerBadges += brokerBadges ? ' ' : '';
+          brokerBadges += `<span style="background:rgba(6,182,212,0.2);color:#22d3ee;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">Nordnet${carriedLabel}</span>`;
+        }
+
+        const isCurrent = snapshot === currentSnapshot;
+        const row = document.createElement('tr');
+        if (isCurrent) row.classList.add('highlight-row');
+        row.innerHTML = `
+          <td class="font-medium">${snapshot.dateStr}</td>
+          <td style="min-width:150px;">${brokerBadges || '<span class="text-[var(--fg-muted)]">None</span>'}</td>
+          <td class="text-right font-mono">${formatCurrency(ft.totalValue)}</td>
+          <td class="text-right font-mono">${ft.holdingsCount}</td>
+          <td class="text-center">
+            <div class="flex gap-2 justify-center">
+              ${!isCurrent ? `<button class="snapshot-action-btn snapshot-select-btn" onclick="selectSnapshot(${realIndex})">Select</button>` : `<button class="snapshot-action-btn snapshot-select-btn is-current" disabled>Current</button>`}
+              <button class="snapshot-action-btn snapshot-delete-btn" onclick="deleteSnapshot(${realIndex})">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
     }
     // --- EDITING LOGIC ---
 
@@ -2312,10 +2526,10 @@ ${text}`;
         const nordnetWeight = conFt.nordnetValue / totalPortfolio;
 
         const bucketNames = {
-            1: { name: 'Bucket 1 — Cash/Short Duration', color: '#22d3ee', class: 'badge-bucket-1' },
-            2: { name: 'Bucket 2 — Credit', color: '#fbbf24', class: 'badge-bucket-2' },
-            3: { name: 'Bucket 3 — Equity', color: '#34d399', class: 'badge-bucket-3' },
-            0: { name: 'Bucket 0 — Sell/Other', color: '#f87171', class: 'badge-sell' }
+            1: { name: 'Bucket 1 — ' + BUCKETS[1].name, color: '#22d3ee', class: 'badge-bucket-1' },
+            2: { name: 'Bucket 2 — ' + BUCKETS[2].name, color: '#fbbf24', class: 'badge-bucket-2' },
+            3: { name: 'Bucket 3 — ' + BUCKETS[3].name, color: '#34d399', class: 'badge-bucket-3' },
+            0: { name: 'Bucket 0 — ' + BUCKETS[0].name, color: '#f87171', class: 'badge-sell' }
         };
 
         // Calculate current bucket allocations (weighted by portfolio share)
@@ -2360,7 +2574,7 @@ ${text}`;
 
         [1, 2, 3, 0].forEach(b => {
             const current = (avanzaCurrent[b] * avanzaWeight) + (nordnetCurrent[b] * nordnetWeight);
-            const m1 = bucketTargets[b][0]; // M1 is the same for both brokers
+            const m1 = getBucketTargets(REBALANCING_MONTHS)[b][0]; // M1 is the same for both brokers
             const finalTarget = (avanzaFinal[b] * avanzaWeight) + (nordnetFinal[b] * nordnetWeight);
             const info = bucketNames[b];
 
@@ -2410,11 +2624,11 @@ ${text}`;
         const avanzaWeight = ft.avanzaValue / totalPortfolio;
         const nordnetWeight = ft.nordnetValue / totalPortfolio;
 
-        const bucketInfo = {
-            1: { name: 'Bucket 1 — Cash/Short Duration', shortName: 'Cash/Short', color: '#22d3ee', bg: 'rgba(6, 182, 212, 0.08)', class: 'badge-bucket-1' },
-            2: { name: 'Bucket 2 — Credit', shortName: 'Credit', color: '#fbbf24', bg: 'rgba(245, 158, 11, 0.08)', class: 'badge-bucket-2' },
-            3: { name: 'Bucket 3 — Equity', shortName: 'Equity', color: '#34d399', bg: 'rgba(16, 185, 129, 0.08)', class: 'badge-bucket-3' },
-            0: { name: 'Bucket 0 — Sell/Other', shortName: 'Sell/Other', color: '#f87171', bg: 'rgba(239, 68, 68, 0.08)', class: 'badge-sell' }
+        const bucketMeta = {
+            1: { shortName: BUCKETS[1].name, color: '#22d3ee', class: 'badge-bucket-1' },
+            2: { shortName: BUCKETS[2].name, color: '#fbbf24', class: 'badge-bucket-2' },
+            3: { shortName: BUCKETS[3].name, color: '#34d399', class: 'badge-bucket-3' },
+            0: { shortName: BUCKETS[0].name, color: '#f87171', class: 'badge-sell' }
         };
 
         // Calculate current bucket % for a broker
@@ -2437,7 +2651,6 @@ ${text}`;
             return buckets;
         };
 
-        // Calculate final targets for a broker
         const calcFinalTargets = (broker) => {
             const targets = rebalancingTargets[broker] || [];
             const buckets = { 0: 0, 1: 0, 2: 0, 3: 0 };
@@ -2450,81 +2663,87 @@ ${text}`;
         const avanzaFinal = calcFinalTargets('avanza');
         const nordnetFinal = calcFinalTargets('nordnet');
 
-        const renderBar = (current, m1Target, finalTarget, color, maxVal) => {
-            const cPct = Math.min((current / maxVal) * 100, 100);
-            const m1Pct = Math.min((m1Target / maxVal) * 100, 100);
-            const fPct = Math.min((finalTarget / maxVal) * 100, 100);
-            return `<div class="relative h-5 bg-[var(--bg-secondary)] rounded-full overflow-visible" style="min-width:100%">
-                <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-500" style="width:${cPct}%;background:${color};opacity:0.7;"></div>
-                <div class="absolute top-0 h-full w-0.5" style="left:${m1Pct}%;background:#fbbf24;" title="M1 Target: ${m1Target.toFixed(1)}%">
-                    <div class="absolute -top-0.5 left-1/2 -translate-x-1/2 text-[8px] leading-none" style="color:#fbbf24;">▼</div>
-                </div>
-                <div class="absolute top-0 h-full w-0.5" style="left:${fPct}%;background:#34d399;" title="Final Target: ${finalTarget.toFixed(1)}%">
-                    <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] leading-none" style="color:#34d399;">▼</div>
-                </div>
-            </div>`;
-        };
+        const _bt = getBucketTargets(REBALANCING_MONTHS);
+        const getM1 = (b) => _bt[b] ? _bt[b][0] : 0;
 
-        // Only show buckets 1,2,3 (and 0 if it has holdings)
+        // Determine which buckets to show
         const bucketsToShow = [1, 2, 3];
         const b0combined = (avanzaCurrent[0] * avanzaWeight) + (nordnetCurrent[0] * nordnetWeight);
         if (b0combined > 0.5) bucketsToShow.push(0);
 
-        // M1 targets from bucketTargets schedule
-        const getM1Target = (b) => bucketTargets[b] ? bucketTargets[b][0] : 0;
+        // Bullet chart: single horizontal bar with target markers
+        const renderBullet = (current, m1Target, finalTarget, color, scaleMax) => {
+            const toPct = (v) => Math.min(Math.max((v / scaleMax) * 100, 0), 100);
+            const cP = toPct(current);
+            const m1P = toPct(m1Target);
+            const fP = toPct(finalTarget);
+            return `<div class="relative" style="height:28px;">
+                <!-- Background range -->
+                <div class="absolute top-2 left-0 right-0 h-5 rounded-full" style="background:var(--bg-secondary);">
+                    <!-- Subtle range to final target -->
+                    <div class="absolute top-0 left-0 h-full rounded-full" style="width:${Math.max(cP, fP)}%;background:rgba(148,163,184,0.08);"></div>
+                    <!-- Current fill -->
+                    <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-700" style="width:${cP}%;background:${color};opacity:0.6;"></div>
+                    <!-- M1 target line -->
+                    <div class="absolute" style="left:${m1P}%;top:-3px;bottom:-3px;width:2px;background:#fbbf24;border-radius:1px;z-index:2;"></div>
+                    <!-- Final target line -->
+                    <div class="absolute" style="left:${fP}%;top:-3px;bottom:-3px;width:2px;background:#34d399;border-radius:1px;z-index:2;"></div>
+                </div>
+                <!-- Current value label -->
+                <div class="absolute text-[10px] font-mono font-bold" style="left:${Math.min(cP + 1, 90)}%;top:4px;color:${color};white-space:nowrap;">${current.toFixed(1)}%</div>
+            </div>`;
+        };
 
-        container.innerHTML = bucketsToShow.map(b => {
-            const info = bucketInfo[b];
-            const m1 = getM1Target(b);
-            const aCurrent = avanzaCurrent[b];
-            const nCurrent = nordnetCurrent[b];
-            const aTarget = avanzaFinal[b];
-            const nTarget = nordnetFinal[b];
-            const combinedCurrent = (aCurrent * avanzaWeight) + (nCurrent * nordnetWeight);
-            const combinedTarget = (aTarget * avanzaWeight) + (nTarget * nordnetWeight);
-            const combinedM1 = m1;
-            const maxVal = Math.max(aCurrent, nCurrent, combinedCurrent, aTarget, nTarget, combinedTarget, combinedM1, m1, 10) * 1.2;
-            const delta = combinedCurrent - combinedTarget;
+        // Build a single card with all bullet charts stacked vertically
+        const bulletRows = bucketsToShow.map(b => {
+            const meta = bucketMeta[b];
+            const m1 = getM1(b);
+            const aC = avanzaCurrent[b];
+            const nC = nordnetCurrent[b];
+            const aT = avanzaFinal[b];
+            const nT = nordnetFinal[b];
+            const combined = (aC * avanzaWeight) + (nC * nordnetWeight);
+            const combinedTarget = (aT * avanzaWeight) + (nT * nordnetWeight);
+            const scaleMax = Math.max(combined, m1, combinedTarget, 10) * 1.25;
+            const delta = combined - combinedTarget;
             const deltaSign = delta >= 0 ? '+' : '';
-            const deltaColor = Math.abs(delta) < 2 ? 'text-emerald-400' : (delta > 0 ? 'text-red-400' : 'text-amber-400');
+            const deltaColor = Math.abs(delta) < 2 ? 'text-emerald-400' : (delta > 0 ? 'text-amber-400' : 'text-amber-400');
 
-            return `<div class="card p-4" style="border-left:3px solid ${info.color};background:${info.bg};">
-                <div class="flex items-center justify-between mb-3">
+            return `<div class="py-3 ${b !== bucketsToShow[bucketsToShow.length - 1] ? 'border-b border-[var(--border-subtle)]' : ''}">
+                <!-- Bucket header -->
+                <div class="flex items-center justify-between mb-1.5">
                     <div class="flex items-center gap-2">
-                        <span class="badge ${info.class}">B${b}</span>
-                        <span class="text-sm font-semibold">${info.shortName}</span>
+                        <span class="badge ${meta.class} text-xs">B${b}</span>
+                        <span class="text-sm font-semibold">${meta.shortName}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] flex items-center gap-1"><span style="color:#fbbf24">▼</span> <span class="text-[var(--fg-muted)]">M1</span></span>
-                        <span class="text-[10px] flex items-center gap-1"><span style="color:#34d399">▼</span> <span class="text-[var(--fg-muted)]">Final</span></span>
-                        <span class="text-xs font-mono font-bold ${deltaColor}">${deltaSign}${delta.toFixed(1)}%</span>
+                    <div class="flex items-center gap-4 text-xs">
+                        <span class="text-[var(--fg-muted)]">Avanza <span class="font-mono">${aC.toFixed(1)}%</span></span>
+                        <span class="text-[var(--fg-muted)]">Nordnet <span class="font-mono">${nC.toFixed(1)}%</span></span>
+                        <span class="font-mono font-bold ${deltaColor}">${deltaSign}${delta.toFixed(1)}%</span>
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <div>
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="text-[var(--fg-muted)]">Avanza</span>
-                            <span class="font-mono">${aCurrent.toFixed(1)}% <span class="text-amber-400">→${m1.toFixed(1)}%</span> → <span class="text-emerald-400">${aTarget.toFixed(1)}%</span></span>
-                        </div>
-                        ${renderBar(aCurrent, m1, aTarget, info.color, maxVal)}
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="text-[var(--fg-muted)]">Nordnet</span>
-                            <span class="font-mono">${nCurrent.toFixed(1)}% <span class="text-amber-400">→${m1.toFixed(1)}%</span> → <span class="text-emerald-400">${nTarget.toFixed(1)}%</span></span>
-                        </div>
-                        ${renderBar(nCurrent, m1, nTarget, info.color, maxVal)}
-                    </div>
-                    <div class="pt-1 border-t border-[var(--border-subtle)]">
-                        <div class="flex justify-between text-xs mb-0.5">
-                            <span class="font-semibold">Combined</span>
-                            <span class="font-mono font-semibold">${combinedCurrent.toFixed(1)}% <span class="text-amber-400">→${combinedM1.toFixed(1)}%</span> → <span class="text-emerald-400">${combinedTarget.toFixed(1)}%</span></span>
-                        </div>
-                        ${renderBar(combinedCurrent, combinedM1, combinedTarget, info.color, maxVal)}
-                    </div>
+                <!-- Bullet chart -->
+                ${renderBullet(combined, m1, combinedTarget, meta.color, scaleMax)}
+                <!-- Target legend -->
+                <div class="flex items-center gap-4 mt-1 text-[10px] text-[var(--fg-muted)]">
+                    <span>M1 <span class="font-mono" style="color:#fbbf24;">${m1.toFixed(1)}%</span></span>
+                    <span>Final <span class="font-mono" style="color:#34d399;">${combinedTarget.toFixed(1)}%</span></span>
                 </div>
             </div>`;
         }).join('');
+
+        // Global legend
+        const legend = `<div class="flex items-center gap-6 mb-4 text-xs text-[var(--fg-muted)] px-1">
+            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:12px;height:6px;border-radius:3px;opacity:0.6;background:#94a3b8;"></span> Current allocation</span>
+            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#fbbf24;border-radius:1px;"></span> M1 Target</span>
+            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#34d399;border-radius:1px;"></span> Final Target</span>
+        </div>`;
+
+        container.innerHTML = `<div class="card p-5 col-span-1 lg:col-span-2">
+            <h4 class="text-sm font-semibold mb-3 text-[var(--fg-muted)] uppercase tracking-wide">Bucket Allocation — Bullet Chart</h4>
+            ${legend}
+            ${bulletRows}
+        </div>`;
     }
 
     function renderDistributionChart() {
@@ -2929,69 +3148,164 @@ ${text}`;
 
     const PERF_LS_KEY = 'portfolioTracker_performance';
 
-    function parsePerformanceCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) return null;
+    // Parse Avanza performance PDF text
+    function parseAvanzaPerformancePDFText(text) {
+      // Helper: Parse Swedish number format (comma as decimal separator)
+      const parseSwedishPercent = (str) => {
+        if (!str) return null;
+        const cleaned = str.replace(/\s/g, '').replace(',', '.').replace('%', '');
+        const val = parseFloat(cleaned);
+        return isNaN(val) ? null : val;
+      };
 
       const periodKeys = ['1W', '1M', '3M', '1Y', '3Y', '5Y'];
       const periodLabels = ['1 Week', '1 Month', '3 Months', '1 Year', '3 Years', '5 Years'];
 
       const assets = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
+      // Known asset names to search for
+      const knownStocks = ['Newmont', 'Range Resources'];
+      const knownFunds = [
+        'AMF Företagsobligationsfond', 'AMF Räntefond Kort', 'AMF Räntefond Mix',
+        'Avanza Global', 'Avanza Ränta Kort', 'Avanza Zero',
+        'Pareto Räntefond A', 'SEB FRN Fond A'
+      ];
 
-        const fields = line.split(',');
-        if (fields.length < 5) continue;
+      // The PDF text has spaces between percentage values like:
+      // +9,42 %   −2,98 %   +3,32 %   +13,00 %   +155,39 %   +116,73 %   +79,64 %
+      // Pattern: 7 values per asset (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)
+      // We need to find asset name followed by a cluster of percentages
 
-        const assetType = fields[0].trim();
-        const name = fields[1].trim();
-        const country = fields[2].trim();
-        const holding = fields[3].trim();
+      // First extract stocks section (between "Aktier" and "Fonder")
+      let aktierSection = '';
+      let fonderSection = '';
+      const aktierIdx = text.indexOf('Aktier');
+      const fonderIdx = text.indexOf('Fonder');
 
-        const returns = {};
-        for (let p = 0; p < 6; p++) {
-          const idx = 4 + p * 2;
-          if (idx + 1 < fields.length) {
-            const part1 = fields[idx].trim();
-            const part2 = fields[idx + 1].trim().replace('%', '');
-            if (part1 === '' && part2 === '') {
-              returns[periodKeys[p]] = null;
-            } else {
-              const raw = part1 + '.' + part2;
-              const val = parseFloat(raw);
-              returns[periodKeys[p]] = isNaN(val) ? null : val;
-            }
-          } else {
-            returns[periodKeys[p]] = null;
+      if (aktierIdx >= 0 && fonderIdx > aktierIdx) {
+        const afterFonder = text.substring(fonderIdx);
+        const endIdx = afterFonder.indexOf('Totalt värde') >= 0 ? afterFonder.indexOf('Totalt värde') : (afterFonder.indexOf('%') >= 0 ? afterFonder.indexOf('%') : afterFonder.length);
+        fonderSection = afterFonder.substring(0, endIdx);
+        aktierSection = text.substring(aktierIdx, fonderIdx);
+      }
+
+      // Parse stocks - look for stock name then find 7 percentage values after it
+      knownStocks.forEach(stockName => {
+        if (aktierSection.includes(stockName)) {
+          const idx = aktierSection.indexOf(stockName);
+          const afterName = aktierSection.substring(idx + stockName.length);
+          // Extract all percentages that follow (with spaces: "+9,42 %")
+          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
+          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
+          if (percentMatch && percentMatch.length >= 7) {
+            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
+            const returns = {};
+            returns['1W'] = values[0];
+            returns['1M'] = values[1];
+            returns['3M'] = values[2];
+            // Skip index 3 (YTD/i år)
+            returns['1Y'] = values[4];
+            returns['3Y'] = values[5];
+            returns['5Y'] = values[6];
+
+            assets.push({
+              assetType: 'Stock',
+              name: stockName,
+              country: '',
+              holding: '',
+              returns
+            });
           }
         }
+      });
 
-        assets.push({ assetType, name, country, holding, returns });
-      }
+      // Parse funds - each fund name is followed by percentages
+      knownFunds.forEach(fundName => {
+        if (fonderSection.includes(fundName)) {
+          const idx = fonderSection.indexOf(fundName);
+          const afterName = fonderSection.substring(idx + fundName.length);
+          // Extract all percentages - with spaces between value and %
+          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
+          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
+          if (percentMatch && percentMatch.length >= 7) {
+            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
+            const returns = {};
+            returns['1W'] = values[0];
+            returns['1M'] = values[1];
+            returns['3M'] = values[2];
+            returns['1Y'] = values[4];
+            returns['3Y'] = values[5];
+            returns['5Y'] = values[6];
+
+            assets.push({
+              assetType: 'Fund',
+              name: fundName,
+              country: '',
+              holding: '',
+              returns
+            });
+          }
+        }
+      });
+
+      if (assets.length === 0) return null;
 
       return { assets, periodKeys, periodLabels };
     }
 
-    function loadPerformanceCSV(file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = parsePerformanceCSV(e.target.result);
-          if (data && data.assets.length > 0) {
-            performanceData = data;
-            savePerformanceData();
-            renderPerformanceContent();
-          } else {
-            alert('Could not parse the CSV. Please check the format.');
-          }
-        } catch (err) {
-          console.error('Error parsing performance CSV:', err);
-          alert('Failed to parse CSV: ' + err.message);
+    async function loadPerformancePDF(file) {
+      if (typeof pdfjsLib === 'undefined') {
+        alert('PDF.js library not loaded.');
+        return;
+      }
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map(item => item.str).join(' ') + '\n';
         }
-      };
-      reader.readAsText(file);
+
+        console.log('=== AVANZA PERFORMANCE PDF EXTRACTED TEXT ===');
+        console.log(fullText);
+        console.log('=== END EXTRACTED TEXT ===');
+
+        const data = parseAvanzaPerformancePDFText(fullText);
+        if (data && data.assets.length > 0) {
+          performanceData = data;
+          savePerformanceData();
+          renderPerformanceContent();
+        } else {
+          // Show debug modal for PDF parsing issues
+          await showPerformancePdfDebugModal(fullText, file.name);
+        }
+      } catch (err) {
+        console.error('Error parsing performance PDF:', err);
+        alert('Failed to parse PDF: ' + err.message);
+      }
+    }
+
+    function showPerformancePdfDebugModal(text, filename) {
+      return new Promise((_resolve) => {
+        window._perfPdfDebugResolve = _resolve;
+        const modal = document.createElement('div');
+        modal.id = 'perfPdfDebugModal';
+        modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/60';
+        modal.innerHTML = `
+          <div class="card p-6 w-full max-w-3xl mx-4" style="max-height:80vh;display:flex;flex-direction:column;">
+            <h3 class="text-lg font-semibold mb-2">Performance PDF Debug: ${filename}</h3>
+            <p class="text-sm text-[var(--fg-muted)] mb-4">The parser could not find performance data in this PDF. Copy the extracted text below to share for debugging.</p>
+            <textarea id="perfPdfDebugText" readonly style="flex:1;min-height:300px;background:var(--bg-secondary);color:var(--fg-primary);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;">${text.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')}</textarea>
+            <div class="flex gap-3 mt-4">
+              <button onclick="navigator.clipboard.writeText(document.getElementById('perfPdfDebugText').value);this.textContent='Copied!'" class="btn-secondary flex-1">Copy to Clipboard</button>
+              <button onclick="document.getElementById('perfPdfDebugModal').remove();window._perfPdfDebugResolve(false)" class="btn-primary flex-1">Close</button>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) { modal.remove(); _resolve(false); } });
+      });
     }
 
     function clearPerformanceData() {
@@ -3344,7 +3658,7 @@ ${text}`;
       if (perfFileInput) {
         perfFileInput.addEventListener('change', (e) => {
           if (e.target.files[0]) {
-            loadPerformanceCSV(e.target.files[0]);
+            loadPerformancePDF(e.target.files[0]);
             e.target.value = '';
           }
         });
@@ -3357,7 +3671,7 @@ ${text}`;
           e.preventDefault();
           perfDropZone.classList.remove('dragover');
           if (e.dataTransfer.files[0]) {
-            loadPerformanceCSV(e.dataTransfer.files[0]);
+            loadPerformancePDF(e.dataTransfer.files[0]);
           }
         });
       }
@@ -3370,6 +3684,111 @@ ${text}`;
           renderReturnsChart(btn.dataset.period);
         });
       });
+    }
+
+    // --- TARGET RETURN TRACKER ---
+    const TARGET_LS_KEY = 'portfolioTracker_targetSettings';
+    let targetSettings = { yearStartValue: 20614796, targetReturn: 7 };
+
+    function loadTargetSettings() {
+      try {
+        const raw = localStorage.getItem(TARGET_LS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.yearStartValue !== undefined) targetSettings.yearStartValue = parsed.yearStartValue;
+          if (parsed.targetReturn !== undefined) targetSettings.targetReturn = parsed.targetReturn;
+        }
+      } catch (e) { console.warn('Failed to load target settings:', e); }
+    }
+
+    function saveTargetSettings() {
+      try {
+        localStorage.setItem(TARGET_LS_KEY, JSON.stringify(targetSettings));
+      } catch (e) { console.warn('Failed to save target settings:', e); }
+    }
+
+    function renderTargetTracker() {
+      const yearStartInput = document.getElementById('yearStartValueInput');
+      const targetReturnInput = document.getElementById('targetReturnInput');
+      const resultsDiv = document.getElementById('targetTrackerResults');
+      const noDataDiv = document.getElementById('targetTrackerNoData');
+      if (!yearStartInput || !targetReturnInput || !resultsDiv || !noDataDiv) return;
+
+      // Set input values from settings
+      yearStartInput.value = targetSettings.yearStartValue;
+      targetReturnInput.value = targetSettings.targetReturn;
+
+      const yearStartValue = parseFloat(targetSettings.yearStartValue);
+      const targetReturn = parseFloat(targetSettings.targetReturn);
+
+      // Need both values to show results
+      if (!yearStartValue || yearStartValue <= 0 || isNaN(targetReturn)) {
+        resultsDiv.classList.add('hidden');
+        noDataDiv.classList.remove('hidden');
+        return;
+      }
+
+      // Get current portfolio value
+      let currentValue = 0;
+      if (currentSnapshot) {
+        const effective = getEffectiveSnapshot(currentSnapshot);
+        const ft = calculateFilteredTotals(effective);
+        currentValue = ft.totalValue;
+      }
+
+      if (currentValue <= 0) {
+        resultsDiv.classList.add('hidden');
+        noDataDiv.classList.remove('hidden');
+        noDataDiv.querySelector('p').textContent = 'No portfolio data available.';
+        return;
+      }
+
+      // Calculate
+      const now = new Date();
+      const yearStart = new Date(now.getFullYear(), 0, 1); // Jan 1
+      const yearEnd = new Date(now.getFullYear(), 11, 31); // Dec 31
+      const daysInYear = Math.ceil((yearEnd - yearStart) / (1000 * 60 * 60 * 24)) + 1;
+      const daysElapsed = Math.ceil((now - yearStart) / (1000 * 60 * 60 * 24));
+      const daysRemaining = daysInYear - daysElapsed;
+
+      const targetEoyValue = yearStartValue * (1 + targetReturn / 100);
+      const targetReturnYtd = targetReturn * daysElapsed / daysInYear;
+      const targetValueYtd = yearStartValue * (1 + targetReturnYtd / 100);
+      const actualReturnYtd = ((currentValue - yearStartValue) / yearStartValue) * 100;
+      const diff = actualReturnYtd - targetReturnYtd;
+
+      // Update displays
+      document.getElementById('ttCurrentValue').textContent = formatCurrency(currentValue);
+      document.getElementById('ttTargetEoy').textContent = formatCurrency(targetEoyValue);
+
+      const actualReturnEl = document.getElementById('ttActualReturn');
+      actualReturnEl.textContent = (actualReturnYtd >= 0 ? '+' : '') + actualReturnYtd.toFixed(2) + '%';
+      actualReturnEl.className = 'text-lg font-bold font-mono ' + (actualReturnYtd >= 0 ? 'change-positive' : 'change-negative');
+
+      const targetReturnEl = document.getElementById('ttTargetReturn');
+      targetReturnEl.textContent = (targetReturnYtd >= 0 ? '+' : '') + targetReturnYtd.toFixed(2) + '% (' + daysElapsed + '/' + daysInYear + ' days)';
+
+      // Status
+      const statusEl = document.getElementById('ttStatus');
+      if (Math.abs(diff) < 0.5) {
+        statusEl.textContent = '🎯 On Track (' + (diff >= 0 ? '+' : '') + diff.toFixed(2) + '% vs target)';
+        statusEl.className = 'rounded-lg p-3 text-center font-semibold';
+        statusEl.style.background = 'rgba(245, 158, 11, 0.1)';
+        statusEl.style.color = '#fbbf24';
+      } else if (diff > 0) {
+        statusEl.textContent = '✅ Ahead of target (+' + diff.toFixed(2) + '% ahead)';
+        statusEl.className = 'rounded-lg p-3 text-center font-semibold';
+        statusEl.style.background = 'rgba(16, 185, 129, 0.1)';
+        statusEl.style.color = '#34d399';
+      } else {
+        statusEl.textContent = '⚠️ Behind target (' + diff.toFixed(2) + '% behind)';
+        statusEl.className = 'rounded-lg p-3 text-center font-semibold';
+        statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+        statusEl.style.color = '#f87171';
+      }
+
+      resultsDiv.classList.remove('hidden');
+      noDataDiv.classList.add('hidden');
     }
 
     // --- LOCALSTORAGE PERSISTENCE ---
@@ -3429,8 +3848,27 @@ ${text}`;
       loadExcludedAssets(); // Load excluded assets on startup
       loadReferenceTable(); // Load reference table on startup
       loadRebalancingTargets(); // Load custom rebalancing targets
+      loadRebalancingDuration(); // Load rebalancing duration
+      loadTargetSettings(); // Load target return tracker settings
+      // Set duration input value
+      const durInput = document.getElementById('rebalancingDurationInput');
+      if (durInput) durInput.value = REBALANCING_MONTHS;
+      // Update header text
+      const headerEl = document.getElementById('rebalancingScheduleHeader');
+      if (headerEl) headerEl.textContent = REBALANCING_MONTHS + '-Month Rebalancing Schedule';
       if (loadFromLocalStorage()) showDashboard();
       setupPerformanceListeners();
+      // Setup target tracker input listeners
+      document.getElementById('yearStartValueInput')?.addEventListener('change', function() {
+        targetSettings.yearStartValue = this.value;
+        saveTargetSettings();
+        renderTargetTracker();
+      });
+      document.getElementById('targetReturnInput')?.addEventListener('change', function() {
+        targetSettings.targetReturn = parseFloat(this.value) || 7;
+        saveTargetSettings();
+        renderTargetTracker();
+      });
       if (loadPerformanceDataFromStorage()) {
         // Performance data restored; will render when Analytics tab is opened
       }

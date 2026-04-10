@@ -42,11 +42,12 @@ Portfolio Tracker is a **single-page, client-side Progressive Web App (PWA)** de
 ### Core Value Propositions
 
 - **Multi-brokerage consolidation**: Combines holdings from Avanza and Nordnet into a unified dashboard.
-- **Snapshot-based tracking**: Supports multiple portfolio snapshots over time for historical comparison.
-- **Rebalancing planning**: Provides a 10-month interpolated rebalancing schedule with configurable target allocations.
+- **Snapshot-based tracking**: Supports multiple portfolio snapshots over time for historical comparison with carry-forward logic for missing broker data.
+- **Rebalancing planning**: Provides a 10-month interpolated rebalancing schedule with configurable target allocations and consolidated bucket overview.
 - **Performance analytics**: Historical return analysis with correlation matrices, heatmaps, and period comparisons.
-- **AI-powered PDF parsing**: Uses LLM APIs (Z.ai GLM, OpenAI, or custom) to extract holdings from Nordnet PDF statements.
+- **Smart PDF parsing**: Regex-based Nordnet PDF parsing with optional AI fallback for complex documents.
 - **Offline-capable PWA**: Works without network via service worker caching.
+- **Asset exclusion**: Ability to exclude specific assets from calculations while preserving data.
 
 ---
 
@@ -61,7 +62,7 @@ portfolio-tracker/
 └── README.md           # Project readme
 ```
 
-The entire application is contained within a **single `index.html` file** (~1,800 lines) that includes all HTML structure, CSS styles (in a `<style>` block), and JavaScript logic (in a `<script>` block). This architecture choice means:
+The entire application is contained within a **single `index.html` file** (~3,700 lines) that includes all HTML structure, CSS styles (in a `<style>` block), and JavaScript logic (in a `<script>` block). This architecture choice means:
 
 - **Zero build step required** — open `index.html` directly in a browser.
 - **No module bundler** — all code is in global scope with function declarations.
@@ -140,7 +141,7 @@ if ('serviceWorker' in navigator) {
 ### Global State Variables
 
 ```javascript
-let snapshots = [];              // Array of Snapshot objects ( chronological order)
+let snapshots = [];              // Array of Snapshot objects (chronological order)
 let currentSnapshot = null;      // Currently selected snapshot (last by default)
 let referenceDate = new Date('2026-03-22');  // Reference point for change calculations
 let distributionChart = null;    // Chart.js instance for distribution doughnut
@@ -152,6 +153,7 @@ let returnsChart = null;         // Chart.js instance for returns bar chart
 let classificationReference = { avanza: [], nordnet: [] }; // Classification lookup table
 let rebalancingTargets = { ... }; // Per-asset target percentages
 let rebalancingSchedule = { avanza: [], nordnet: [] }; // Computed monthly schedule
+let excludedAssets = new Set();  // Set of "assetName|brokerage" keys to exclude from calculations
 ```
 
 ### Snapshot Object Schema
@@ -283,18 +285,30 @@ The drop zone listens for:
 
 Once data is loaded, a horizontal chip bar appears showing all snapshots:
 
-- Each chip displays a calendar icon + formatted date + delete (×) icon
+- Each chip displays a calendar icon + formatted date + broker indicators (A/N) + delete (×) icon
+- Broker indicators show which brokerages have data: "A" for Avanza (green), "N" for Nordnet (cyan)
+- A ↪ symbol indicates data was carried forward from a previous snapshot
 - The active/current snapshot chip has a green highlighted style
 - Clicking a chip selects that snapshot and refreshes all views
 - The × icon deletes a snapshot (with confirmation; prevents deleting the last one)
 - A dashed "Add" chip allows adding more snapshots
+
+### Carry-Forward Logic
+
+When a snapshot is missing data for one broker (e.g., only Avanza uploaded), the app automatically carries forward the most recent previous snapshot's data for the missing broker:
+
+1. If both brokers present → no carry-forward needed
+2. If Avanza missing → search backwards for previous Avanza data
+3. If Nordnet missing → search backwards for previous Nordnet data
+4. Carried-forward holdings are marked with a ↪ indicator and reduced opacity
+5. Portfolio totals are recalculated with carried-forward data
 
 ### Snapshot Selection Logic
 
 When a snapshot is selected:
 1. `currentSnapshot` is updated to the selected snapshot
 2. Snapshot chips are re-rendered with active state
-3. Statistics are recalculated
+3. Statistics are recalculated using effective snapshot (with carry-forward)
 4. Charts are redrawn
 5. Holdings table is refreshed
 6. If the rebalancing tab is visible, rebalancing tables are re-rendered
@@ -438,13 +452,29 @@ A filterable, sortable table showing all holdings for the current snapshot.
 
 | Column | Description |
 |--------|-------------|
-| **Asset Name** | Bold text |
+| **Exclude** | Checkbox to exclude asset from calculations |
+| **Asset Name** | Bold text with carried-forward indicator (↩) if applicable |
 | **Brokerage** | "Avanza" or "Nordnet" |
-| **Category** | Color-coded badge using `categoryColors` |
-| **Bucket** | Badge with bucket number and name (B0: Sell/Other, B1: Cash/Short, etc.) |
+| **Category** | Editable select dropdown with all categories |
+| **Bucket** | Editable select dropdown with B0–B3 options |
 | **Market Value (SEK)** | Monospace formatted currency |
 | **% of Portfolio** | Percentage to 2 decimal places |
-| **Change** | Value change from previous snapshot with color coding (+green/−red) |
+
+### Asset Exclusion Feature
+
+Users can exclude specific assets from all calculations:
+- Checkbox in the first column toggles exclusion
+- Excluded rows are visually dimmed with strikethrough text
+- An info banner shows count of excluded assets with "Clear all" option
+- Exclusions are persisted in localStorage under key `portfolioTracker_excludedAssets`
+- Excluded assets are ignored in: statistics, charts, rebalancing calculations, and comparisons
+
+### Inline Editing
+
+Category and bucket can be changed directly in the table:
+- **Category dropdown**: Select a new category → updates holding and reference table
+- **Bucket dropdown**: Select a new bucket → updates holding and reference table
+- Changes immediately refresh charts, statistics, and rebalancing tables
 
 ### Classification Logic
 
@@ -459,16 +489,36 @@ Each holding is classified at render time:
 
 The most complex tab, providing a full rebalancing planning interface.
 
-### Section 1: Consolidated Bucket Summary
+### Section 1: Consolidated Bucket Summary Cards
 
-Two-column layout showing Avanza and Nordnet bucket summaries side by side.
+Visual cards showing Avanza and Nordnet bucket allocations side by side.
 
-Each bucket (0–3) displays:
-- **Color indicator**: Colored circle matching bucket
-- **Current %**: Calculated from actual holdings
-- **M1 Target %**: First month target from `bucketTargets`
-- **Final Target %**: Sum of asset targets in that bucket
-- **Difference**: Current vs M1 target, color-coded (green if above, red if below)
+Each bucket card (0–3) displays:
+- **Bucket badge**: Colored badge (B0–B3) with bucket name
+- **Avanza bar**: Current allocation with M1 (amber) and Final (emerald) target markers
+- **Nordnet bar**: Current allocation with M1 and Final target markers
+- **Combined bar**: Weighted average across both brokers
+- **Delta indicator**: Shows difference between current and final target (color-coded)
+
+The bars use a visual system with:
+- Colored fill showing current allocation percentage
+- Amber (▼) marker showing M1 target position
+- Emerald (▼) marker showing final target position
+
+### Section 2: Consolidated Bucket Overview Table
+
+A single table showing combined Avanza + Nordnet bucket allocation as percentage of total portfolio:
+
+| Column | Description |
+|--------|-------------|
+| **Bucket** | Badge with bucket number and name |
+| **Current** | Current weighted allocation % |
+| **M1 Target** | First month target (highlighted) |
+| **Final Target** | Final target allocation (highlighted) |
+| **Δ Current → M1** | Difference to M1 target (color-coded) |
+| **Δ Current → Final** | Difference to final target (color-coded) |
+
+This provides a quick overview of how the combined portfolio compares to targets.
 
 ### Section 2: Final Target Allocation Configuration
 
@@ -656,20 +706,45 @@ Full sortable table with all return data:
 
 ### Export Data (`exportData()`)
 
+Exports a structured bundle (version 1) containing all application data:
+
+```json
+{
+  "version": 1,
+  "exportDate": "2026-04-03T10:30:00.000Z",
+  "snapshots": [...],
+  "classificationReference": { "avanza": [...], "nordnet": [...] },
+  "rebalancingTargets": { "avanza": [...], "nordnet": [...] },
+  "excludedAssets": ["assetName|brokerage", ...],
+  "performanceData": { "assets": [...], "periodKeys": [...], "periodLabels": [...] }
+}
+```
+
+Export process:
 1. Checks if snapshots exist
-2. Serializes `snapshots` array to pretty-printed JSON
+2. Bundles all data into structured export object
 3. Creates a `Blob` with `application/json` MIME type
 4. Generates filename: `portfolio_data_YYYY-MM-DD.json`
 5. Creates a temporary `<a>` element, triggers download, cleans up
 
 ### Import Data (`handleDataImport()`)
 
+Supports both new structured format and legacy array format:
+
+**New Format (v1)**:
 1. Reads JSON file via `FileReader`
-2. Parses JSON and validates structure (must be array with `date` and `holdings` fields)
+2. Parses JSON and validates `version: 1` structure
+3. Restores: snapshots, classificationReference, rebalancingTargets, excludedAssets, performanceData
+4. Saves all restored data to localStorage
+5. Shows dashboard with full data restoration
+
+**Legacy Format (backward compatible)**:
+1. Parses JSON as array of snapshots
+2. Validates `date` and `holdings` fields
 3. Converts date strings back to `Date` objects
 4. Sorts snapshots chronologically
 5. Sets `currentSnapshot` to the latest
-6. Shows the dashboard
+6. Shows dashboard (only snapshots restored)
 
 ### Download Template (`downloadTemplate()`)
 
@@ -715,13 +790,28 @@ Parses a custom pipe-delimited format with semicolon-separated data fields.
 
 ### `parseNordnetPDF(file)`
 
-Uses a multi-stage pipeline:
+Uses a multi-stage pipeline with regex-first approach:
 
 1. **PDF text extraction**: PDF.js (`pdfjsLib.getDocument()`) reads all pages and concatenates text content
-2. **AI extraction**: Extracted text is sent to an LLM API via `callAiForNordnetExtraction()`
-3. **Response parsing**: JSON response is parsed, with markdown code fence stripping
-4. **Asset aggregation**: Duplicate holdings are summed, "Likvida medel" marked as cash
-5. **Classification**: Assets looked up in Nordnet reference table; cash assets default to bucket 1
+2. **Regex parsing (primary)**: `parseNordnetPDFText()` attempts to extract holdings using pattern matching:
+   - Extracts date from document (format: YYYY-MM-DD)
+   - Splits text by account sections (marked by "Le Merle Yann" + account number)
+   - Finds fund names and percentages using regex patterns
+   - Calculates market value from percentage and section total
+   - Extracts cash ("Likvida medel") separately
+3. **AI extraction (fallback)**: If regex parsing fails, a debug modal shows extracted text, then optionally calls `callAiForNordnetExtraction()`
+4. **Response parsing**: JSON response is parsed, with markdown code fence stripping and multiple repair attempts
+5. **Asset aggregation**: Duplicate holdings are summed, "Likvida medel" marked as cash
+6. **Classification**: Assets looked up in Nordnet reference table; cash assets default to bucket 1
+
+### Regex Parsing Details
+
+The regex parser handles Swedish number format (space as thousands separator, comma as decimal):
+- Pattern 1: Fund name followed by percentage at end of line
+- Pattern 2: Alternative with more flexible spacing
+- Cash patterns: "Likvida medel" with value and percentage
+
+If regex parsing returns no results, a debug modal appears showing the extracted PDF text, allowing users to copy it for analysis or proceed to AI extraction.
 
 ### AI API Configuration
 
@@ -958,8 +1048,8 @@ Performance data is stored in localStorage under key `portfolioTracker_performan
 | `portfolioTracker_reference` | Classification reference table | Startup |
 | `portfolioTracker_rebalancingTargets` | Per-asset target percentages | Startup |
 | `portfolioTracker_performance` | Historical performance data | Startup |
+| `portfolioTracker_excludedAssets` | Array of excluded asset keys (JSON) | Startup |
 | `portfolioTracker_apiKey` | AI API key | On demand |
-| `portfolioTracker_apiProvider` | AI provider selection | On demand |
 | `portfolioTracker_apiUrl` | Custom AI URL | On demand |
 | `portfolioTracker_apiModel` | Custom AI model | On demand |
 
@@ -1100,8 +1190,10 @@ Demo data includes 18 holdings across both brokerages with a total value of ~SEK
 
 1. **Single-file architecture**: Maximizes portability and simplicity at the cost of maintainability for large codebases.
 2. **localStorage persistence**: No server needed, but limited to ~5MB storage (sufficient for typical use).
-3. **AI-powered PDF parsing**: Nordnet PDFs are unstructured, requiring LLM extraction rather than regex-based parsing.
+3. **Smart PDF parsing**: Regex-first approach for Nordnet PDFs with AI fallback for complex documents, reducing API costs and improving reliability.
 4. **Dynamic schedule computation**: Rebalancing schedules are recalculated on every change, ensuring consistency with current portfolio state.
 5. **Client-side correlation**: Statistical analysis runs entirely in-browser using Pearson correlation on available return periods.
 6. **Swedish locale formatting**: Currency uses Swedish number format (`sv-SE` locale) with space as thousands separator.
 7. **European CSV format**: Performance CSV parsing handles comma-as-decimal notation native to European financial exports.
+8. **Carry-forward logic**: Missing broker data in snapshots is automatically filled from previous snapshots, enabling partial uploads.
+9. **Asset exclusion**: Users can exclude specific assets from calculations while preserving data, useful for isolating specific holdings.
