@@ -374,206 +374,6 @@
       font-weight: 600;
     }
 
-    /* Retirement Tab Styles */
-    .retirement-tab .row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .retirement-tab .field-12 {
-      flex: 1;
-    }
-
-    .retirement-tab .field-6,
-    .retirement-tab .field-4,
-    .retirement-tab .field-3 {
-      flex: 0 0 calc(50% - 6px);
-    }
-
-    .retirement-tab label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--fg-secondary);
-      margin-bottom: 6px;
-    }
-
-    .retirement-tab input,
-    .retirement-tab select,
-    .retirement-tab textarea {
-      width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      font-size: 14px;
-      color: var(--fg-primary);
-      transition: all 0.2s ease;
-    }
-
-    .retirement-tab input:focus,
-    .retirement-tab select:focus,
-    .retirement-tab textarea:focus {
-      outline: none;
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-    }
-
-    .retirement-tab .sub {
-      font-size: 12px;
-      color: var(--fg-muted);
-      margin-bottom: 12px;
-    }
-
-    .retirement-tab .highlight {
-      background: rgba(16, 185, 129, 0.08);
-      border-left: 3px solid var(--accent-primary);
-      padding: 12px 16px;
-      border-radius: 6px;
-      margin: 12px 0;
-    }
-
-    .retirement-tab .decision-box {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin: 12px 0;
-    }
-
-    .retirement-tab .metric {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: var(--bg-secondary);
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
-    .retirement-tab .metric .label {
-      font-size: 12px;
-      color: var(--fg-muted);
-      font-weight: 500;
-    }
-
-    .retirement-tab .metric .value {
-      font-size: 18px;
-      font-weight: 600;
-      font-family: 'Space Grotesk', monospace;
-    }
-
-    .retirement-tab .metric .note {
-      font-size: 12px;
-      color: var(--fg-muted);
-      text-align: right;
-    }
-
-    .retirement-tab .checklist {
-      padding-left: 20px;
-      list-style-type: none;
-    }
-
-    .retirement-tab .checklist li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 8px 0;
-      margin-bottom: 8px;
-    }
-
-    .retirement-tab .checklist input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent-primary);
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .retirement-tab .footer-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .retirement-tab table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-    }
-
-    .retirement-tab table th,
-    .retirement-tab table td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .retirement-tab table th {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--fg-muted);
-      font-weight: 600;
-    }
-
-    .retirement-tab .pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      margin-right: 6px;
-    }
-
-    .retirement-tab .pill-b1 {
-      background: rgba(6, 182, 212, 0.15);
-      color: #22d3ee;
-    }
-
-    .retirement-tab .pill-b2 {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-    }
-
-    .retirement-tab .pill-b3 {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-    }
-
-    .retirement-tab .btn-light {
-      background: var(--bg-elevated);
-      color: var(--fg-primary);
-      font-weight: 500;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .retirement-tab .btn-light:hover {
-      background: var(--border);
-    }
-
-    .btn-secondary {
-      background: var(--bg-elevated);
-      color: var(--fg-primary);
-      font-weight: 500;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-secondary:hover {
-      background: var(--border);
-    }
-
   </style>
 </head>
 <body class="bg-grid">
@@ -600,20 +400,26 @@
           <div class="flex items-center gap-3">
             <span id="lastUpdated" class="text-sm text-[var(--fg-muted)] hidden md:block"></span>
 
-            <button onclick="exportData()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <!-- Export Data Button -->
+            <button onclick="exportData()" class="btn-primary flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               <span class="hidden sm:inline">Export</span>
             </button>
             
-            <button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              <span class="hidden sm:inline">Add Snapshot</span>
-            </button>
-            <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
-            <button onclick="document.getElementById('importDataInput').click()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              <span class="hidden sm:inline">Import Data</span>
-            </button>
+            <!-- Import CSV Snapshot -->
+<button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2 text-sm">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+               </svg>
+               <span class="hidden sm:inline">Add Snapshot</span>
+             </button>
+             <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
+             <button onclick="document.getElementById('importDataInput').click()" class="btn-primary flex items-center gap-2 text-sm">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+               </svg>
+               <span class="hidden sm:inline">Import Data</span>
+             </button>
              <input type="file" id="importDataInput" accept=".json" style="display:none" onchange="handleDataImport(this)">
              <button onclick="showApiSettings()" class="btn-secondary flex items-center gap-2 text-sm" title="AI API Settings">
                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -674,7 +480,6 @@
           <button class="tab-btn" data-tab="comparison">Compare</button>
           <button class="tab-btn" data-tab="snapshots">Snapshots</button>
           <button class="tab-btn" data-tab="analytics">Analytics</button>
-          <button class="tab-btn" data-tab="retirement">Retirement</button>
         </div>
       </div>
 
@@ -789,92 +594,6 @@
                 <h3 class="text-lg font-semibold mb-4">Consolidated Bucket Summary</h3>
                 <div id="bucketSummaryCards" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
             </div>
-
-            <!-- Return Target Rebalancing Calculator -->
-            <div class="card p-6 mb-6">
-                <h3 class="text-lg font-semibold mb-4">Return Target Rebalancing Calculator</h3>
-                <p class="text-sm text-[var(--fg-muted)] mb-4">Calculate how much to buy today to reach a specific portfolio return target.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Cost Basis (SEK)</label>
-                        <input type="number" id="costBasisInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 200899">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Current Market Value (SEK)</label>
-                        <input type="number" id="marketValueInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 216354">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Current Profit (SEK)</label>
-                        <input type="number" id="currentProfitInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" readonly placeholder="Auto-calculated">
-                    </div>
-                </div>
-
-                <!-- Quick Reference Table -->
-                <div class="mb-6">
-                    <h4 class="text-sm font-semibold mb-3 text-[var(--fg-secondary)]">Quick Reference - Amount to Buy for Different Targets</h4>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-[var(--border)]">
-                                    <th class="text-left py-2 text-[var(--fg-muted)] font-medium">Target Return</th>
-                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-10%</th>
-                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-5%</th>
-                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-2%</th>
-                                    <th class="text-right py-2 text-[var(--accent-primary)] font-medium">4%</th>
-                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">5%</th>
-                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">7%</th>
-                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">10%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="py-3 text-[var(--fg-secondary)]">Amount to Buy (SEK)</td>
-                                    <td id="buyAmount-10" class="text-right py-3 font-mono">--</td>
-                                    <td id="buyAmount-5" class="text-right py-3 font-mono">--</td>
-                                    <td id="buyAmount-2" class="text-right py-3 font-mono">--</td>
-                                    <td id="buyAmount4" class="text-right py-3 font-mono text-[var(--accent-primary)] font-bold">--</td>
-                                    <td id="buyAmount5" class="text-right py-3 font-mono">--</td>
-                                    <td id="buyAmount7" class="text-right py-3 font-mono">--</td>
-                                    <td id="buyAmount10" class="text-right py-3 font-mono">--</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Custom Target Calculator -->
-                <div class="bg-[var(--bg-secondary)] rounded-lg p-4 mb-4">
-                    <div class="flex items-center gap-4 flex-wrap">
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-sm text-[var(--fg-muted)] mb-1">Custom Target Return (%)</label>
-                            <input type="number" id="customTargetReturnInput" step="0.1" class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 4.0">
-                        </div>
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-sm text-[var(--fg-muted)] mb-1">Required Buy Amount (SEK)</label>
-                            <div id="customBuyAmountResult" class="text-xl font-bold font-mono text-[var(--accent-primary)]">--</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Formula Explanation -->
-                <div class="text-xs text-[var(--fg-muted)] bg-[var(--bg-elevated)] rounded-lg p-3">
-                    <p class="font-semibold mb-1 text-[var(--fg-secondary)]">Formula:</p>
-                    <code class="block mb-2">Buy Amount = (Profit ÷ Target Return) - Cost Basis</code>
-                    <p class="font-semibold mb-1 text-[var(--fg-secondary)]">Where:</p>
-                    <ul class="list-disc list-inside space-y-1 ml-2">
-                        <li>Profit = Market Value - Cost Basis (can be positive or negative)</li>
-                        <li>Target Return = decimal (e.g., 4% = 0.04, -5% = -0.05)</li>
-                        <li>Buy Amount = amount to invest today to reach the target return</li>
-                    </ul>
-                    <p class="font-semibold mt-3 mb-1 text-[var(--accent-secondary)]">Use Cases:</p>
-                    <ul class="list-disc list-inside space-y-1 ml-2">
-                        <li><strong>Positive profit + positive target:</strong> "Dilute my return to X%"</li>
-                        <li><strong>Negative profit + negative target:</strong> "Average down to reach -X% return"</li>
-                        <li><strong>Negative profit + positive target:</strong> Shows N/A (impossible to reach positive return when underwater)</li>
-                    </ul>
-                </div>
-            </div>
             
             <!-- Consolidated Bucket Overview Table -->
             <div class="card p-6 mb-6">
@@ -886,9 +605,9 @@
                       <tr>
                         <th>Bucket</th>
                         <th class="text-right">Current</th>
-                        <th class="text-right highlight-col" id="consolidatedMonthHeader">M1 Target</th>
+                        <th class="text-right highlight-col">M1 Target</th>
                         <th class="text-right highlight-col">Final Target</th>
-                        <th class="text-right" id="consolidatedMonthDeltaHeader">Δ Current → M1</th>
+                        <th class="text-right">Δ Current → M1</th>
                         <th class="text-right">Δ Current → Final</th>
                       </tr>
                     </thead>
@@ -925,13 +644,6 @@
                             class="w-16 bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm text-center font-mono focus:border-[var(--accent-primary)] outline-none">
                         <span class="text-xs text-[var(--fg-muted)]">months</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs text-[var(--fg-muted)] font-medium" for="rebalancingMonthSelect">View month:</label>
-                        <select id="rebalancingMonthSelect" onchange="onMonthChange()"
-                            class="bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono focus:border-[var(--accent-primary)] outline-none">
-                            <option value="1">M1</option>
-                        </select>
-                    </div>
                     <div class="flex gap-4 text-xs">
                         <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400"></span> Bucket 1 (Cash/Short)</span>
                         <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Bucket 2 (Fixed Income/Commodities)</span>
@@ -947,7 +659,16 @@
               </div>
               <div class="table-container scrollbar-thin">
                 <table class="rebalance-table">
-                  <thead id="avanzaRebalanceThead"><tr></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th class="text-right">Current</th>
+                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
+                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
+                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
+                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
+                    </tr>
+                  </thead>
                   <tbody id="avanzaRebalanceTable"></tbody>
                 </table>
               </div>
@@ -960,7 +681,16 @@
               </div>
               <div class="table-container scrollbar-thin">
                 <table class="rebalance-table">
-                  <thead id="nordnetRebalanceThead"><tr></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th class="text-right">Current</th>
+                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
+                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
+                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
+                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
+                    </tr>
+                  </thead>
                   <tbody id="nordnetRebalanceTable"></tbody>
                 </table>
               </div>
@@ -1196,122 +926,6 @@
                 </div>
               </div>
             </div>
-        </div>
-
-        <!-- Retirement Tab -->
-        <div id="retirementTab" class="tab-panel hidden retirement-tab">
-          <div class="card p-6 animate-fade-in">
-            <h3 class="text-lg font-semibold mb-4">Retirement Planning</h3>
-            
-            <div class="sub">
-              Configure your retirement goals and track progress. Values will auto-populate from your current portfolio.
-            </div>
-
-            <!-- Portfolio Values (manually adjustable) -->
-            <div class="highlight">
-              <h4 class="text-sm font-semibold mb-3">Current Portfolio</h4>
-              <div class="metric">
-                <span class="label">Total Value</span>
-                <input type="number" id="retirementTotalValueInput" placeholder="e.g. 18000000" style="font-size:18px;font-family:'Space Grotesk',monospace;font-weight:600;background:transparent;border:none;outline:none;padding:0;margin:0;width:200px;color:var(--accent-primary);text-align:right;">
-              </div>
-              <div class="metric">
-                <span class="label">Withdrawal Rate</span>
-                <select id="retirementWithdrawalRate" onchange="update30PercentWithdrawal()" style="font-size:14px;font-family:'Space Grotesk',monospace;font-weight:600;background:var(--bg-secondary);border:1px solid var(--border);outline:none;padding:4px 8px;margin:0;color:var(--accent-primary);text-align:right;border-radius:4px;cursor:pointer;">
-                  <option value="0.038">3.8%</option>
-                  <option value="0.040">4.0%</option>
-                  <option value="0.043">4.3%</option>
-                  <option value="0.047" selected>4.7%</option>
-                </select>
-              </div>
-              <div class="metric">
-                <span class="label">Recommended Annual Withdrawal</span>
-                <span class="value" id="retirementAnnualWithdrawal">SEK 0</span>
-              </div>
-              <div class="metric">
-                <span class="label">Recommended Monthly Withdrawal</span>
-                <span class="value" id="retirementMonthlyWithdrawal">SEK 0</span>
-              </div>
-            </div>
-
-            <!-- Decision Box -->
-            <div class="decision-box">
-              <h4 class="text-sm font-semibold mb-2">Retirement Readiness</h4>
-              <p class="text-sm" id="retirementStatus">Enter your information above to see your retirement analysis.</p>
-            </div>
-
-            <!-- Strategy Rules -->
-            <div class="highlight" style="margin-top: 24px; border-left-color: var(--accent-secondary);">
-              <h4 class="text-sm font-semibold mb-3" style="color: var(--accent-secondary);">Dynamic Spending with Guardrails Strategy</h4>
-              <div class="metric" style="background: var(--bg-secondary);">
-                <span class="label">Strategy Type</span>
-                <span class="value" style="font-size: 14px;">Dynamic spending with guardrails</span>
-              </div>
-              <div class="metric" style="background: var(--bg-secondary);">
-                <span class="label">Best For</span>
-                <span class="value" style="font-size: 14px;">Retirement portfolio with reserve sleeve</span>
-              </div>
-              <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
-                <h5 class="text-xs font-semibold mb-2 text-[var(--fg-muted)] uppercase tracking-wide">Annual Review Rules (February)</h5>
-                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 1.6;">
-                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <span style="color: var(--accent-primary); font-weight: 600; min-width: 80px;">Increase:</span>
-                    <span>Inflation, max +5%, only if portfolio healthy (at new highs)</span>
-                  </li>
-                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <span style="color: var(--accent-warning); font-weight: 600; min-width: 80px;">Freeze:</span>
-                    <span>If portfolio down 10%+ → freeze spending</span>
-                  </li>
-                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <span style="color: var(--accent-danger); font-weight: 600; min-width: 80px;">Cut:</span>
-                    <span>If portfolio down 20%+ → cut discretionary spending by ~10%</span>
-                  </li>
-                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <span style="color: var(--accent-secondary); font-weight: 600; min-width: 80px;">Funding:</span>
-                    <span>Withdraw from B1 (Cash/Short) first</span>
-                  </li>
-                  <li style="display: flex; gap: 8px;">
-                    <span style="color: var(--accent-secondary); font-weight: 600; min-width: 80px;">Refill B1:</span>
-                    <span>From B2 (Fixed Income) or B3 (Equity) based on market conditions</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Checklist -->
-            <div class="row">
-              <div class="field-12">
-                <h4 class="text-sm font-semibold mb-2">Retirement Checklist</h4>
-                <ul class="checklist">
-                  <li>
-                    <input type="checkbox" id="check1" onchange="saveRetirementChecklist()">
-                    <span>Emergency fund (6-12 months expenses) in place</span>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="check2" onchange="saveRetirementChecklist()">
-                    <span>Debt-free or manageable debt plan</span>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="check3" onchange="saveRetirementChecklist()">
-                    <span>Diversified asset allocation (60/40 or similar)</span>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="check4" onchange="saveRetirementChecklist()">
-                    <span>Consistent savings rate (20%+ of income)</span>
-                  </li>
-                  <li>
-                    <input type="checkbox" id="check5" onchange="saveRetirementChecklist()">
-                    <span>Have adequate health/life insurance</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="footer-actions">
-              <button onclick="calculateRetirement()" class="btn-primary">Calculate Retirement Plan</button>
-              <button onclick="resetRetirementForm()" class="btn-light">Reset</button>
-            </div>
-          </div>
         </div>
       </div>
     </main>
@@ -1595,9 +1209,7 @@
 
     // Rebalancing duration configuration (10-18 months)
     const REBALANCING_DURATION_LS_KEY = 'portfolioTracker_rebalancingDuration';
-    const REBALANCING_MONTH_LS_KEY = 'portfolioTracker_rebalancingCurrentMonth';
     let REBALANCING_MONTHS = 10;
-    let currentRebalancingMonth = 1;
 
     function loadRebalancingDuration() {
       try {
@@ -1608,62 +1220,6 @@
         }
       } catch (e) { console.warn('Failed to load rebalancing duration:', e); }
       REBALANCING_MONTHS = 10;
-    }
-
-    function loadRebalancingMonth() {
-      try {
-        const raw = localStorage.getItem(REBALANCING_MONTH_LS_KEY);
-        if (raw) {
-          const val = parseInt(raw);
-          if (val >= 1 && val <= REBALANCING_MONTHS) { currentRebalancingMonth = val; return; }
-        }
-      } catch (e) { console.warn('Failed to load rebalancing month:', e); }
-      currentRebalancingMonth = 1;
-    }
-
-    function saveRebalancingMonth() {
-      try {
-        localStorage.setItem(REBALANCING_MONTH_LS_KEY, String(currentRebalancingMonth));
-      } catch (e) { console.warn('Failed to save rebalancing month:', e); }
-    }
-
-    function updateMonthSelector() {
-      const sel = document.getElementById('rebalancingMonthSelect');
-      if (!sel) return;
-      const prev = currentRebalancingMonth;
-      sel.innerHTML = '';
-      for (let m = 1; m <= REBALANCING_MONTHS; m++) {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = getMonthLabel(m);
-        sel.appendChild(opt);
-      }
-      currentRebalancingMonth = Math.min(prev, REBALANCING_MONTHS);
-      sel.value = currentRebalancingMonth;
-    }
-
-    // Returns real calendar month label for a rebalancing month index (1-based)
-    // Month 1 = end of March 2026 (the reference date's month)
-    function getMonthLabel(monthIndex) {
-      const refMonth = 2; // March = index 2 (0-based)
-      const refYear = 2026;
-      const date = new Date(refYear, refMonth + monthIndex - 1, 1);
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); // e.g. "Mar 2026"
-    }
-
-    function getMonthShortLabel(monthIndex) {
-      const refMonth = 2; // March = index 2 (0-based)
-      const refYear = 2026;
-      const date = new Date(refYear, refMonth + monthIndex - 1, 1);
-      return date.toLocaleDateString('en-US', { month: 'short' }); // e.g. "Mar"
-    }
-
-    function onMonthChange() {
-      const sel = document.getElementById('rebalancingMonthSelect');
-      if (!sel) return;
-      currentRebalancingMonth = parseInt(sel.value) || 1;
-      saveRebalancingMonth();
-      renderRebalancingTables();
     }
 
     function saveRebalancingDuration() {
@@ -1713,7 +1269,6 @@
       if (val >= 10 && val <= 18) {
         REBALANCING_MONTHS = val;
         saveRebalancingDuration();
-        updateMonthSelector();
         refreshRebalancingSchedule();
         renderRebalancingTables();
         // Update header text
@@ -1921,30 +1476,6 @@
       }
     }
 
-    function updateScheduleTableHeaders() {
-      // Build schedule table headers dynamically with real month names
-      ['avanzaRebalanceThead', 'nordnetRebalanceThead'].forEach(theadId => {
-        const thead = document.getElementById(theadId);
-        if (!thead) return;
-        
-        let html = '<tr>';
-        html += '<th>Asset Name</th>';
-        html += '<th class="text-right">Current</th>';
-        // Build all month columns, highlighting selected month and final month
-        for (let m = 1; m <= REBALANCING_MONTHS; m++) {
-          const isSelected = (m === currentRebalancingMonth);
-          const isFinal = (m === REBALANCING_MONTHS);
-          const isHL = isSelected || isFinal;
-          const label = (m === currentRebalancingMonth) 
-            ? `${getMonthShortLabel(m)} <span class="target-badge">Target</span>` 
-            : `${getMonthShortLabel(m)}${isFinal ? ' <span class="target-badge">Target</span>' : ''}`;
-          html += `<th class="text-right ${isHL ? 'highlight-col' : ''}">${label}</th>`;
-        }
-        html += '</tr>';
-        thead.innerHTML = html;
-      });
-    }
-
     // --- END TARGETS CONFIG UI ---
 
     const categoryColors = {
@@ -1979,9 +1510,6 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
       document.getElementById('brokerageFilter').addEventListener('change', renderHoldingsTable);
       document.getElementById('categoryFilter').addEventListener('change', renderHoldingsTable);
-      
-      // Setup return target calculator listeners
-      setupReturnTargetCalculatorListeners();
     }
 
     function checkUrlParams() {
@@ -2876,7 +2404,6 @@ ${text}`;
       else if (tabId === 'comparison') populateCompareSelects();
       else if (tabId === 'reference') renderReferenceTable();
       else if (tabId === 'snapshots') renderSnapshotsTab();
-      else if (tabId === 'retirement') populateRetirementForm();
     }
 
     function renderSnapshotsTab() {
@@ -3020,7 +2547,7 @@ ${text}`;
             
             cells += `<td class="text-right font-mono">${currentVal.toFixed(1)}%</td>`;
             item.schedule.forEach((val, idx) => {
-                const isHighlight = (idx === currentRebalancingMonth - 1 || idx === REBALANCING_MONTHS - 1);
+                const isHighlight = (idx === 0 || idx === 9);
                 cells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">${val.toFixed(1)}%</td>`;
             });
             
@@ -3043,8 +2570,8 @@ ${text}`;
               
               otherCells += `<td class="text-right font-mono">${item.val.toFixed(1)}%</td>`;
               
-              for(let i=0; i<REBALANCING_MONTHS; i++) {
-                  const isHighlight = (i === currentRebalancingMonth - 1 || i === REBALANCING_MONTHS - 1);
+              for(let i=0; i<10; i++) {
+                  const isHighlight = (i === 0 || i === 9);
                   otherCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">0.0%</td>`;
               }
               otherRow.innerHTML = otherCells;
@@ -3055,8 +2582,8 @@ ${text}`;
         sumRow.className = 'sum-row';
         let sumCells = `<td>TOTAL</td>`;
         sumCells += `<td class="text-right font-mono">${currentSum.toFixed(1)}%</td>`;
-        for(let i=0; i<REBALANCING_MONTHS; i++) {
-            const isHighlight = (i === currentRebalancingMonth - 1 || i === REBALANCING_MONTHS - 1);
+        for(let i=0; i<10; i++) {
+            const isHighlight = (i === 0 || i === 9);
             sumCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : ''}">100.0%</td>`;
         }
         sumRow.innerHTML = sumCells;
@@ -3078,127 +2605,6 @@ ${text}`;
         
         // Render consolidated bucket overview table
         renderConsolidatedBucketTable();
-
-        // Update consolidated table headers to show selected month
-        const monthHeaderEl = document.getElementById('consolidatedMonthHeader');
-        if (monthHeaderEl) monthHeaderEl.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target';
-        const monthDeltaHeaderEl = document.getElementById('consolidatedMonthDeltaHeader');
-        if (monthDeltaHeaderEl) monthDeltaHeaderEl.textContent = 'Δ Current → ' + getMonthShortLabel(currentRebalancingMonth) + ' 2026';
-
-        // Update schedule table headers with real month names
-        updateScheduleTableHeaders();
-
-        // Populate and update Return Target Rebalancing Calculator
-        updateReturnTargetCalculator();
-    }
-
-    // --- RETURN TARGET REBALANCING CALCULATOR ---
-
-    function updateReturnTargetCalculator() {
-        const costBasisInput = document.getElementById('costBasisInput');
-        const marketValueInput = document.getElementById('marketValueInput');
-        const currentProfitInput = document.getElementById('currentProfitInput');
-
-        if (!costBasisInput || !marketValueInput || !currentProfitInput) return;
-
-        // Get current portfolio value from snapshot
-        let currentPortfolioValue = 0;
-        if (currentSnapshot) {
-            const effective = getEffectiveSnapshot(currentSnapshot);
-            const ft = calculateFilteredTotals(effective);
-            currentPortfolioValue = ft.totalValue;
-        }
-
-        // Set initial values if inputs are empty (only on first load)
-        if (!costBasisInput.value && currentPortfolioValue > 0) {
-            costBasisInput.value = Math.round(currentPortfolioValue);
-        }
-        if (!marketValueInput.value && currentPortfolioValue > 0) {
-            marketValueInput.value = Math.round(currentPortfolioValue);
-        }
-
-        // Calculate and update
-        calculateReturnTargetAmounts();
-    }
-
-    function calculateReturnTargetAmounts() {
-        const costBasis = parseFloat(document.getElementById('costBasisInput').value) || 0;
-        const marketValue = parseFloat(document.getElementById('marketValueInput').value) || 0;
-        const currentProfit = marketValue - costBasis;
-
-        // Update current profit display - show negative values
-        document.getElementById('currentProfitInput').value = currentProfit !== 0 ? Math.round(currentProfit) : 0;
-
-        // Quick reference table amounts - include negative targets
-        const targets = [-0.10, -0.05, -0.02, 0.04, 0.05, 0.07, 0.10];
-        const elementIds = ['buyAmount-10', 'buyAmount-5', 'buyAmount-2', 'buyAmount4', 'buyAmount5', 'buyAmount7', 'buyAmount10'];
-
-        targets.forEach((targetReturn, index) => {
-            const buyAmount = calculateBuyAmount(costBasis, currentProfit, targetReturn);
-            const el = document.getElementById(elementIds[index]);
-            if (el) {
-                if (buyAmount >= 0) {
-                    el.textContent = formatCurrency(Math.round(buyAmount));
-                    el.className = 'text-right py-3 font-mono';
-                } else if (targetReturn > 0 && currentProfit > 0) {
-                    // Should buy but formula gives negative - impossible scenario
-                    el.textContent = 'N/A';
-                    el.className = 'text-right py-3 font-mono text-[var(--fg-muted)]';
-                } else {
-                    // Negative buy amount means SELL - display negative value in red
-                    el.textContent = '-' + formatCurrency(Math.round(Math.abs(buyAmount)));
-                    el.className = 'text-right py-3 font-mono change-negative';
-                }
-            }
-        });
-
-        // Custom target return calculator - allow negative targets
-        const customTargetReturnInput = document.getElementById('customTargetReturnInput');
-        const customResultEl = document.getElementById('customBuyAmountResult');
-        if (customTargetReturnInput && customTargetReturnInput.value && customResultEl) {
-            const customTargetReturn = parseFloat(customTargetReturnInput.value) / 100; // Supports negative values
-            const customBuyAmount = calculateBuyAmount(costBasis, currentProfit, customTargetReturn);
-            if (customBuyAmount >= 0) {
-                customResultEl.textContent = formatCurrency(Math.round(customBuyAmount));
-                customResultEl.className = 'text-xl font-bold font-mono text-[var(--accent-primary)]';
-            } else if (customTargetReturn > 0 && currentProfit > 0) {
-                customResultEl.textContent = 'N/A';
-                customResultEl.className = 'text-xl font-bold font-mono text-[var(--fg-muted)]';
-            } else {
-                customResultEl.textContent = '-' + formatCurrency(Math.round(Math.abs(customBuyAmount)));
-                customResultEl.className = 'text-xl font-bold font-mono change-negative';
-            }
-        } else if (customResultEl) {
-            customResultEl.textContent = '--';
-            customResultEl.className = 'text-xl font-bold font-mono text-[var(--accent-primary)]';
-        }
-    }
-
-    function calculateBuyAmount(costBasis, currentProfit, targetReturn) {
-        // Generic formula: Buy Amount = (Profit ÷ Target Return) - Cost Basis
-        // Works for all scenarios: positive/negative profit, positive/negative target return
-        // Returns -1 for impossible scenarios (target return = 0 or no profit to achieve positive target when underwater)
-        if (targetReturn === 0) {
-            return -1; // Cannot divide by zero
-        }
-        return (currentProfit / targetReturn) - costBasis;
-    }
-
-    // Setup event listeners for the return target calculator
-    function setupReturnTargetCalculatorListeners() {
-        const costBasisInput = document.getElementById('costBasisInput');
-        const marketValueInput = document.getElementById('marketValueInput');
-        const customTargetReturnInput = document.getElementById('customTargetReturnInput');
-
-        if (costBasisInput) {
-            costBasisInput.addEventListener('input', calculateReturnTargetAmounts);
-        }
-        if (marketValueInput) {
-            marketValueInput.addEventListener('input', calculateReturnTargetAmounts);
-        }
-        if (customTargetReturnInput) {
-            customTargetReturnInput.addEventListener('input', calculateReturnTargetAmounts);
-        }
     }
 
     function renderConsolidatedBucketTable() {
@@ -3260,22 +2666,22 @@ ${text}`;
 
         [1, 2, 3, 0].forEach(b => {
             const current = (avanzaCurrent[b] * avanzaWeight) + (nordnetCurrent[b] * nordnetWeight);
-            const selectedMonthTarget = getBucketTargets(REBALANCING_MONTHS)[b][currentRebalancingMonth - 1]; // Selected month target
+            const m1 = getBucketTargets(REBALANCING_MONTHS)[b][0]; // M1 is the same for both brokers
             const finalTarget = (avanzaFinal[b] * avanzaWeight) + (nordnetFinal[b] * nordnetWeight);
             const info = bucketNames[b];
 
             totalCurrent += current;
-            totalM1 += selectedMonthTarget;
+            totalM1 += m1;
             totalFinal += finalTarget;
 
-            const deltaM1 = current - selectedMonthTarget;
+            const deltaM1 = current - m1;
             const deltaFinal = current - finalTarget;
 
             rows.push(`
                 <tr>
                     <td><span class="badge ${info.class}">B${b}</span> <span class="text-sm">${info.name.split('—')[1]?.trim() || info.name}</span></td>
                     <td class="text-right font-mono">${current.toFixed(1)}%</td>
-                    <td class="text-right font-mono highlight-col">${selectedMonthTarget.toFixed(1)}%</td>
+                    <td class="text-right font-mono highlight-col">${m1.toFixed(1)}%</td>
                     <td class="text-right font-mono highlight-col">${finalTarget.toFixed(1)}%</td>
                     <td class="text-right font-mono ${deltaM1 >= 0 ? 'change-positive' : 'change-negative'}">${deltaM1 >= 0 ? '+' : ''}${deltaM1.toFixed(1)}%</td>
                     <td class="text-right font-mono ${deltaFinal >= 0 ? 'change-positive' : 'change-negative'}">${deltaFinal >= 0 ? '+' : ''}${deltaFinal.toFixed(1)}%</td>
@@ -3350,7 +2756,7 @@ ${text}`;
         const nordnetFinal = calcFinalTargets('nordnet');
 
         const _bt = getBucketTargets(REBALANCING_MONTHS);
-        const getSelectedMonthTarget = (b) => _bt[b] ? _bt[b][currentRebalancingMonth - 1] : 0;
+        const getM1 = (b) => _bt[b] ? _bt[b][0] : 0;
 
         // Determine which buckets to show
         const bucketsToShow = [1, 2, 3];
@@ -3383,14 +2789,14 @@ ${text}`;
         // Build a single card with all bullet charts stacked vertically
         const bulletRows = bucketsToShow.map(b => {
             const meta = bucketMeta[b];
-            const monthTarget = getSelectedMonthTarget(b);
+            const m1 = getM1(b);
             const aC = avanzaCurrent[b];
             const nC = nordnetCurrent[b];
             const aT = avanzaFinal[b];
             const nT = nordnetFinal[b];
             const combined = (aC * avanzaWeight) + (nC * nordnetWeight);
             const combinedTarget = (aT * avanzaWeight) + (nT * nordnetWeight);
-            const scaleMax = Math.max(combined, monthTarget, combinedTarget, 10) * 1.25;
+            const scaleMax = Math.max(combined, m1, combinedTarget, 10) * 1.25;
             const delta = combined - combinedTarget;
             const deltaSign = delta >= 0 ? '+' : '';
             const deltaColor = Math.abs(delta) < 2 ? 'text-emerald-400' : (delta > 0 ? 'text-amber-400' : 'text-amber-400');
@@ -3409,10 +2815,10 @@ ${text}`;
                     </div>
                 </div>
                 <!-- Bullet chart -->
-                ${renderBullet(combined, monthTarget, combinedTarget, meta.color, scaleMax)}
+                ${renderBullet(combined, m1, combinedTarget, meta.color, scaleMax)}
                 <!-- Target legend -->
                 <div class="flex items-center gap-4 mt-1 text-[10px] text-[var(--fg-muted)]">
-                    <span>${getMonthShortLabel(currentRebalancingMonth)} Target <span class="font-mono" style="color:#fbbf24;">${monthTarget.toFixed(1)}%</span></span>
+                    <span>M1 <span class="font-mono" style="color:#fbbf24;">${m1.toFixed(1)}%</span></span>
                     <span>Final <span class="font-mono" style="color:#34d399;">${combinedTarget.toFixed(1)}%</span></span>
                 </div>
             </div>`;
@@ -3421,7 +2827,7 @@ ${text}`;
         // Global legend
         const legend = `<div class="flex items-center gap-6 mb-4 text-xs text-[var(--fg-muted)] px-1">
             <span class="flex items-center gap-1.5"><span style="display:inline-block;width:12px;height:6px;border-radius:3px;opacity:0.6;background:#94a3b8;"></span> Current allocation</span>
-            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#fbbf24;border-radius:1px;"></span> ${getMonthShortLabel(currentRebalancingMonth)} Target</span>
+            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#fbbf24;border-radius:1px;"></span> M1 Target</span>
             <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#34d399;border-radius:1px;"></span> Final Target</span>
         </div>`;
 
@@ -4921,7 +4327,6 @@ ${text}`;
     switchTab = function(tabId) {
       _origSwitchTab(tabId);
       if (tabId === 'analytics') { renderPerformanceContent(); }
-      if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
     };
 
     // Override data loading to auto-save
@@ -4940,7 +4345,6 @@ ${text}`;
       loadReferenceTable(); // Load reference table on startup
       loadRebalancingTargets(); // Load custom rebalancing targets
       loadRebalancingDuration(); // Load rebalancing duration
-      loadRebalancingMonth(); // Load selected rebalancing month
       loadTargetSettings(); // Load target return tracker settings
       // Set duration input value
       const durInput = document.getElementById('rebalancingDurationInput');
@@ -4948,11 +4352,7 @@ ${text}`;
       // Update header text
       const headerEl = document.getElementById('rebalancingScheduleHeader');
       if (headerEl) headerEl.textContent = REBALANCING_MONTHS + '-Month Rebalancing Schedule';
-        // Initialize month selector
-        updateMonthSelector();
-        // Update schedule table headers
-        updateScheduleTableHeaders();
-        if (loadFromLocalStorage()) showDashboard();
+      if (loadFromLocalStorage()) showDashboard();
       setupPerformanceListeners();
       // Setup target tracker input listeners
       document.getElementById('yearStartValueInput')?.addEventListener('change', function() {
@@ -5184,144 +4584,6 @@ ${text}`;
       
       return ref.some(r => namesMatch(r.name, name));
     };
-
-    // --- RETIREMENT PLANNING ---
-    const RETIREMENT_LS_KEY = 'portfolioTracker_retirement';
-    let retirementData = { manualPortfolioValue: null, withdrawalRate: 0.047, checklist: [false, false, false, false, false] };
-
-    function loadRetirementData() {
-      try {
-        const raw = localStorage.getItem(RETIREMENT_LS_KEY);
-        if (raw) {
-          retirementData = JSON.parse(raw);
-        }
-      } catch (e) { console.warn('Failed to load retirement data:', e); }
-    }
-
-    function saveRetirementData() {
-      try {
-        localStorage.setItem(RETIREMENT_LS_KEY, JSON.stringify(retirementData));
-      } catch (e) { console.warn('Failed to save retirement data:', e); }
-    }
-
-    function updateRetirementPortfolioValue() {
-      const valueInput = document.getElementById('retirementTotalValueInput');
-      if (!valueInput || !currentSnapshot) return;
-      
-      const effective = getEffectiveSnapshot(currentSnapshot);
-      const ft = calculateFilteredTotals(effective);
-      
-      // Only set value if user hasn't manually entered one yet
-      if (!retirementData.manualPortfolioValue) {
-        valueInput.value = Math.round(ft.totalValue);
-      }
-      
-      // Set dropdown to saved rate
-      const rateSelect = document.getElementById('retirementWithdrawalRate');
-      if (rateSelect) {
-        rateSelect.value = retirementData.withdrawalRate;
-      }
-    }
-
-    function update30PercentWithdrawal() {
-      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-      const withdrawalRate = parseFloat(document.getElementById('retirementWithdrawalRate').value) || 0.047;
-      
-      // Use selected withdrawal rate
-      const annualWithdrawal = portfolioValue * withdrawalRate;
-      const monthlyWithdrawal = annualWithdrawal / 12;
-      
-      // Update display
-      document.getElementById('retirementAnnualWithdrawal').textContent = formatCurrency(annualWithdrawal);
-      document.getElementById('retirementMonthlyWithdrawal').textContent = formatCurrency(monthlyWithdrawal);
-      
-      // Save withdrawal rate and portfolio value
-      retirementData.withdrawalRate = withdrawalRate;
-      retirementData.manualPortfolioValue = portfolioValue;
-      saveRetirementData();
-    }
-
-    function populateRetirementForm() {
-      // Populate checklist
-      for (let i = 1; i <= 5; i++) {
-        const checkbox = document.getElementById('check' + i);
-        if (checkbox) checkbox.checked = retirementData.checklist[i - 1] || false;
-      }
-      
-      updateRetirementPortfolioValue();
-      
-      // Add event listener for manual portfolio value input
-      const portfolioValueInput = document.getElementById('retirementTotalValueInput');
-      if (portfolioValueInput) {
-        portfolioValueInput.addEventListener('input', update30PercentWithdrawal);
-        // Also update withdrawal when manual value changes
-        portfolioValueInput.addEventListener('change', update30PercentWithdrawal);
-      }
-    }
-
-    function saveRetirementChecklist() {
-      for (let i = 1; i <= 5; i++) {
-        const checkbox = document.getElementById('check' + i);
-        if (checkbox) retirementData.checklist[i - 1] = checkbox.checked;
-      }
-      saveRetirementData();
-    }
-
-    function calculateRetirement() {
-      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value);
-      
-      if (!portfolioValue || portfolioValue <= 0) {
-        document.getElementById('retirementStatus').textContent = 'Please enter a portfolio value.';
-        return;
-      }
-      
-      // Use selected withdrawal rate
-      const withdrawalRate = parseFloat(document.getElementById('retirementWithdrawalRate').value) || 0.047;
-      const annualWithdrawal = portfolioValue * withdrawalRate;
-      const monthlyWithdrawal = annualWithdrawal / 12;
-      
-      // Save form data
-      retirementData.manualPortfolioValue = portfolioValue;
-      retirementData.withdrawalRate = withdrawalRate;
-      retirementData.annualWithdrawal = annualWithdrawal;
-      retirementData.monthlyWithdrawal = monthlyWithdrawal;
-      saveRetirementData();
-      
-      const statusEl = document.getElementById('retirementStatus');
-      const withdrawalPercent = (withdrawalRate * 100).toFixed(1);
-      statusEl.innerHTML = `
-        <strong>Withdrawal Analysis (Dynamic Spending with Guardrails)</strong><br><br>
-        <strong>Portfolio Value:</strong> ${formatCurrency(portfolioValue)}<br>
-        <strong>Starting Annual Withdrawal (${withdrawalPercent}%):</strong> ${formatCurrency(annualWithdrawal)}<br>
-        <strong>Starting Monthly Withdrawal:</strong> ${formatCurrency(monthlyWithdrawal)}<br><br>
-        <strong style="color:var(--accent-secondary)">📋 Strategy: Dynamic Spending with Guardrails</strong><br>
-        • Strategy Type: Dynamic spending with guardrails<br>
-        • Best For: Retirement portfolio with reserve sleeve<br>
-        • Selected Withdrawal Rate: ${withdrawalPercent}%<br>
-        • Starting Annual Withdrawal: ${formatCurrency(annualWithdrawal)}<br><br>
-        <strong>Annual Review Rules (February):</strong><br>
-        • <span style="color:var(--accent-primary)">Increase:</span> Inflation, max +5%, only if portfolio healthy (at new highs)<br>
-        • <span style="color:var(--accent-warning)">Freeze:</span> If portfolio down 10%+ → freeze spending<br>
-        • <span style="color:var(--accent-danger)">Cut:</span> If portfolio down 20%+ → cut discretionary spending by ~10%<br>
-        • Funding: Withdraw from B1 (Cash/Short) first<br>
-        • Refill B1: From B2 (Fixed Income) or B3 (Equity) based on market conditions
-      `;
-    }
-
-    function resetRetirementForm() {
-      if (confirm('Reset retirement form? This will clear all inputs and checklist.')) {
-        retirementData = { manualPortfolioValue: null, checklist: [false, false, false, false, false] };
-        saveRetirementData();
-        document.getElementById('retirementTotalValueInput').value = '';
-        document.getElementById('retirementAnnualWithdrawal').textContent = 'SEK 0';
-        document.getElementById('retirementMonthlyWithdrawal').textContent = 'SEK 0';
-        for (let i = 1; i <= 5; i++) {
-          const checkbox = document.getElementById('check' + i);
-          if (checkbox) checkbox.checked = false;
-        }
-        document.getElementById('retirementStatus').textContent = 'Enter your portfolio value above to see your retirement analysis.';
-      }
-    }
 
     function loadDemoData() {
       const demoData1 = { 
