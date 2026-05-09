@@ -954,7 +954,7 @@
             </div>
 
             <!-- Nordnet Schedule -->
-            <div class="card overflow-hidden mb-6">
+            <div class="card overflow-hidden">
               <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
                 <h4 class="font-semibold text-cyan-400">Nordnet Account Rebalancing</h4>
               </div>
@@ -962,46 +962,6 @@
                 <table class="rebalance-table">
                   <thead id="nordnetRebalanceThead"><tr></tr></thead>
                   <tbody id="nordnetRebalanceTable"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Holdings Allocation in SEK — Avanza -->
-            <div class="card overflow-hidden mb-6">
-              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                <h4 class="font-semibold text-cyan-400">Avanza — Holdings Allocation (SEK)</h4>
-              </div>
-              <div class="table-container scrollbar-thin">
-                <table class="rebalance-table">
-                  <thead>
-                    <tr>
-                      <th>Asset Name</th>
-                      <th class="text-right">Current (SEK)</th>
-                      <th class="text-right highlight-col" id="avanzaSekMonthHeader">M1 Target (SEK)</th>
-                      <th class="text-right highlight-col">Final Target (SEK)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="avanzaSekTable"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Holdings Allocation in SEK — Nordnet -->
-            <div class="card overflow-hidden mb-6">
-              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                <h4 class="font-semibold text-cyan-400">Nordnet — Holdings Allocation (SEK)</h4>
-              </div>
-              <div class="table-container scrollbar-thin">
-                <table class="rebalance-table">
-                  <thead>
-                    <tr>
-                      <th>Asset Name</th>
-                      <th class="text-right">Current (SEK)</th>
-                      <th class="text-right highlight-col" id="nordnetSekMonthHeader">M1 Target (SEK)</th>
-                      <th class="text-right highlight-col">Final Target (SEK)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="nordnetSekTable"></tbody>
                 </table>
               </div>
             </div>
@@ -1151,7 +1111,7 @@
               <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
                   <h3 class="text-lg font-semibold">Historical Performance Data</h3>
-                  <p class="text-sm text-[var(--fg-muted)]">Upload an Avanza portfolio PDF report to extract asset returns. <em>Nordnet performance reports are not currently supported.</em></p>
+                  <p class="text-sm text-[var(--fg-muted)]">Upload an Avanza portfolio PDF report to extract asset returns</p>
                 </div>
                 <div class="flex gap-2">
                   <button onclick="document.getElementById('perfFileInput').click()" class="btn-primary flex items-center gap-2">
@@ -1199,10 +1159,7 @@
               <div class="card p-6 mb-6 animate-fade-in">
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                   <h3 class="text-lg font-semibold">Asset Correlation Matrix</h3>
-                </div>
-                <div class="exclude-info-banner mb-3">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>Limited data points (6 time periods). Correlations are <strong>indicative only</strong> and should not be used for portfolio decisions without additional data.</span>
+                  <span class="text-xs text-[var(--fg-muted)]">Based on returns across available time periods (Pearson). <em>Note: limited data points — correlations are indicative.</em></span>
                 </div>
                 <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin"></div>
               </div>
@@ -1224,6 +1181,8 @@
                       <tr>
                         <th>Type</th>
                         <th>Asset Name</th>
+                        <th>Country</th>
+                        <th>Holding</th>
                         <th class="text-right cursor-pointer" onclick="sortPerfTable('1W')">1 Week ⇅</th>
                         <th class="text-right cursor-pointer" onclick="sortPerfTable('1M')">1 Month ⇅</th>
                         <th class="text-right cursor-pointer" onclick="sortPerfTable('3M')">3 Months ⇅</th>
@@ -1241,67 +1200,324 @@
 
         <!-- Retirement Tab -->
         <div id="retirementTab" class="tab-panel hidden retirement-tab">
+
+          <!-- External Pension Assets (Not in Portfolio Tracker) -->
+          <div class="card p-6 animate-fade-in mb-6">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h3 class="text-lg font-semibold">External Pension Assets <span class="text-xs font-normal text-[var(--fg-muted)]">(all amounts are <strong>gross / pre-tax</strong>)</span></h3>
+                <p class="text-xs text-[var(--fg-muted)] mt-1">Pension capital not included in the portfolio tracker. Data from minPension.se — update manually. Monthly estimates are gross; tax is applied in the Grand Total below.</p>
+              </div>
+              <button onclick="togglePensionSettings()" class="btn-secondary text-sm flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+              </button>
+            </div>
+
+            <!-- Settings Panel (collapsible) — Separate per person -->
+            <div id="pensionSettingsPanel" class="hidden mb-6" style="background:var(--bg-secondary);border-radius:8px;padding:16px;border:1px solid var(--border);">
+              <h4 class="text-sm font-semibold mb-3" style="color:var(--accent-secondary);">Pension Calculation Settings (per person)</h4>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+                <!-- Karin's Settings -->
+                <div style="background:var(--bg-card);border-radius:8px;padding:12px;border:1px solid var(--border);">
+                  <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center" style="background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;font-size:11px;">K</div>
+                    <span class="text-sm font-semibold">Karin</span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-3">
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Tjänste/Privat Start</label>
+                      <input type="number" id="karinStartAge" min="55" max="70" value="57" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Allmän Start</label>
+                      <input type="number" id="karinAllmanAge" min="61" max="70" value="65" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Withdrawal %</label>
+                      <input type="number" id="karinWithdrawalRate" min="1" max="10" step="0.1" value="4.0" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                  </div>
+                </div>
+                <!-- Yann's Settings -->
+                <div style="background:var(--bg-card);border-radius:8px;padding:12px;border:1px solid var(--border);">
+                  <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center" style="background:rgba(6,182,212,0.15);color:#22d3ee;font-weight:700;font-size:11px;">Y</div>
+                    <span class="text-sm font-semibold">Yann</span>
+                  </div>
+                  <div class="grid grid-cols-3 gap-3">
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Tjänste/Privat Start</label>
+                      <input type="number" id="yannStartAge" min="55" max="70" value="57" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Allmän Start</label>
+                      <input type="number" id="yannAllmanAge" min="61" max="70" value="65" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                    <div>
+                      <label class="block text-xs text-[var(--fg-muted)] mb-1">Withdrawal %</label>
+                      <input type="number" id="yannWithdrawalRate" min="1" max="10" step="0.1" value="4.0" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--fg-primary);">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Shared Tax Setting -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs text-[var(--fg-muted)] mb-1">Stockholm Tax Rate (%)</label>
+                  <input type="number" id="pensionTaxRate" min="0" max="50" step="0.5" value="30" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--fg-primary);">
+                </div>
+                <div>
+                  <label class="block text-xs text-[var(--fg-muted)] mb-1">Life Expectancy (for chart)</label>
+                  <input type="number" id="pensionLifeExpectancy" min="75" max="100" value="90" onchange="updateExternalPension()" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:14px;color:var(--fg-primary);">
+                </div>
+              </div>
+            </div>
+
+            <!-- Pension Breakdown Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <!-- Karin -->
+              <div style="background:var(--bg-secondary);border-radius:8px;padding:16px;border:1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;font-size:13px;">K</div>
+                  <h4 class="font-semibold text-sm">Karin</h4>
+                  <span class="text-xs text-[var(--fg-muted)]">Total: <span id="karinTotalCapital" class="font-mono" style="color:var(--accent-primary);">--</span></span>
+                  <!-- Scenario Toggle -->
+                  <div class="flex ml-auto" style="border-radius:6px;overflow:hidden;border:1px solid var(--border);">
+                    <button class="karin-scenario-btn text-xs font-semibold px-3 py-1 transition-all" data-scenario="standard" onclick="setKarinScenario('standard')" style="background:var(--bg-elevated);color:var(--fg-muted);border:none;cursor:pointer;">Standard (65)</button>
+                    <button class="karin-scenario-btn text-xs font-semibold px-3 py-1 transition-all" data-scenario="early" onclick="setKarinScenario('early')" style="background:var(--bg-elevated);color:var(--fg-muted);border:none;cursor:pointer;">Early (57)</button>
+                  </div>
+                </div>
+                <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--border-subtle);">
+                      <td style="padding:6px 0;color:var(--fg-muted);">Allmän pension</td>
+                      <td style="padding:6px 0;text-align:right;font-family:'Space Grotesk',monospace;" id="karinAllmanCapital">3 852 188 kr</td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;color:var(--accent-secondary);font-size:12px;" id="karinAllmanMonthly">--</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border-subtle);">
+                      <td style="padding:6px 0;color:var(--fg-muted);">Tjänstepension (13 policies)</td>
+                      <td style="padding:6px 0;text-align:right;font-family:'Space Grotesk',monospace;" id="karinTjansteCapital">~3 492 572 kr</td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;color:var(--accent-secondary);font-size:12px;" id="karinTjansteMonthly">--</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border-subtle);">
+                      <td style="padding:6px 0;color:var(--fg-muted);">Privat pension</td>
+                      <td style="padding:6px 0;text-align:right;font-family:'Space Grotesk',monospace;">216 345 kr</td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;color:var(--accent-secondary);font-size:12px;" id="karinPrivatMonthly">--</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;font-weight:600;">Total monthly (gross)</td>
+                      <td></td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;font-weight:700;color:var(--accent-primary);" id="karinTotalMonthly">--</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <button id="karinDetailToggle" onclick="toggleKarinDetails()" style="margin-top:8px;font-size:12px;color:var(--accent-secondary);background:none;border:none;cursor:pointer;padding:4px 0;">▶ Show policy details</button>
+                <div id="karinPolicyDetails" class="hidden" style="margin-top:8px;font-size:11px;">
+                  <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                      <tr style="border-bottom:1px solid var(--border);">
+                        <th style="text-align:left;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Provider</th>
+                        <th style="text-align:left;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Policy</th>
+                        <th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Capital</th>
+                        <th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Start</th>
+                        <th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Duration</th>
+                        <th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Est. Monthly</th>
+                      </tr>
+                    </thead>
+                    <tbody id="karinPolicyTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Yann -->
+              <div style="background:var(--bg-secondary);border-radius:8px;padding:16px;border:1px solid var(--border);">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background:rgba(6,182,212,0.15);color:#22d3ee;font-weight:700;font-size:13px;">Y</div>
+                  <h4 class="font-semibold text-sm">Yann</h4>
+                  <span class="text-xs text-[var(--fg-muted)]">Total: <span id="yannTotalCapital" class="font-mono" style="color:var(--accent-primary);">--</span></span>
+                </div>
+                <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--border-subtle);">
+                      <td style="padding:6px 0;color:var(--fg-muted);">Allmän pension</td>
+                      <td style="padding:6px 0;text-align:right;font-family:'Space Grotesk',monospace;">3 819 909 kr</td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;color:var(--accent-secondary);font-size:12px;" id="yannAllmanMonthly">--</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--border-subtle);">
+                      <td style="padding:6px 0;color:var(--fg-muted);">Tjänstepension</td>
+                      <td style="padding:6px 0;text-align:right;font-family:'Space Grotesk',monospace;">~505 484 kr</td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;color:var(--accent-secondary);font-size:12px;" id="yannTjansteMonthly">--</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;font-weight:600;">Total monthly (gross)</td>
+                      <td></td>
+                      <td style="padding:6px 0 6px 12px;text-align:right;font-family:'Space Grotesk',monospace;font-weight:700;color:var(--accent-primary);" id="yannTotalMonthly">--</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <button id="yannDetailToggle" onclick="toggleYannDetails()" style="margin-top:8px;font-size:12px;color:var(--accent-secondary);background:none;border:none;cursor:pointer;padding:4px 0;">▶ Show policy details</button>
+                <div id="yannPolicyDetails" class="hidden" style="margin-top:8px;font-size:11px;">
+                  <table style="width:100%;border-collapse:collapse;">
+                    <thead><tr style="border-bottom:1px solid var(--border);"><th style="text-align:left;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Provider</th><th style="text-align:left;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Policy</th><th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Capital</th><th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Start</th><th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Duration</th><th style="text-align:right;padding:4px 8px;color:var(--fg-muted);font-size:10px;">Est. Monthly</th></tr></thead>
+                    <tbody id="yannPolicyTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grand Total Retirement Income -->
+            <div style="background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.08));border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:20px;">
+              <h4 class="text-sm font-semibold mb-4" style="color:var(--accent-primary);">Grand Total — Combined Retirement Income</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div style="background:var(--bg-card);border-radius:8px;padding:14px;">
+                  <p class="text-xs text-[var(--fg-muted)] mb-1">External Pension (monthly, gross)</p>
+                  <p id="grandExternalMonthly" class="text-lg font-bold font-mono" style="color:var(--accent-secondary);">--</p>
+                  <p id="grandExternalAnnual" class="text-xs text-[var(--fg-muted)] font-mono mt-1">--</p>
+                </div>
+                <div style="background:var(--bg-card);border-radius:8px;padding:14px;">
+                  <p class="text-xs text-[var(--fg-muted)] mb-1">Portfolio Withdrawal (monthly, gross)</p>
+                  <p id="grandPortfolioMonthly" class="text-lg font-bold font-mono" style="color:var(--accent-secondary);">--</p>
+                  <p id="grandPortfolioAnnual" class="text-xs text-[var(--fg-muted)] font-mono mt-1">--</p>
+                </div>
+                <div style="background:var(--bg-card);border-radius:8px;padding:14px;border:2px solid var(--accent-primary);">
+                  <p class="text-xs text-[var(--fg-muted)] mb-1">COMBINED TOTAL (monthly, gross)</p>
+                  <p id="grandCombinedMonthly" class="text-xl font-bold font-mono" style="color:var(--accent-primary);">--</p>
+                  <p id="grandCombinedAnnual" class="text-xs text-[var(--fg-muted)] font-mono mt-1">--</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div style="background:var(--bg-card);border-radius:8px;padding:14px;">
+                  <p class="text-xs text-[var(--fg-muted)] mb-1">Combined Gross Annual</p>
+                  <p id="grandGrossAnnual" class="text-lg font-bold font-mono">--</p>
+                </div>
+                <div style="background:var(--bg-card);border-radius:8px;padding:14px;border:1px solid rgba(16,185,129,0.3);">
+                  <p class="text-xs text-[var(--fg-muted)] mb-1">Combined NET Annual <span id="grandTaxLabel" class="text-[var(--fg-muted)]">(after tax)</span></p>
+                  <p id="grandNetAnnual" class="text-lg font-bold font-mono" style="color:var(--accent-primary);">--</p>
+                  <p id="grandNetMonthly" class="text-xs text-[var(--fg-muted)] font-mono mt-1">--</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Projected Income Chart -->
+          <div class="card p-6 animate-fade-in mb-6">
+            <h3 class="text-lg font-semibold mb-2">Projected Gross & Net Income Over Time</h3>
+            <p class="text-xs text-[var(--fg-muted)] mb-4">Year-by-year projection based on your pension settings. Shows gross and net (after Stockholm tax) monthly income.</p>
+            <div style="height:400px;"><canvas id="pensionProjectionChart"></canvas></div>
+          </div>
+
+          <!-- Existing Retirement Planning Section -->
           <div class="card p-6 animate-fade-in">
-            <h3 class="text-lg font-semibold mb-4">Retirement Income Projection</h3>
+            <h3 class="text-lg font-semibold mb-4">Retirement Planning</h3>
+            
+            <div class="sub">
+              Configure your retirement goals and track progress. Values will auto-populate from your current portfolio.
+            </div>
 
-            <!-- Compact controls -->
-            <div class="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-lg" style="background:var(--bg-elevated);">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-[var(--fg-muted)]">Portfolio:</span>
-                <input type="number" id="retirementTotalValueInput" placeholder="e.g. 18000000"
-                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" style="width:120px;">
-                <span class="text-xs text-[var(--fg-muted)]">SEK</span>
+            <!-- Portfolio Values (manually adjustable) -->
+            <div class="highlight">
+              <h4 class="text-sm font-semibold mb-3">Current Portfolio</h4>
+              <div class="metric">
+                <span class="label">Total Value</span>
+                <input type="number" id="retirementTotalValueInput" placeholder="e.g. 18000000" style="font-size:18px;font-family:'Space Grotesk',monospace;font-weight:600;background:transparent;border:none;outline:none;padding:0;margin:0;width:200px;color:var(--accent-primary);text-align:right;">
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-[var(--fg-muted)]">Default WR%:</span>
-                <input type="number" id="retirementDefaultWR" value="4.7" step="0.1" min="0" max="10"
-                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" style="width:72px;"
-                  onchange="applyDefaultWR(this.value)">
-                <button onclick="applyDefaultWR(document.getElementById('retirementDefaultWR').value)" class="text-xs px-2 py-1 rounded bg-[var(--accent-primary)] text-white hover:opacity-80">Set All Years</button>
+              <div class="metric">
+                <span class="label">Withdrawal Rate</span>
+                <select id="retirementWithdrawalRate" onchange="update30PercentWithdrawal()" style="font-size:14px;font-family:'Space Grotesk',monospace;font-weight:600;background:var(--bg-secondary);border:1px solid var(--border);outline:none;padding:4px 8px;margin:0;color:var(--accent-primary);text-align:right;border-radius:4px;cursor:pointer;">
+                  <option value="0.038">3.8%</option>
+                  <option value="0.040" selected>4.0%</option>
+                  <option value="0.043">4.3%</option>
+                  <option value="0.047">4.7%</option>
+                </select>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-[var(--fg-muted)]">Default WR Tax%:</span>
-                <input type="number" id="retirementDefaultTax" value="15" step="1" min="0" max="50"
-                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-warning)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-warning)]" style="width:72px;"
-                  onchange="applyDefaultTax(this.value)">
-                <button onclick="applyDefaultTax(document.getElementById('retirementDefaultTax').value)" class="text-xs px-2 py-1 rounded" style="background:var(--accent-warning);color:#000;">Set All Years</button>
+              <div class="metric">
+                <span class="label">Recommended Annual Withdrawal</span>
+                <span class="value" id="retirementAnnualWithdrawal">SEK 0</span>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-[var(--fg-muted)]">Growth Rate%:</span>
-                <input type="number" id="retirementGrowthRate" value="5" step="0.5" min="-5" max="15"
-                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-secondary)]" style="width:72px;"
-                  onchange="updateRetirementTab()">
-                <span class="text-xs text-[var(--fg-muted)]">(annual real, after inflation)</span>
+              <div class="metric">
+                <span class="label">Recommended Monthly Withdrawal</span>
+                <span class="value" id="retirementMonthlyWithdrawal">SEK 0</span>
               </div>
             </div>
 
-            <!-- Chart -->
-            <div class="mb-6" style="height:400px;">
-              <canvas id="pensionProjectionChart"></canvas>
+            <!-- Decision Box -->
+            <div class="decision-box">
+              <h4 class="text-sm font-semibold mb-2">Retirement Readiness</h4>
+              <p class="text-sm" id="retirementStatus">Enter your information above to see your retirement analysis.</p>
             </div>
 
-            <!-- Enhanced table -->
-            <h4 class="text-sm font-semibold mb-2">Detailed Income Projection (SEK/month)</h4>
-            <div class="table-container scrollbar-thin" style="max-height:480px;overflow-y:auto;">
-              <table class="rebalance-table" style="min-width:100%;">
-                <thead>
-                  <tr>
-                    <th class="text-left">Year</th>
-                    <th class="text-left">Age</th>
-                    <th class="text-right">Karin Pension</th>
-                    <th class="text-right">Yann Pension</th>
-                    <th class="text-right" style="color:var(--accent-secondary);">Portfolio Value</th>
-                    <th class="text-right">WR%</th>
-                    <th class="text-right">Portfolio WR</th>
-                    <th class="text-right">Tax%</th>
-                    <th class="text-right" style="color:var(--accent-warning);">WR Tax</th>
-                    <th class="text-right">Portfolio WR Net</th>
-                    <th class="text-right" style="color:var(--accent-primary);">Combined Gross</th>
-                    <th class="text-right" style="color:var(--accent-secondary);">Combined Net</th>
-                  </tr>
-                </thead>
-                <tbody id="retirementProjectionTable"></tbody>
-              </table>
+            <!-- Strategy Rules -->
+            <div class="highlight" style="margin-top: 24px; border-left-color: var(--accent-secondary);">
+              <h4 class="text-sm font-semibold mb-3" style="color: var(--accent-secondary);">Dynamic Spending with Guardrails Strategy</h4>
+              <div class="metric" style="background: var(--bg-secondary);">
+                <span class="label">Strategy Type</span>
+                <span class="value" style="font-size: 14px;">Dynamic spending with guardrails</span>
+              </div>
+              <div class="metric" style="background: var(--bg-secondary);">
+                <span class="label">Best For</span>
+                <span class="value" style="font-size: 14px;">Retirement portfolio with reserve sleeve</span>
+              </div>
+              <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px;">
+                <h5 class="text-xs font-semibold mb-2 text-[var(--fg-muted)] uppercase tracking-wide">Annual Review Rules (February)</h5>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 1.6;">
+                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent-primary); font-weight: 600; min-width: 80px;">Increase:</span>
+                    <span>Inflation, max +5%, only if portfolio healthy (at new highs)</span>
+                  </li>
+                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent-warning); font-weight: 600; min-width: 80px;">Freeze:</span>
+                    <span>If portfolio down 10%+ → freeze spending</span>
+                  </li>
+                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent-danger); font-weight: 600; min-width: 80px;">Cut:</span>
+                    <span>If portfolio down 20%+ → cut discretionary spending by ~10%</span>
+                  </li>
+                  <li style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span style="color: var(--accent-secondary); font-weight: 600; min-width: 80px;">Funding:</span>
+                    <span>Withdraw from B1 (Cash/Short) first</span>
+                  </li>
+                  <li style="display: flex; gap: 8px;">
+                    <span style="color: var(--accent-secondary); font-weight: 600; min-width: 80px;">Refill B1:</span>
+                    <span>From B2 (Fixed Income) or B3 (Equity) based on market conditions</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="row">
+              <div class="field-12">
+                <h4 class="text-sm font-semibold mb-2">Retirement Checklist</h4>
+                <ul class="checklist">
+                  <li>
+                    <input type="checkbox" id="check1" onchange="saveRetirementChecklist()">
+                    <span>Emergency fund (6-12 months expenses) in place</span>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="check2" onchange="saveRetirementChecklist()">
+                    <span>Debt-free or manageable debt plan</span>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="check3" onchange="saveRetirementChecklist()">
+                    <span>Diversified asset allocation (60/40 or similar)</span>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="check4" onchange="saveRetirementChecklist()">
+                    <span>Consistent savings rate (20%+ of income)</span>
+                  </li>
+                  <li>
+                    <input type="checkbox" id="check5" onchange="saveRetirementChecklist()">
+                    <span>Have adequate health/life insurance</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="footer-actions">
+              <button onclick="calculateRetirement()" class="btn-primary">Calculate Retirement Plan</button>
+              <button onclick="resetRetirementForm()" class="btn-light">Reset</button>
             </div>
           </div>
         </div>
@@ -2037,8 +2253,7 @@
                 classificationReference: classificationReference,
                 rebalancingTargets: rebalancingTargets,
                 excludedAssets: [...excludedAssets],
-                performanceData: performanceData,
-                retirementData: retirementData
+                performanceData: performanceData
             };
 
             const dataStr = JSON.stringify(exportBundle, null, 2);
@@ -2070,57 +2285,51 @@
         }
     }
 
-    function handleDataImport(input) {
-        const file = input.files[0];
+    function handleDataImport(event) {
+        const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const importedData = JSON.parse(e.target.result);
-
+                
                 // Handle new structured export format (v1)
                 if (importedData && importedData.version === 1 && importedData.snapshots) {
                     const bundle = importedData;
-
+                    
                     // Restore snapshots
                     bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
                     snapshots = bundle.snapshots;
                     snapshots.sort((a, b) => a.date - b.date);
                     currentSnapshot = snapshots[snapshots.length - 1];
-
+                    
                     // Restore classification reference
                     if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
                         classificationReference = bundle.classificationReference;
                         try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
                     }
-
+                    
                     // Restore rebalancing targets
                     if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
                         rebalancingTargets = bundle.rebalancingTargets;
                         saveRebalancingTargets();
                     }
-
+                    
                     // Restore excluded assets
                     if (Array.isArray(bundle.excludedAssets)) {
                         excludedAssets = new Set(bundle.excludedAssets);
                         saveExcludedAssets();
                     }
-
+                    
                     // Restore performance data
                     if (bundle.performanceData && bundle.performanceData.assets) {
                         performanceData = bundle.performanceData;
                         savePerformanceData();
                     }
-
-                    // Restore retirement data
-                    if (bundle.retirementData) {
-                        retirementData = bundle.retirementData;
-                        saveRetirementData();
-                    }
-
+                    
                     showDashboard();
-                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data.");
-
+                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
+                    
                 // Handle legacy array format (backward compatible)
                 } else if (Array.isArray(importedData)) {
                     if (importedData[0].date && importedData[0].holdings) {
@@ -2135,7 +2344,7 @@
             } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
         };
         reader.readAsText(file);
-        input.value = '';
+        event.target.value = '';
     }
 
     // --- End Import / Export ---
@@ -2144,6 +2353,68 @@
       const files = e.target.files;
       // Don't clear input until processing is done
       handleFiles(files).finally(() => { e.target.value = ''; });
+    }
+
+    function handleDataImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          try {
+              const importedData = JSON.parse(e.target.result);
+
+              // Handle new structured export format (v1)
+              if (importedData && importedData.version === 1 && importedData.snapshots) {
+                  const bundle = importedData;
+
+                  // Restore snapshots
+                  bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                  snapshots = bundle.snapshots;
+                  snapshots.sort((a, b) => a.date - b.date);
+                  currentSnapshot = snapshots[snapshots.length - 1];
+
+                  // Restore classification reference
+                  if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
+                      classificationReference = bundle.classificationReference;
+                      try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
+                  }
+
+                  // Restore rebalancing targets
+                  if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
+                      rebalancingTargets = bundle.rebalancingTargets;
+                      saveRebalancingTargets();
+                  }
+
+                  // Restore excluded assets
+                  if (Array.isArray(bundle.excludedAssets)) {
+                      excludedAssets = new Set(bundle.excludedAssets);
+                      saveExcludedAssets();
+                  }
+
+                  // Restore performance data
+                  if (bundle.performanceData && bundle.performanceData.assets) {
+                      performanceData = bundle.performanceData;
+                      savePerformanceData();
+                  }
+
+                  showDashboard();
+                  alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
+
+              // Handle legacy array format (backward compatible)
+              } else if (Array.isArray(importedData)) {
+                  if (importedData[0].date && importedData[0].holdings) {
+                      importedData.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
+                      snapshots = importedData;
+                      snapshots.sort((a, b) => a.date - b.date);
+                      currentSnapshot = snapshots[snapshots.length - 1];
+                      showDashboard();
+                      alert("Snapshots imported successfully!\n\nNote: This was a legacy export file. Only snapshot data was restored.");
+                  } else { alert("Invalid JSON structure."); }
+              } else { alert("Invalid JSON format. Expected a Portfolio Tracker export file."); }
+          } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
     }
 
     function datesAreEqual(d1, d2) {
@@ -3027,86 +3298,6 @@ ${text}`;
 
         // Populate and update Return Target Rebalancing Calculator
         updateReturnTargetCalculator();
-
-        // Render holdings allocation tables in SEK
-        renderHoldingsAllocationSek('avanzaSekTable', 'Avanza');
-        renderHoldingsAllocationSek('nordnetSekTable', 'Nordnet');
-
-        // Update SEK table month headers
-        const avanzaMonthHdr = document.getElementById('avanzaSekMonthHeader');
-        if (avanzaMonthHdr) avanzaMonthHdr.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target (SEK)';
-        const nordnetMonthHdr = document.getElementById('nordnetSekMonthHeader');
-        if (nordnetMonthHdr) nordnetMonthHdr.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target (SEK)';
-    }
-
-    function renderHoldingsAllocationSek(tbodyId, broker) {
-        const tbody = document.getElementById(tbodyId);
-        if (!tbody || !currentSnapshot) return;
-
-        const brokerKey = broker.toLowerCase();
-        const currentData = calculateBrokerCurrents(broker);
-        const totalBrokerValue = currentData.totalBrokerValue;
-        const scheduleData = rebalancingSchedule[brokerKey] || [];
-
-        tbody.innerHTML = '';
-
-        let sumCurrent = 0;
-        let sumMonthTarget = 0;
-        let sumFinalTarget = 0;
-
-        // Scheduled assets
-        scheduleData.forEach(item => {
-            const currentPct = currentData.assets[item.name] || 0;
-            const currentSek = (currentPct / 100) * totalBrokerValue;
-            const monthPct = item.schedule[currentRebalancingMonth - 1] || 0;
-            const monthSek = (monthPct / 100) * totalBrokerValue;
-            const finalPct = item.schedule[REBALANCING_MONTHS - 1] || 0;
-            const finalSek = (finalPct / 100) * totalBrokerValue;
-
-            sumCurrent += currentSek;
-            sumMonthTarget += monthSek;
-            sumFinalTarget += finalSek;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="font-medium">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
-                <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
-                <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(monthSek))}</td>
-                <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(finalSek))}</td>
-            `;
-            tbody.appendChild(row);
-        });
-
-        // Unscheduled holdings
-        currentData.unscheduled
-            .sort((a, b) => {
-                if (a.bucket !== b.bucket) return a.bucket - b.bucket;
-                return a.name.localeCompare(b.name);
-            })
-            .forEach(item => {
-                const currentSek = (item.val / 100) * totalBrokerValue;
-                sumCurrent += currentSek;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="font-medium text-[var(--fg-muted)]">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
-                    <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
-                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
-                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
-                `;
-                tbody.appendChild(row);
-            });
-
-        // Sum row
-        const sumRow = document.createElement('tr');
-        sumRow.className = 'sum-row';
-        sumRow.innerHTML = `
-            <td>TOTAL</td>
-            <td class="text-right font-mono">${formatCurrency(Math.round(sumCurrent))}</td>
-            <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumMonthTarget))}</td>
-            <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumFinalTarget))}</td>
-        `;
-        tbody.appendChild(sumRow);
     }
 
     // --- RETURN TARGET REBALANCING CALCULATOR ---
@@ -4255,27 +4446,12 @@ ${text}`;
 
     const PERF_LS_KEY = 'portfolioTracker_performance';
 
-    // --- DYNAMIC ASSET LIST FOR PERFORMANCE PARSING ---
-    function getKnownAssetNames() {
-      const names = new Set();
-      // From reference table (Avanza only — performance data comes from Avanza)
-      (classificationReference.avanza || []).forEach(r => names.add(r.name));
-      // From all snapshots (Avanza holdings)
-      snapshots.forEach(s => {
-        s.holdings.filter(h => h.brokerage === 'Avanza').forEach(h => names.add(h.name));
-      });
-      // Always include these as fallback
-      const fallback = ['Newmont', 'Range Resources', 'Cash'];
-      fallback.forEach(n => names.add(n));
-      return Array.from(names);
-    }
-
     // Parse Avanza performance PDF text
     function parseAvanzaPerformancePDFText(text) {
       // Helper: Parse Swedish number format (comma as decimal separator)
       const parseSwedishPercent = (str) => {
         if (!str) return null;
-        const cleaned = str.replace(/[\u2212−]/g, '-').replace(/\s/g, '').replace(',', '.').replace('%', '');
+        const cleaned = str.replace(/\s/g, '').replace(',', '.').replace('%', '');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
       };
@@ -4285,103 +4461,42 @@ ${text}`;
 
       const assets = [];
 
-      // DYNAMIC: Build asset list from reference table + snapshots
-      const allKnownNames = getKnownAssetNames();
+      // Known asset names to search for
+      const knownStocks = ['Newmont', 'Range Resources'];
+      const knownFunds = [
+        'AMF Företagsobligationsfond', 'AMF Räntefond Kort', 'AMF Räntefond Mix',
+        'Avanza Global', 'Avanza Ränta Kort', 'Avanza Zero',
+        'Pareto Räntefond A', 'SEB FRN Fond A'
+      ];
 
-      // Determine which assets are stocks vs funds based on reference table
-      const stockNames = new Set();
-      const fundNames = new Set();
-      allKnownNames.forEach(name => {
-        const cls = getClassificationFromReference(name, 'avanza');
-        if (cls.found) {
-          // Stocks typically have categories like Energy, Materials, etc.
-          const stockCategories = ['Energy', 'Materials', 'Financials', 'Industrials', 'Real Estate',
-            'Communication Services', 'Consumer Discretionary', 'Consumer Staples', 'Health Care',
-            'Information Technology', 'Utilities'];
-          if (stockCategories.includes(cls.category)) {
-            stockNames.add(name);
-          } else {
-            fundNames.add(name);
-          }
-        } else {
-          // Check snapshots to determine type
-          const inSnapshots = snapshots.flatMap(s => s.holdings)
-            .filter(h => h.brokerage === 'Avanza' && namesMatch(h.name, name));
-          if (inSnapshots.length > 0) {
-            const cat = inSnapshots[0].category || '';
-            if (['Energy', 'Materials'].includes(cat)) {
-              stockNames.add(name);
-            } else {
-              fundNames.add(name);
-            }
-          } else {
-            // Fallback: known stocks
-            if (['Newmont', 'Range Resources'].some(s => namesMatch(s, name))) {
-              stockNames.add(name);
-            } else {
-              fundNames.add(name);
-            }
-          }
-        }
-      });
+      // The PDF text has spaces between percentage values like:
+      // +9,42 %   −2,98 %   +3,32 %   +13,00 %   +155,39 %   +116,73 %   +79,64 %
+      // Pattern: 7 values per asset (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)
+      // We need to find asset name followed by a cluster of percentages
 
-      // Merge all names for searching (we search full text, not sections)
-      const allNames = [...new Set([...stockNames, ...fundNames])];
-      const processedNames = new Set();
-      const assetMap = new Map(); // name -> {assetType, name, returns}
+      // First extract stocks section (between "Aktier" and "Fonder")
+      let aktierSection = '';
+      let fonderSection = '';
+      const aktierIdx = text.indexOf('Aktier');
+      const fonderIdx = text.indexOf('Fonder');
 
-      // Helper: find the best fuzzy match for a name in the text
-      const fuzzyIndexOf = (haystack, needle) => {
-        // Exact match
-        const exactIdx = haystack.indexOf(needle);
-        if (exactIdx >= 0) return exactIdx;
+      if (aktierIdx >= 0 && fonderIdx > aktierIdx) {
+        const afterFonder = text.substring(fonderIdx);
+        const endIdx = afterFonder.indexOf('Totalt värde') >= 0 ? afterFonder.indexOf('Totalt värde') : (afterFonder.indexOf('%') >= 0 ? afterFonder.indexOf('%') : afterFonder.length);
+        fonderSection = afterFonder.substring(0, endIdx);
+        aktierSection = text.substring(aktierIdx, fonderIdx);
+      }
 
-        // Try finding the longest common prefix (handles truncated names like "AMF Företagsobligati...")
-        // Find where the name starts in the text by looking for significant substrings
-        const words = needle.split(/\s+/);
-        if (words.length >= 2) {
-          // Try matching with first word + start of second word
-          const prefix = words[0] + ' ' + words[1].substring(0, Math.max(3, words[1].length - 3));
-          const prefixIdx = haystack.indexOf(prefix);
-          if (prefixIdx >= 0) return prefixIdx;
-        }
-
-        // Try each word >= 5 chars as a search term
-        for (const word of words) {
-          if (word.length >= 5) {
-            const wordIdx = haystack.indexOf(word);
-            if (wordIdx >= 0) {
-              // Verify there's a percentage cluster nearby (within 200 chars)
-              const nearby = haystack.substring(wordIdx, wordIdx + 200);
-              if (/[+\u2212-]?\s*\d+,\d{2}\s*%/.test(nearby)) {
-                return wordIdx;
-              }
-            }
-          }
-        }
-
-        return -1;
-      };
-
-      // Pattern for 7 percentage values: handles both "+9,42 %" and "−2,98 %" (Unicode minus)
-      // Values may be separated by spaces or directly concatenated
-      const sevenPctPattern = /([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)/;
-
-      // Search for each known asset name in the FULL text (not section-limited)
-      allNames.forEach(assetName => {
-        if (processedNames.has(assetName)) return;
-
-        const idx = fuzzyIndexOf(text, assetName);
-        if (idx < 0) return;
-
-        const afterName = text.substring(idx + 1); // +1 to avoid matching the name itself
-        const pctMatch = afterName.match(sevenPctPattern);
-        if (!pctMatch || pctMatch.length < 7) {
-          // Try alternate: just find 7 consecutive percentage values near the name
-          const nearby = text.substring(idx, idx + 400);
-          const allPcts = nearby.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
-          if (allPcts && allPcts.length >= 7) {
-            const values = allPcts.slice(0, 7).map(m => parseSwedishPercent(m));
+      // Parse stocks - look for stock name then find 7 percentage values after it
+      knownStocks.forEach(stockName => {
+        if (aktierSection.includes(stockName)) {
+          const idx = aktierSection.indexOf(stockName);
+          const afterName = aktierSection.substring(idx + stockName.length);
+          // Extract all percentages that follow (with spaces: "+9,42 %")
+          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
+          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
+          if (percentMatch && percentMatch.length >= 7) {
+            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
             const returns = {};
             returns['1W'] = values[0];
             returns['1M'] = values[1];
@@ -4391,38 +4506,45 @@ ${text}`;
             returns['3Y'] = values[5];
             returns['5Y'] = values[6];
 
-            const isStock = stockNames.has(assetName);
-            assetMap.set(assetName, {
-              assetType: isStock ? 'Stock' : 'Fund',
-              name: assetName,
+            assets.push({
+              assetType: 'Stock',
+              name: stockName,
+              country: '',
+              holding: '',
               returns
             });
-            processedNames.add(assetName);
           }
-          return;
         }
-
-        const values = pctMatch.slice(0, 7).map(m => parseSwedishPercent(m));
-        const returns = {};
-        returns['1W'] = values[0];
-        returns['1M'] = values[1];
-        returns['3M'] = values[2];
-        // Skip index 3 (YTD/i år)
-        returns['1Y'] = values[4];
-        returns['3Y'] = values[5];
-        returns['5Y'] = values[6];
-
-        const isStock = stockNames.has(assetName);
-        assetMap.set(assetName, {
-          assetType: isStock ? 'Stock' : 'Fund',
-          name: assetName,
-          returns
-        });
-        processedNames.add(assetName);
       });
 
-      // Convert map to array
-      assetMap.forEach((asset) => assets.push(asset));
+      // Parse funds - each fund name is followed by percentages
+      knownFunds.forEach(fundName => {
+        if (fonderSection.includes(fundName)) {
+          const idx = fonderSection.indexOf(fundName);
+          const afterName = fonderSection.substring(idx + fundName.length);
+          // Extract all percentages - with spaces between value and %
+          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
+          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
+          if (percentMatch && percentMatch.length >= 7) {
+            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
+            const returns = {};
+            returns['1W'] = values[0];
+            returns['1M'] = values[1];
+            returns['3M'] = values[2];
+            returns['1Y'] = values[4];
+            returns['3Y'] = values[5];
+            returns['5Y'] = values[6];
+
+            assets.push({
+              assetType: 'Fund',
+              name: fundName,
+              country: '',
+              holding: '',
+              returns
+            });
+          }
+        }
+      });
 
       if (assets.length === 0) return null;
 
@@ -4454,75 +4576,13 @@ ${text}`;
           savePerformanceData();
           renderPerformanceContent();
         } else {
-          // Try AI fallback parser if regex parser found nothing
-          const apiKey = getApiKey();
-          if (apiKey) {
-            const aiData = await callAiForPerformanceExtraction(fullText, file.name);
-            if (aiData && aiData.assets && aiData.assets.length > 0) {
-              performanceData = aiData;
-              savePerformanceData();
-              renderPerformanceContent();
-              return;
-            }
-          }
-          // Show debug modal as last resort
+          // Show debug modal for PDF parsing issues
           await showPerformancePdfDebugModal(fullText, file.name);
         }
       } catch (err) {
         console.error('Error parsing performance PDF:', err);
         alert('Failed to parse PDF: ' + err.message);
       }
-    }
-
-    async function callAiForPerformanceExtraction(text, filename) {
-      const apiKey = getApiKey();
-      const apiUrl = getApiUrl();
-      const allKnownNames = getKnownAssetNames();
-
-      const prompt = `Extract historical return data from this Avanza portfolio performance PDF.
-
-Return ONLY valid JSON with this EXACT format:
-{
-  "assets": [
-    {"assetType":"Stock","name":"Asset Name","returns":{"1W":1.23,"1M":4.56,"3M":-2.34,"1Y":12.34,"3Y":45.67,"5Y":89.01}}
-  ]
-}
-
-MANDATORY RULES:
-1. Look for these known asset names in the text: ${allKnownNames.join(', ')}
-2. assetType must be "Stock" for individual stocks, "Fund" for funds
-3. Returns are percentages. Look for numbers with "%" after each asset name
-4. The text has 7 percentage values per asset: 1W, 1M, 3M, YTD (skip this), 1Y, 3Y, 5Y
-5. The minus sign may appear as Unicode minus (U+2212) - use regular minus in JSON
-6. Return ONLY valid JSON. No markdown. No code blocks. No trailing commas.
-
-TEXT FROM ${filename}:
-${text.substring(0, 30000)}`;
-
-      try {
-        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: getApiModel(), messages: [{ role: 'system', content: 'You are a precise data extraction assistant. Return ONLY valid JSON with asset performance data. No markdown. No code blocks.' }, { role: 'user', content: prompt }], temperature: 0.1, max_tokens: 4000 }) });
-        if (!response.ok) return null;
-        const result = await response.json();
-        let jsonStr = (result.choices?.[0]?.message?.content || '').trim();
-        if (!jsonStr) return null;
-
-        jsonStr = repairJsonString(jsonStr);
-        const parsed = attemptJsonParse(jsonStr);
-        if (parsed && parsed.assets && Array.isArray(parsed.assets)) {
-          // Add period metadata
-          parsed.periodKeys = ['1W', '1M', '3M', '1Y', '3Y', '5Y'];
-          parsed.periodLabels = ['1 Week', '1 Month', '3 Months', '1 Year', '3 Years', '5 Years'];
-          // Ensure all assets have the returns object
-          parsed.assets.forEach(a => {
-            if (!a.returns) a.returns = {};
-            parsed.periodKeys.forEach(k => {
-              if (a.returns[k] === undefined || a.returns[k] === null) a.returns[k] = null;
-            });
-          });
-          return parsed;
-        }
-        return null;
-      } catch (err) { console.error('AI performance extraction error:', err); return null; }
     }
 
     function showPerformancePdfDebugModal(text, filename) {
@@ -4789,11 +4849,6 @@ ${text.substring(0, 30000)}`;
 
       const { assets, periodKeys, periodLabels } = performanceData;
 
-      if (!assets || assets.length === 0) {
-        container.innerHTML = '<div class="flex items-center justify-center h-32 text-[var(--fg-muted)]"><p>No performance data available</p></div>';
-        return;
-      }
-
       // Find max absolute value for color scaling
       let maxAbs = 1;
       assets.forEach(a => {
@@ -4812,7 +4867,7 @@ ${text.substring(0, 30000)}`;
       html += '</tr>';
 
       assets.forEach(asset => {
-        html += `<tr><td class="text-sm font-medium pr-3 whitespace-nowrap">${asset.name}</td>`;
+        html += `<tr><td class="text-sm font-medium pr-3 whitespace-nowrap">${asset.name} <span class="text-xs text-[var(--fg-muted)]">(${asset.country})</span></td>`;
         periodKeys.forEach(key => {
           const val = asset.returns[key];
           if (val !== null && !isNaN(val)) {
@@ -4851,6 +4906,12 @@ ${text.substring(0, 30000)}`;
 
       const { assets, periodKeys } = performanceData;
 
+      const holdingBadges = {
+        'Köp': '<span class="badge badge-bucket-3">BUY</span>',
+        'Byt': '<span class="badge badge-bucket-2">SWITCH</span>',
+        'Sälj': '<span class="badge badge-sell">SELL</span>'
+      };
+
       let sorted = [...assets];
       if (perfSortKey) {
         sorted.sort((a, b) => {
@@ -4864,9 +4925,11 @@ ${text.substring(0, 30000)}`;
       }
 
       tbody.innerHTML = sorted.map(asset => {
-        const typeBadge = asset.assetType === 'Stock'
+        const typeBadge = asset.assetType === 'Aktie'
           ? '<span class="badge badge-bucket-1">STOCK</span>'
           : '<span class="badge badge-bucket-3">FUND</span>';
+
+        const holdingBadge = holdingBadges[asset.holding] || `<span class="badge badge-other">${asset.holding}</span>`;
 
         const returnCells = periodKeys.map(key => {
           const val = asset.returns[key];
@@ -4879,6 +4942,8 @@ ${text.substring(0, 30000)}`;
         return `<tr>
           <td>${typeBadge}</td>
           <td class="font-medium">${asset.name}</td>
+          <td>${asset.country}</td>
+          <td>${holdingBadge}</td>
           ${returnCells}
         </tr>`;
       }).join('');
@@ -5085,7 +5150,6 @@ ${text.substring(0, 30000)}`;
       loadRebalancingDuration(); // Load rebalancing duration
       loadRebalancingMonth(); // Load selected rebalancing month
       loadTargetSettings(); // Load target return tracker settings
-      loadRetirementData(); // Load retirement data early so it's available when tab opens
       // Set duration input value
       const durInput = document.getElementById('rebalancingDurationInput');
       if (durInput) durInput.value = REBALANCING_MONTHS;
@@ -5331,33 +5395,37 @@ ${text.substring(0, 30000)}`;
 
     // --- RETIREMENT PLANNING ---
     const RETIREMENT_LS_KEY = 'portfolioTracker_retirement';
-    let retirementData = { manualPortfolioValue: null, withdrawalRate: 0.047, yearOverrides: {} };
-    let pensionProjectionChart = null;
+    let retirementData = { manualPortfolioValue: null, withdrawalRate: 0.04, checklist: [false, false, false, false, false], pensionSettings: null, karinScenario: 'standard' };
 
     // External Pension Data (from minPension.se)
     const PENSION_DATA = {
       karin: {
-        name: 'Karin', birthYear: 1970,
+        name: 'Karin',
+        birthYear: 1970,
         allman: { capital: 3852188 },
         privat: { capital: 216345 },
+        // Detailed tjanstepension policies from minPension.se PDF
         policies: [
+          // === Inbetalning pågår (Active payments) ===
           { provider: 'Alecta', name: 'ITP2 Ålderspension', type: 'tjanstepension', capital: 1550000, minPensionMonthly: 9921, startAge: 65, durationYears: Infinity, status: 'active' },
           { provider: 'Alecta', name: 'Optimal Pension ITPK', type: 'tjanstepension', capital: 145134, minPensionMonthly: 703, startAge: 65, durationYears: Infinity, status: 'active' },
-          { provider: 'Alecta', name: 'ITP1 Optimal (1)', type: 'tjanstepension', capital: 155508, minPensionMonthly: 878, startAge: 66, durationYears: Infinity, status: 'completed' },
-          { provider: 'Alecta', name: 'ITP1 Optimal (2)', type: 'tjanstepension', capital: 128426, minPensionMonthly: 725, startAge: 66, durationYears: Infinity, status: 'completed' },
+          // === Inbetalning avslutad (Completed payments) ===
+          { provider: 'Alecta', name: 'ITP1 Optimal Pension (1)', type: 'tjanstepension', capital: 155508, minPensionMonthly: 878, startAge: 66, durationYears: Infinity, status: 'completed' },
+          { provider: 'Alecta', name: 'ITP1 Optimal Pension (2)', type: 'tjanstepension', capital: 128426, minPensionMonthly: 725, startAge: 66, durationYears: Infinity, status: 'completed' },
           { provider: 'KPA Pension', name: 'KAP-KL Livränta', type: 'tjanstepension', capital: 160000, minPensionMonthly: 1038, startAge: 65, durationYears: Infinity, status: 'completed' },
-          { provider: 'KPA Pension', name: 'KAP-KL/AKAP-KR', type: 'tjanstepension', capital: 197608, minPensionMonthly: 1086, startAge: 70, durationYears: Infinity, status: 'completed' },
+          { provider: 'KPA Pension', name: 'KAP-KL/AKAP-KR Traditionell', type: 'tjanstepension', capital: 197608, minPensionMonthly: 1086, startAge: 70, durationYears: Infinity, status: 'completed' },
           { provider: 'SEB', name: 'Avtalspension ITPK (5 år)', type: 'tjanstepension', capital: 192465, minPensionMonthly: null, startAge: 65, durationYears: 5, status: 'completed' },
           { provider: 'SEB', name: 'Avtalspension ITPK (liv)', type: 'tjanstepension', capital: 129375, minPensionMonthly: null, startAge: 65, durationYears: Infinity, status: 'completed' },
           { provider: 'SEB', name: 'Avtalspension ITPK Entré', type: 'tjanstepension', capital: 52746, minPensionMonthly: null, startAge: 65, durationYears: Infinity, status: 'completed' },
           { provider: 'Skandia', name: 'ITP Avtalspension', type: 'tjanstepension', capital: 42258, minPensionMonthly: 180, startAge: 65, durationYears: Infinity, status: 'completed' },
           { provider: 'Skandia', name: 'Pensionsförsäkring (15 år)', type: 'tjanstepension', capital: 55819, minPensionMonthly: 390, startAge: 65, durationYears: 15, status: 'completed' },
-          { provider: 'Skandia', name: 'Tjänstepension (5 år)', type: 'tjanstepension', capital: 179709, minPensionMonthly: 3522, startAge: 65, durationYears: 5, status: 'completed' },
-          { provider: 'Skandia', name: 'Tjänstepension (10 år)', type: 'tjanstepension', capital: 503524, minPensionMonthly: 4997, startAge: 65, durationYears: 10, status: 'completed' }
+          { provider: 'Skandia', name: 'Tjänstepensionsförsäkring (5 år)', type: 'tjanstepension', capital: 179709, minPensionMonthly: 3522, startAge: 65, durationYears: 5, status: 'completed' },
+          { provider: 'Skandia', name: 'Tjänstepensionsförsäkring (10 år)', type: 'tjanstepension', capital: 503524, minPensionMonthly: 4997, startAge: 65, durationYears: 10, status: 'completed' }
         ]
       },
       yann: {
-        name: 'Yann', birthYear: 1972,
+        name: 'Yann',
+        birthYear: 1972,
         allman: { capital: 3819909 },
         privat: { capital: 0 },
         policies: [
@@ -5366,279 +5434,686 @@ ${text.substring(0, 30000)}`;
       }
     };
 
+    // --- Karin Scenario Data (Standard age 65 vs Early age 57) ---
+    // Updated from Karin's Pension Plan 2026 (minPension 22 March 2026)
+    const KARIN_EARLY_DATA = {
+      allman: { capital: 2548073, minPensionMonthly: 22600 }, // Inkomstpension + Premiepension ~22,600 kr/mo from age 68
+      privat: { capital: 216345, minPensionMonthly: 1700 },   // SEB IPS ~1,700 kr/mo for 11 years
+      policies: [
+        { provider: 'Alecta', name: 'ITP2 Ålderspension', type: 'tjanstepension', capital: 0, minPensionMonthly: 15550, startAge: 57, durationYears: 11, status: 'active' },
+        { provider: 'Skandia', name: 'Tjänstepension (9906-03)', type: 'tjanstepension', capital: 503524, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'SEB', name: 'Avtalspension ITPK (545152)', type: 'tjanstepension', capital: 192465, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'Skandia', name: 'Tjänstepension (9906-04)', type: 'tjanstepension', capital: 179709, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'Alecta', name: 'ITP1 Optimal (1)', type: 'tjanstepension', capital: 155508, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'Alecta', name: 'ITPK Optimal Pension', type: 'tjanstepension', capital: 145134, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'Alecta', name: 'ITP1 Optimal (2)', type: 'tjanstepension', capital: 128426, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'SEB', name: 'Avtalspension ITPK (545617)', type: 'tjanstepension', capital: 129375, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'KPA Pension', name: 'KAP-KL/AKAP-KR Traditionell', type: 'tjanstepension', capital: 197608, minPensionMonthly: 1100, startAge: 62, durationYears: 20, status: 'completed' },
+        { provider: 'KPA Pension', name: 'KAP-KL Livränta', type: 'tjanstepension', capital: 0, minPensionMonthly: 800, startAge: 61, durationYears: Infinity, status: 'completed' },
+        { provider: 'Skandia', name: 'Pensionsförsäkring (9906-06)', type: 'tjanstepension', capital: 55819, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'SEB', name: 'Avtalspension ITPK (545647)', type: 'tjanstepension', capital: 52746, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' },
+        { provider: 'Skandia', name: 'ITP Avtalspension (9906-02)', type: 'tjanstepension', capital: 42258, minPensionMonthly: null, startAge: 57, durationYears: 11, status: 'completed' }
+      ],
+      settingsOverrides: { startAge: 57, allmanAge: 68 }
+    };
+
+    function getKarinPensionData() {
+      const scenario = retirementData.karinScenario || 'standard';
+      if (scenario === 'early') {
+        return {
+          allman: KARIN_EARLY_DATA.allman,
+          privat: KARIN_EARLY_DATA.privat,
+          policies: KARIN_EARLY_DATA.policies
+        };
+      }
+      return { allman: PENSION_DATA.karin.allman, privat: PENSION_DATA.karin.privat, policies: PENSION_DATA.karin.policies };
+    }
+
+    function setKarinScenario(scenario) {
+      retirementData.karinScenario = scenario;
+      saveRetirementData();
+      // Update toggle UI
+      document.querySelectorAll('.karin-scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === scenario);
+      });
+      // Update settings inputs for Karin based on scenario
+      const overrides = scenario === 'early' ? KARIN_EARLY_DATA.settingsOverrides : null;
+      if (overrides) {
+        const ks = document.getElementById('karinStartAge');
+        const ka = document.getElementById('karinAllmanAge');
+        if (ks) ks.value = overrides.startAge;
+        if (ka) ka.value = overrides.allmanAge;
+      }
+      // Update the summary table capital display
+      updateKarinCapitalDisplay();
+      updateExternalPension();
+    }
+
+    function updateKarinCapitalDisplay() {
+      const data = getKarinPensionData();
+      const tjansteCapital = data.policies.reduce((s, p) => s + p.capital, 0);
+      const totalCapital = data.allman.capital + tjansteCapital + data.privat.capital;
+      const el = document.getElementById('karinTotalCapital');
+      if (el) el.textContent = '~' + totalCapital.toLocaleString('sv-SE') + ' kr';
+      // Update the breakdown table values
+      const allmanEl = document.getElementById('karinAllmanCapital');
+      if (allmanEl) allmanEl.textContent = data.allman.capital.toLocaleString('sv-SE') + ' kr';
+      const tjansteEl = document.getElementById('karinTjansteCapital');
+      if (tjansteEl) tjansteEl.textContent = '~' + tjansteCapital.toLocaleString('sv-SE') + ' kr';
+    }
+
+    const DEFAULT_PENSION_SETTINGS = { startAge: 57, withdrawalRate: 4.0, allmanAge: 65, taxRate: 30, calcMethod: 'minpension' };
+
+    function getPensionSettings() {
+      if (retirementData.pensionSettings) return retirementData.pensionSettings;
+      return { ...DEFAULT_PENSION_SETTINGS };
+    }
+
+    function togglePensionSettings() {
+      const panel = document.getElementById('pensionSettingsPanel');
+      if (panel) panel.classList.toggle('hidden');
+    }
+
+    function toggleKarinDetails() {
+      const detail = document.getElementById('karinPolicyDetails');
+      const btn = document.getElementById('karinDetailToggle');
+      if (detail) {
+        detail.classList.toggle('hidden');
+        if (btn) btn.textContent = detail.classList.contains('hidden') ? '▶ Show details' : '▼ Hide details';
+      }
+    }
+
+    function toggleYannDetails() {
+      const detail = document.getElementById('yannPolicyDetails');
+      const btn = document.getElementById('yannDetailToggle');
+      if (detail) {
+        detail.classList.toggle('hidden');
+        if (btn) btn.textContent = detail.classList.contains('hidden') ? '▶ Show details' : '▼ Hide details';
+      }
+    }
+
+    function formatKr(value) {
+      if (value === null || value === undefined || isNaN(value)) return '--';
+      return Math.round(value).toLocaleString('sv-SE') + ' kr/mån';
+    }
+
+    function formatKrShort(value) {
+      if (value === null || value === undefined || isNaN(value)) return '--';
+      return Math.round(value).toLocaleString('sv-SE') + ' kr';
+    }
+
+    function calculateAllmanMonthly(capital, startAge, minPensionMonthly) {
+      // If minPension estimate available (from PDF data), use it
+      if (minPensionMonthly) return minPensionMonthly;
+      const lifeExpectancy = 84;
+      const years = Math.max(lifeExpectancy - startAge, 1);
+      return (capital / years) / 12;
+    }
+
+    function calculateTjanstePrivatMonthly(capital, startAge, withdrawalRate, minPensionMonthly) {
+      // If minPension estimate available (from PDF data), use it
+      if (minPensionMonthly) return minPensionMonthly;
+      return capital * (withdrawalRate / 100) / 12;
+    }
+
+    function getPolicyMonthly(policy, calcMethod, withdrawalRate, allmanStartAge) {
+      // If minPension method and estimate available, use it
+      if (calcMethod === 'minpension' && policy.minPensionMonthly) {
+        return policy.minPensionMonthly;
+      }
+      // Fallback: formula-based calculation
+      if (policy.durationYears !== Infinity && policy.durationYears > 0) {
+        // Fixed term: divide capital evenly over the period
+        return policy.capital / (policy.durationYears * 12);
+      }
+      // Lifetime: use withdrawal rate
+      return policy.capital * (withdrawalRate / 100) / 12;
+    }
+
     function isPolicyActive(policy, age) {
       if (age < policy.startAge) return false;
       if (policy.durationYears === Infinity) return true;
       return age < policy.startAge + policy.durationYears;
     }
 
-    function getPolicyMonthly(policy, withdrawalRate) {
-      if (policy.minPensionMonthly) return policy.minPensionMonthly;
-      if (policy.durationYears !== Infinity && policy.durationYears > 0) {
-        return policy.capital / (policy.durationYears * 12);
+    // --- Progressive Swedish Income Tax (Stockholm municipality 2026) ---
+    function calculateStockholmTax(annualIncome, birthYear, taxYear) {
+      // 2026 Swedish tax parameters (Stockholm municipality)
+      const kommunalSkattesats = 0.2937; // Stockholms kommun 2026
+      const landstingSkattesats = 0.1225; // Region Stockholm 2026
+      // Church tax is optional, excluded here
+      const totalKommunalSkatt = kommunalSkattesats + landstingSkattesats; // ~0.4162 = 41.62%
+
+      // State income tax thresholds (2026 estimated)
+      const statligSkattGrundbelopp = 504400; // brytpunkt för statlig inkomstskatt
+      const statligSkattÖvre = 703300; // brytpunkt för ökad statlig inkomstskatt  
+      const statligSkattesats = 0.20; // 20%
+
+      // Basic deduction (grundavdrag) for pension income
+      // Different rules apply for pensioners vs workers
+      const age = taxYear - birthYear;
+      let grundavdrag;
+      if (age >= 66) {
+        // Pensionär grundavdrag (higher than for workers)
+        // 2026 approximate values for Stockholm
+        if (annualIncome <= 31000) grundavdrag = 27800;
+        else if (annualIncome <= 138600) grundavdrag = 27800 + 0.44 * (annualIncome - 31000);
+        else if (annualIncome <= 220000) grundavdrag = 80944;
+        else if (annualIncome <= 402000) grundavdrag = 80944 - 0.04 * (annualIncome - 220000);
+        else grundavdrag = 73664;
+      } else {
+        // Standard grundavdrag (for people under 66)
+        if (annualIncome <= 31000) grundavdrag = 21200;
+        else if (annualIncome <= 138600) grundavdrag = 21200 + 0.44 * (annualIncome - 31000);
+        else if (annualIncome <= 220000) grundavdrag = 72684;
+        else if (annualIncome <= 402000) grundavdrag = 72684 - 0.04 * (annualIncome - 220000);
+        else grundavdrag = 65404;
       }
-      return policy.capital * (withdrawalRate / 100) / 12;
-    }
 
-    function calculateAllmanMonthly(capital) {
-      const lifeExpectancy = 84;
-      const startAge = 65;
-      const years = Math.max(lifeExpectancy - startAge, 1);
-      return (capital / years) / 12;
-    }
+      // Taxable income
+      const beskattningsbarForvarvsinkomst = Math.max(0, annualIncome - grundavdrag);
 
-    function loadRetirementData() {
-      try {
-        const raw = localStorage.getItem(RETIREMENT_LS_KEY);
-        if (raw) { retirementData = JSON.parse(raw); }
-      } catch (e) { console.warn('Failed to load retirement data:', e); }
-    }
+      // Municipal tax
+      const kommunalSkatt = beskattningsbarForvarvsinkomst * totalKommunalSkatt;
 
-    function saveRetirementData() {
-      try { localStorage.setItem(RETIREMENT_LS_KEY, JSON.stringify(retirementData)); }
-      catch (e) { console.warn('Failed to save retirement data:', e); }
-    }
-
-    function populateRetirementForm() {
-      const valueInput = document.getElementById('retirementTotalValueInput');
-      if (valueInput) {
-        if (retirementData.manualPortfolioValue) {
-          valueInput.value = Math.round(retirementData.manualPortfolioValue);
-        } else if (currentSnapshot) {
-          const effective = getEffectiveSnapshot(currentSnapshot);
-          const ft = calculateFilteredTotals(effective);
-          valueInput.value = Math.round(ft.totalValue);
-        }
+      // State income tax
+      let statligSkatt = 0;
+      if (annualIncome > statligSkattGrundbelopp) {
+        statligSkatt += Math.min(annualIncome - statligSkattGrundbelopp, statligSkattÖvre - statligSkattGrundbelopp) * statligSkattesats;
       }
-      // Restore saved default WR%, tax%, and growth rate
-      if (retirementData.defaultWR !== undefined) {
-        const wrInput = document.getElementById('retirementDefaultWR');
-        if (wrInput) wrInput.value = retirementData.defaultWR;
+      if (annualIncome > statligSkattÖvre) {
+        statligSkatt += (annualIncome - statligSkattÖvre) * 0.05; // additional 5%
       }
-      if (retirementData.defaultTax !== undefined) {
-        const taxInput = document.getElementById('retirementDefaultTax');
-        if (taxInput) taxInput.value = retirementData.defaultTax;
-      }
-      if (retirementData.growthRate !== undefined) {
-        const growthInput = document.getElementById('retirementGrowthRate');
-        if (growthInput) growthInput.value = retirementData.growthRate;
-      }
-      const portfolioValueInput = document.getElementById('retirementTotalValueInput');
-      if (portfolioValueInput) {
-        portfolioValueInput.addEventListener('input', updateRetirementTab);
-        portfolioValueInput.addEventListener('change', updateRetirementTab);
-      }
-      updateRetirementTab();
+
+      const totalTax = kommunalSkatt + statligSkatt;
+      const effectiveRate = annualIncome > 0 ? totalTax / annualIncome : 0;
+      const netIncome = annualIncome - totalTax;
+
+      return { totalTax, netIncome, effectiveRate, grundavdrag, kommunalSkatt, statligSkatt, marginalRate: totalKommunalSkatt + (annualIncome > statligSkattÖvre ? 0.25 : annualIncome > statligSkattGrundbelopp ? 0.20 : 0) };
     }
 
-    function getYearOverride(year) {
-      return retirementData.yearOverrides && retirementData.yearOverrides[year] 
-        ? retirementData.yearOverrides[year] : null;
+    let pensionProjectionChart = null;
+
+    function formatDuration(d) {
+      if (d === Infinity) return 'Life';
+      if (typeof d === 'number') return d + ' yr';
+      return d || '';
     }
 
-    function getYearWR(year) {
-      const o = getYearOverride(year);
-      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
-      return o && o.wr !== undefined ? o.wr : defWR;
+    function renderPolicyTable(tbodyId, policies, calcMethod, withdrawalRate, allmanAge) {
+      const tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+
+      const capitalText = (p) => {
+        if (p.capital === null || p.capital === undefined || p.capital === 0) return 'N/A';
+        return p.capital.toLocaleString('sv-SE') + ' kr';
+      };
+
+      tbody.innerHTML = (policies || []).map(p => {
+        const monthly = getPolicyMonthly(p, calcMethod, withdrawalRate, allmanAge);
+        return '<tr style="border-bottom:1px solid var(--border-subtle);">' +
+          '<td style="padding:3px 8px;">' + (p.provider || '') + '</td>' +
+          '<td style="padding:3px 8px;">' + (p.name || '') + '</td>' +
+          '<td style="padding:3px 8px;text-align:right;font-family:monospace;">' + capitalText(p) + '</td>' +
+          '<td style="padding:3px 8px;text-align:right;">' + (p.startAge ?? '') + '</td>' +
+          '<td style="padding:3px 8px;text-align:right;">' + formatDuration(p.durationYears) + '</td>' +
+          '<td style="padding:3px 8px;text-align:right;font-family:monospace;color:var(--accent-secondary);">' +
+            formatKrShort(monthly) + '/mn' +
+          '</td>' +
+        '</tr>';
+      }).join('');
     }
 
-    function getYearTax(year) {
-      const o = getYearOverride(year);
-      const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
-      return o && o.tax !== undefined ? o.tax : defTax;
+    function computeMonthlyAtAge(person, settings, age, calcMethod) {
+      calcMethod = calcMethod || 'minpension';
+      const allmanMonthly = (age >= settings.allmanAge)
+        ? calculateAllmanMonthly(person.allman.capital, settings.allmanAge, person.allman.minPensionMonthly)
+        : 0;
+
+      const privatMonthly = (person.privat && person.privat.capital && age >= settings.startAge)
+        ? calculateTjanstePrivatMonthly(person.privat.capital, settings.startAge, settings.withdrawalRate, person.privat.minPensionMonthly)
+        : 0;
+
+      const tjansteMonthly = (person.policies || [])
+        .filter(function(p) { return isPolicyActive(p, age); })
+        .reduce(function(sum, p) { return sum + getPolicyMonthly(p, calcMethod, settings.withdrawalRate, settings.allmanAge); }, 0);
+
+      return {
+        allmanMonthly: allmanMonthly,
+        tjansteMonthly: tjansteMonthly,
+        privatMonthly: privatMonthly,
+        total: allmanMonthly + tjansteMonthly + privatMonthly
+      };
     }
 
-    function applyDefaultWR(val) {
-      const wr = parseFloat(val) || 4.7;
-      document.getElementById('retirementDefaultWR').value = wr;
-      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
-      Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].wr = wr; });
+    function updateExternalPension() {
+      // Read per-person settings from UI
+      const karinSettings = {
+        startAge: parseInt(document.getElementById('karinStartAge')?.value) || 57,
+        allmanAge: parseInt(document.getElementById('karinAllmanAge')?.value) || 65,
+        withdrawalRate: parseFloat(document.getElementById('karinWithdrawalRate')?.value) || 4.0
+      };
+      const yannSettings = {
+        startAge: parseInt(document.getElementById('yannStartAge')?.value) || 57,
+        allmanAge: parseInt(document.getElementById('yannAllmanAge')?.value) || 65,
+        withdrawalRate: parseFloat(document.getElementById('yannWithdrawalRate')?.value) || 4.0
+      };
+      const taxRate = parseFloat(document.getElementById('pensionTaxRate')?.value) || 30;
+      const lifeExpectancy = parseInt(document.getElementById('pensionLifeExpectancy')?.value) || 90;
+
+      // Save settings
+      retirementData.pensionSettings = { karin: karinSettings, yann: yannSettings, taxRate, lifeExpectancy };
       saveRetirementData();
-      updateRetirementTab();
+
+      // ---- Karin (scenario-aware) ----
+      const karinScenarioData = getKarinPensionData();
+      updateKarinCapitalDisplay();
+
+      const karinDisplayAge = karinSettings.startAge;
+      const karinPerson = {
+        allman: karinScenarioData.allman,
+        privat: karinScenarioData.privat,
+        policies: karinScenarioData.policies
+      };
+
+      const karinMonthly = computeMonthlyAtAge(karinPerson, karinSettings, karinDisplayAge, 'minpension');
+
+      document.getElementById('karinAllmanMonthly').textContent = formatKr(karinMonthly.allmanMonthly);
+      document.getElementById('karinTjansteMonthly').textContent = formatKr(karinMonthly.tjansteMonthly);
+      document.getElementById('karinPrivatMonthly').textContent = formatKr(karinMonthly.privatMonthly);
+      document.getElementById('karinTotalMonthly').textContent = formatKr(karinMonthly.total);
+
+      renderPolicyTable(
+        'karinPolicyTbody',
+        karinScenarioData.policies,
+        'minpension',
+        karinSettings.withdrawalRate,
+        karinSettings.allmanAge
+      );
+
+      // ---- Yann ----
+      const yannPerson = {
+        allman: PENSION_DATA.yann.allman,
+        privat: PENSION_DATA.yann.privat,
+        policies: PENSION_DATA.yann.policies
+      };
+
+      const yannDisplayAge = yannSettings.startAge;
+      const yannMonthly = computeMonthlyAtAge(yannPerson, yannSettings, yannDisplayAge, 'minpension');
+
+      const yannTjansteCapital = (PENSION_DATA.yann.policies || []).reduce((s, p) => s + (p.capital || 0), 0);
+      const yannTotalCapital = (PENSION_DATA.yann.allman.capital || 0) + yannTjansteCapital + (PENSION_DATA.yann.privat?.capital || 0);
+      const yannTotalEl = document.getElementById('yannTotalCapital');
+      if (yannTotalEl) yannTotalEl.textContent = '~' + yannTotalCapital.toLocaleString('sv-SE') + ' kr';
+
+      document.getElementById('yannAllmanMonthly').textContent = formatKr(yannMonthly.allmanMonthly);
+      document.getElementById('yannTjansteMonthly').textContent = formatKr(yannMonthly.tjansteMonthly);
+      document.getElementById('yannTotalMonthly').textContent = formatKr(yannMonthly.total);
+
+      renderPolicyTable(
+        'yannPolicyTbody',
+        PENSION_DATA.yann.policies,
+        'minpension',
+        yannSettings.withdrawalRate,
+        yannSettings.allmanAge
+      );
+
+      // ---- Grand totals ----
+      const externalMonthly = karinMonthly.total + yannMonthly.total;
+      const externalAnnual = externalMonthly * 12;
+
+      // Portfolio withdrawal
+      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput')?.value) || 0;
+      const withdrawalRate = parseFloat(document.getElementById('retirementWithdrawalRate')?.value) || 0.04;
+      const portfolioMonthly = portfolioValue * withdrawalRate / 12;
+      const portfolioAnnual = portfolioMonthly * 12;
+
+      const combinedMonthly = externalMonthly + portfolioMonthly;
+      const combinedAnnual = combinedMonthly * 12;
+
+      // Progressive Stockholm tax calculation
+      const currentYear = new Date().getFullYear();
+      const taxInfo = calculateStockholmTax(combinedAnnual, 1970, currentYear + (karinSettings.startAge - (currentYear - 1970)));
+      const netAnnual = taxInfo.netIncome;
+      const netMonthly = netAnnual / 12;
+      const effectiveTaxPct = (taxInfo.effectiveRate * 100).toFixed(1);
+
+      // Update grand total displays
+      document.getElementById('grandExternalMonthly').textContent = formatKr(externalMonthly);
+      document.getElementById('grandExternalAnnual').textContent = '(' + Math.round(externalAnnual).toLocaleString('sv-SE') + ' kr/year)';
+      document.getElementById('grandPortfolioMonthly').textContent = formatKr(portfolioMonthly);
+      document.getElementById('grandPortfolioAnnual').textContent = '(' + Math.round(portfolioAnnual).toLocaleString('sv-SE') + ' kr/year)';
+      document.getElementById('grandCombinedMonthly').textContent = formatKr(combinedMonthly);
+      document.getElementById('grandCombinedAnnual').textContent = '(' + Math.round(combinedAnnual).toLocaleString('sv-SE') + ' kr/year)';
+      document.getElementById('grandGrossAnnual').textContent = Math.round(combinedAnnual).toLocaleString('sv-SE') + ' kr';
+      document.getElementById('grandNetAnnual').textContent = Math.round(netAnnual).toLocaleString('sv-SE') + ' kr';
+      document.getElementById('grandNetMonthly').textContent = '' + Math.round(netMonthly).toLocaleString('sv-SE') + ' kr/month net';
+      document.getElementById('grandTaxLabel').textContent = '(Stockholm effective ' + effectiveTaxPct + '% tax)';
+
+      // Render projection chart
+      renderPensionProjectionChart(karinSettings, yannSettings, taxRate, lifeExpectancy, portfolioValue, withdrawalRate);
     }
 
-    function applyDefaultTax(val) {
-      const tax = parseFloat(val) || 15;
-      document.getElementById('retirementDefaultTax').value = tax;
-      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
-      Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].tax = tax; });
-      saveRetirementData();
-      updateRetirementTab();
-    }
-
-    function setYearWR(year, val) {
-      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
-      if (!retirementData.yearOverrides[year]) retirementData.yearOverrides[year] = {};
-      retirementData.yearOverrides[year].wr = parseFloat(val) || 0;
-      saveRetirementData();
-      const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-      renderRetirementChart(pv);
-      renderRetirementTable(pv);
-    }
-
-    function setYearTax(year, val) {
-      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
-      if (!retirementData.yearOverrides[year]) retirementData.yearOverrides[year] = {};
-      retirementData.yearOverrides[year].tax = parseFloat(val) || 0;
-      saveRetirementData();
-      const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-      renderRetirementChart(pv);
-      renderRetirementTable(pv);
-    }
-
-    function updateRetirementTab() {
-      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-      retirementData.manualPortfolioValue = portfolioValue;
-      // Persist default WR%, tax%, and growth rate
-      const wrInput = document.getElementById('retirementDefaultWR');
-      if (wrInput) retirementData.defaultWR = parseFloat(wrInput.value) || 4.7;
-      const taxInput = document.getElementById('retirementDefaultTax');
-      if (taxInput) retirementData.defaultTax = parseFloat(taxInput.value) || 15;
-      const growthInput = document.getElementById('retirementGrowthRate');
-      if (growthInput) retirementData.growthRate = parseFloat(growthInput.value) || 5;
-      saveRetirementData();
-      renderRetirementChart(portfolioValue);
-      renderRetirementTable(portfolioValue);
-    }
-
-    // Helper: compute yearly retirement projection data with portfolio depletion
-    function computeRetirementProjection(portfolioValue) {
-      const karinBirthYear = 1970, yannBirthYear = 1972;
-      const startAge = 57;
-      const startYear = Math.min(startAge + karinBirthYear, startAge + yannBirthYear);
-      const endYear = 90 + Math.min(karinBirthYear, yannBirthYear);
-      const PENSION_TAX = 0.30;
-      const growthRate = parseFloat(document.getElementById('retirementGrowthRate').value) || 5;
-      const projection = [];
-      let currentPortfolio = portfolioValue;
-
-      for (let year = startYear; year <= endYear; year++) {
-        const karinAge = year - karinBirthYear;
-        const yannAge = year - yannBirthYear;
-        const wrPct = getYearWR(year);
-        const taxPct = getYearTax(year);
-
-        let karinMonthly = 0;
-        if (karinAge >= 65) {
-          karinMonthly += calculateAllmanMonthly(PENSION_DATA.karin.allman.capital);
-          karinMonthly += PENSION_DATA.karin.privat.capital * 0.04 / 12;
-        }
-        PENSION_DATA.karin.policies.forEach(p => {
-          if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, 4);
-        });
-
-        let yannMonthly = 0;
-        if (yannAge >= 65) {
-          yannMonthly += calculateAllmanMonthly(PENSION_DATA.yann.allman.capital);
-        }
-        PENSION_DATA.yann.policies.forEach(p => {
-          if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, 4);
-        });
-
-        const portfolioStartOfYear = Math.max(currentPortfolio, 0);
-        const portfolioWRMonthly = portfolioStartOfYear > 0 ? portfolioStartOfYear * (wrPct / 100) / 12 : 0;
-        const wrTax = portfolioWRMonthly * (taxPct / 100);
-        const wrNet = portfolioWRMonthly - wrTax;
-        const combinedGross = karinMonthly + yannMonthly + portfolioWRMonthly;
-        const pensionNet = (karinMonthly + yannMonthly) * (1 - PENSION_TAX);
-        const combinedNet = pensionNet + wrNet;
-
-        projection.push({
-          year, karinAge, yannAge, karinMonthly, yannMonthly,
-          portfolioStartOfYear, wrPct, taxPct,
-          portfolioWRMonthly, wrTax, wrNet,
-          combinedGross, combinedNet
-        });
-
-        // Deplete portfolio: withdraw WR% then grow by growthRate
-        // P_next = P * (1 - WR%) * (1 + growth%)
-        if (currentPortfolio > 0) {
-          currentPortfolio = currentPortfolio * (1 - wrPct / 100) * (1 + growthRate / 100);
-          if (currentPortfolio < 0) currentPortfolio = 0;
-        }
-      }
-      return projection;
-    }
-
-    function renderRetirementChart(portfolioValue) {
+    function renderPensionProjectionChart(karinSettings, yannSettings, taxRate, lifeExpectancy, portfolioValue, portfolioWR) {
       const ctx = document.getElementById('pensionProjectionChart');
       if (!ctx) return;
       if (pensionProjectionChart) pensionProjectionChart.destroy();
 
-      const projection = computeRetirementProjection(portfolioValue);
-      const years = [], grossData = [], netData = [], karinData = [], yannData = [], portfolioData = [], portfolioValueData = [];
+      // Karin born 1970, Yann born 1972
+      const karinBirthYear = 1970;
+      const yannBirthYear = 1972;
+      const currentYear = 2026;
 
-      projection.forEach(p => {
-        years.push(p.year);
-        karinData.push(Math.round(p.karinMonthly));
-        yannData.push(Math.round(p.yannMonthly));
-        portfolioData.push(Math.round(p.portfolioWRMonthly));
-        portfolioValueData.push(Math.round(p.portfolioStartOfYear));
-        grossData.push(Math.round(p.combinedGross));
-        netData.push(Math.round(p.combinedNet));
-      });
+      // Build year-by-year projection
+      const startYear = Math.min(karinSettings.startAge + karinBirthYear, yannSettings.startAge + yannBirthYear);
+      const endYear = lifeExpectancy + Math.min(karinBirthYear, yannBirthYear);
+      const years = [];
+      const grossData = [];
+      const netData = [];
+      const karinData = [];
+      const yannData = [];
+      const portfolioData = [];
+
+      for (let year = startYear; year <= endYear; year++) {
+        years.push(year);
+        const karinAge = year - karinBirthYear;
+        const yannAge = year - yannBirthYear;
+
+        // Karin's income this year (scenario-aware with minPensionMonthly)
+        const karinPension = getKarinPensionData();
+        let karinIncome = 0;
+        if (karinAge >= karinSettings.allmanAge) {
+          karinIncome += calculateAllmanMonthly(karinPension.allman.capital, karinSettings.allmanAge, karinPension.allman.minPensionMonthly) * 12;
+        }
+        if (karinAge >= karinSettings.startAge) {
+          karinIncome += calculateTjanstePrivatMonthly(karinPension.privat.capital, karinSettings.startAge, karinSettings.withdrawalRate, karinPension.privat.minPensionMonthly) * 12;
+        }
+        // Add individual policy income based on each policy's start age and duration
+        karinPension.policies.forEach(p => {
+          if (isPolicyActive(p, karinAge)) {
+            karinIncome += getPolicyMonthly(p, 'minpension', karinSettings.withdrawalRate, karinSettings.allmanAge) * 12;
+          }
+        });
+        karinData.push(Math.round(karinIncome));
+
+        // Yann's income this year (using individual policies)
+        let yannIncome = 0;
+        if (yannAge >= yannSettings.allmanAge) {
+          yannIncome += calculateAllmanMonthly(PENSION_DATA.yann.allman.capital, yannSettings.allmanAge) * 12;
+        }
+        PENSION_DATA.yann.policies.forEach(p => {
+          if (isPolicyActive(p, yannAge)) {
+            yannIncome += getPolicyMonthly(p, 'minpension', yannSettings.withdrawalRate, yannSettings.allmanAge) * 12;
+          }
+        });
+        yannData.push(Math.round(yannIncome));
+
+        // Portfolio withdrawal (starts at earliest pension age)
+        let portfolioIncome = 0;
+        if (year >= startYear && portfolioValue > 0) {
+          portfolioIncome = portfolioValue * portfolioWR;
+        }
+        portfolioData.push(Math.round(portfolioIncome));
+
+        const gross = karinIncome + yannIncome + portfolioIncome;
+        grossData.push(Math.round(gross));
+        netData.push(Math.round(gross * (1 - taxRate / 100)));
+      }
 
       pensionProjectionChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: years,
           datasets: [
-            { label: 'Combined Gross', data: grossData, borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.1, borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-            { label: 'Combined Net', data: netData, borderColor: 'rgba(6,182,212,1)', backgroundColor: 'rgba(6,182,212,0.08)', fill: true, tension: 0.1, borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-            { label: 'Karin Pension', data: karinData, borderColor: 'rgba(52,211,153,0.7)', borderDash: [4,4], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
-            { label: 'Yann Pension', data: yannData, borderColor: 'rgba(34,211,238,0.7)', borderDash: [4,4], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
-            { label: 'Portfolio WR', data: portfolioData, borderColor: 'rgba(251,191,36,0.7)', borderDash: [6,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
-            { label: 'Portfolio Value', data: portfolioValueData, borderColor: 'rgba(139,92,246,0.6)', borderDash: [2,2], tension: 0.1, borderWidth: 1, pointRadius: 0, fill: false, yAxisID: 'y1' }
+            {
+              label: 'Gross Monthly Income',
+              data: grossData.map(v => Math.round(v / 12)),
+              borderColor: 'rgba(16, 185, 129, 1)',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.1,
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHitRadius: 10
+            },
+            {
+              label: 'Net Monthly Income (after tax)',
+              data: netData.map(v => Math.round(v / 12)),
+              borderColor: 'rgba(6, 182, 212, 1)',
+              backgroundColor: 'rgba(6, 182, 212, 0.08)',
+              fill: true,
+              tension: 0.1,
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHitRadius: 10
+            },
+            {
+              label: 'Karin Pension',
+              data: karinData.map(v => Math.round(v / 12)),
+              borderColor: 'rgba(52, 211, 153, 0.7)',
+              backgroundColor: 'transparent',
+              borderDash: [4, 4],
+              tension: 0.1,
+              borderWidth: 1.5,
+              pointRadius: 0
+            },
+            {
+              label: 'Yann Pension',
+              data: yannData.map(v => Math.round(v / 12)),
+              borderColor: 'rgba(34, 211, 238, 0.7)',
+              backgroundColor: 'transparent',
+              borderDash: [4, 4],
+              tension: 0.1,
+              borderWidth: 1.5,
+              pointRadius: 0
+            },
+            {
+              label: 'Portfolio Withdrawal',
+              data: portfolioData.map(v => Math.round(v / 12)),
+              borderColor: 'rgba(251, 191, 36, 0.7)',
+              backgroundColor: 'transparent',
+              borderDash: [6, 3],
+              tension: 0.1,
+              borderWidth: 1.5,
+              pointRadius: 0
+            }
           ]
         },
         options: {
-          responsive: true, maintainAspectRatio: false,
+          responsive: true,
+          maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 }, usePointStyle: true, pointStyle: 'circle' } },
-            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y > 0 ? ctx.parsed.y.toLocaleString('sv-SE') : '0') + (ctx.dataset.yAxisID === 'y1' ? ' kr' : ' kr/mån') } }
+            legend: {
+              labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 }, usePointStyle: true, pointStyle: 'circle' }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y > 0 ? ctx.parsed.y.toLocaleString('sv-SE') : '0') + ' kr/mån'
+              }
+            }
           },
           scales: {
-            x: { grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8', maxTicksLimit: 15 }, title: { display: true, text: 'Year', color: '#94a3b8' } },
-            y: { position: 'left', grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8', callback: v => (v/1000).toFixed(0) + 'k' }, title: { display: true, text: 'Monthly (SEK)', color: '#94a3b8' } },
-            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: 'rgba(139,92,246,0.6)', callback: v => (v/1e6).toFixed(1) + 'M' }, title: { display: true, text: 'Portfolio Value (SEK)', color: 'rgba(139,92,246,0.6)' } }
+            x: {
+              grid: { color: 'rgba(45, 58, 82, 0.5)' },
+              ticks: { color: '#94a3b8', maxTicksLimit: 15 },
+              title: { display: true, text: 'Year', color: '#94a3b8' }
+            },
+            y: {
+              grid: { color: 'rgba(45, 58, 82, 0.5)' },
+              ticks: { color: '#94a3b8', callback: (v) => (v / 1000).toFixed(0) + 'k kr' },
+              title: { display: true, text: 'Monthly Income (SEK)', color: '#94a3b8' }
+            }
           }
         }
       });
     }
 
-    function renderRetirementTable(portfolioValue) {
-      const tbody = document.getElementById('retirementProjectionTable');
-      if (!tbody) return;
 
-      const projection = computeRetirementProjection(portfolioValue);
-      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
-      const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
-      let rows = '';
+    function loadRetirementData() {
+      try {
+        const raw = localStorage.getItem(RETIREMENT_LS_KEY);
+        if (raw) {
+          retirementData = JSON.parse(raw);
+        }
+      } catch (e) { console.warn('Failed to load retirement data:', e); }
+    }
 
-      projection.forEach(p => {
-        const fmt = (v) => Math.round(v).toLocaleString('sv-SE');
-        const isDefaultWR = Math.abs(p.wrPct - defWR) < 0.01;
-        const isDefaultTax = Math.abs(p.taxPct - defTax) < 0.01;
-        const depleted = p.portfolioStartOfYear < portfolioValue * 0.1;
-        const pvStyle = depleted ? 'color:var(--accent-danger);' : 'color:var(--accent-secondary);';
+    function saveRetirementData() {
+      try {
+        localStorage.setItem(RETIREMENT_LS_KEY, JSON.stringify(retirementData));
+      } catch (e) { console.warn('Failed to save retirement data:', e); }
+    }
 
-        rows += `<tr>
-          <td class="font-mono text-sm">${p.year}</td>
-          <td class="text-sm text-[var(--fg-muted)]">K${p.karinAge} / Y${p.yannAge}</td>
-          <td class="text-right font-mono text-sm">${fmt(p.karinMonthly)}</td>
-          <td class="text-right font-mono text-sm">${fmt(p.yannMonthly)}</td>
-          <td class="text-right font-mono text-sm" style="${pvStyle}">${fmt(p.portfolioStartOfYear)}</td>
-          <td class="text-right"><input type="number" value="${p.wrPct}" step="0.1" min="0" max="10" data-year="${p.year}" class="yr-wr-input" style="width:48px;background:${isDefaultWR?'transparent':'rgba(16,185,129,0.15)'};border:1px solid ${isDefaultWR?'transparent':'var(--accent-primary)'};border-radius:3px;padding:2px 4px;font-size:12px;font-family:'Space Grotesk',monospace;text-align:right;color:var(--accent-primary);outline:none;" onchange="setYearWR(${p.year},this.value)"></td>
-          <td class="text-right font-mono text-sm">${fmt(p.portfolioWRMonthly)}</td>
-          <td class="text-right"><input type="number" value="${p.taxPct}" step="1" min="0" max="50" data-year="${p.year}" class="yr-tax-input" style="width:42px;background:${isDefaultTax?'transparent':'rgba(245,158,11,0.15)'};border:1px solid ${isDefaultTax?'transparent':'var(--accent-warning)'};border-radius:3px;padding:2px 4px;font-size:12px;font-family:'Space Grotesk',monospace;text-align:right;color:var(--accent-warning);outline:none;" onchange="setYearTax(${p.year},this.value)"></td>
-          <td class="text-right font-mono text-sm" style="color:var(--accent-warning);">${fmt(p.wrTax)}</td>
-          <td class="text-right font-mono text-sm">${fmt(p.wrNet)}</td>
-          <td class="text-right font-mono text-sm font-semibold" style="color:var(--accent-primary);">${fmt(p.combinedGross)}</td>
-          <td class="text-right font-mono text-sm font-semibold" style="color:var(--accent-secondary);">${fmt(p.combinedNet)}</td>
-        </tr>`;
+    function updateRetirementPortfolioValue() {
+      const valueInput = document.getElementById('retirementTotalValueInput');
+      if (!valueInput || !currentSnapshot) return;
+      
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      
+      // Only set value if user hasn't manually entered one yet
+      if (!retirementData.manualPortfolioValue) {
+        valueInput.value = Math.round(ft.totalValue);
+      }
+      
+      // Set dropdown to saved rate
+      const rateSelect = document.getElementById('retirementWithdrawalRate');
+      if (rateSelect) {
+        rateSelect.value = retirementData.withdrawalRate;
+      }
+    }
+
+    function update30PercentWithdrawal() {
+      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
+      const withdrawalRate = parseFloat(document.getElementById('retirementWithdrawalRate').value) || 0.04;
+      
+      // Use selected withdrawal rate
+      const annualWithdrawal = portfolioValue * withdrawalRate;
+      const monthlyWithdrawal = annualWithdrawal / 12;
+      
+      // Update display
+      document.getElementById('retirementAnnualWithdrawal').textContent = formatCurrency(annualWithdrawal);
+      document.getElementById('retirementMonthlyWithdrawal').textContent = formatCurrency(monthlyWithdrawal);
+      
+      // Save withdrawal rate and portfolio value
+      retirementData.withdrawalRate = withdrawalRate;
+      retirementData.manualPortfolioValue = portfolioValue;
+      saveRetirementData();
+    }
+
+    function populateRetirementForm() {
+      // Populate checklist
+      for (let i = 1; i <= 5; i++) {
+        const checkbox = document.getElementById('check' + i);
+        if (checkbox) checkbox.checked = retirementData.checklist[i - 1] || false;
+      }
+      
+      updateRetirementPortfolioValue();
+      
+      // Add event listener for manual portfolio value input
+      const portfolioValueInput = document.getElementById('retirementTotalValueInput');
+      if (portfolioValueInput) {
+        portfolioValueInput.addEventListener('input', () => { update30PercentWithdrawal(); updateExternalPension(); });
+        portfolioValueInput.addEventListener('change', () => { update30PercentWithdrawal(); updateExternalPension(); });
+      }
+
+      // Restore pension settings and calculate
+      const settings = getPensionSettings();
+      const taxEl = document.getElementById('pensionTaxRate');
+      const lifeExpEl = document.getElementById('pensionLifeExpectancy');
+      
+      if (settings.karin) {
+        const ks = document.getElementById('karinStartAge');
+        const ka = document.getElementById('karinAllmanAge');
+        const kw = document.getElementById('karinWithdrawalRate');
+        if (ks) ks.value = settings.karin.startAge;
+        if (ka) ka.value = settings.karin.allmanAge;
+        if (kw) kw.value = settings.karin.withdrawalRate;
+      }
+      if (settings.yann) {
+        const ys = document.getElementById('yannStartAge');
+        const ya = document.getElementById('yannAllmanAge');
+        const yw = document.getElementById('yannWithdrawalRate');
+        if (ys) ys.value = settings.yann.startAge;
+        if (ya) ya.value = settings.yann.allmanAge;
+        if (yw) yw.value = settings.yann.withdrawalRate;
+      }
+      if (taxEl) taxEl.value = settings.taxRate || 30;
+      if (lifeExpEl) lifeExpEl.value = settings.lifeExpectancy || 90;
+
+      // Restore Karin scenario toggle state
+      const savedScenario = retirementData.karinScenario || 'standard';
+      document.querySelectorAll('.karin-scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === savedScenario);
       });
-      tbody.innerHTML = rows;
+
+      // Calculate external pension estimates
+      updateExternalPension();
+    }
+
+    function saveRetirementChecklist() {
+      for (let i = 1; i <= 5; i++) {
+        const checkbox = document.getElementById('check' + i);
+        if (checkbox) retirementData.checklist[i - 1] = checkbox.checked;
+      }
+      saveRetirementData();
+    }
+
+    function calculateRetirement() {
+      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value);
+      
+      if (!portfolioValue || portfolioValue <= 0) {
+        document.getElementById('retirementStatus').textContent = 'Please enter a portfolio value.';
+        return;
+      }
+      
+      // Use selected withdrawal rate
+      const withdrawalRate = parseFloat(document.getElementById('retirementWithdrawalRate').value) || 0.04;
+      const annualWithdrawal = portfolioValue * withdrawalRate;
+      const monthlyWithdrawal = annualWithdrawal / 12;
+      
+      // Save form data
+      retirementData.manualPortfolioValue = portfolioValue;
+      retirementData.withdrawalRate = withdrawalRate;
+      retirementData.annualWithdrawal = annualWithdrawal;
+      retirementData.monthlyWithdrawal = monthlyWithdrawal;
+      saveRetirementData();
+      
+      const statusEl = document.getElementById('retirementStatus');
+      const withdrawalPercent = (withdrawalRate * 100).toFixed(1);
+      statusEl.innerHTML = `
+        <strong>Withdrawal Analysis (Dynamic Spending with Guardrails)</strong><br><br>
+        <strong>Portfolio Value:</strong> ${formatCurrency(portfolioValue)}<br>
+        <strong>Starting Annual Withdrawal (${withdrawalPercent}%):</strong> ${formatCurrency(annualWithdrawal)}<br>
+        <strong>Starting Monthly Withdrawal:</strong> ${formatCurrency(monthlyWithdrawal)}<br><br>
+        <strong style="color:var(--accent-secondary)">📋 Strategy: Dynamic Spending with Guardrails</strong><br>
+        • Strategy Type: Dynamic spending with guardrails<br>
+        • Best For: Retirement portfolio with reserve sleeve<br>
+        • Selected Withdrawal Rate: ${withdrawalPercent}%<br>
+        • Starting Annual Withdrawal: ${formatCurrency(annualWithdrawal)}<br><br>
+        <strong>Annual Review Rules (February):</strong><br>
+        • <span style="color:var(--accent-primary)">Increase:</span> Inflation, max +5%, only if portfolio healthy (at new highs)<br>
+        • <span style="color:var(--accent-warning)">Freeze:</span> If portfolio down 10%+ → freeze spending<br>
+        • <span style="color:var(--accent-danger)">Cut:</span> If portfolio down 20%+ → cut discretionary spending by ~10%<br>
+        • Funding: Withdraw from B1 (Cash/Short) first<br>
+        • Refill B1: From B2 (Fixed Income) or B3 (Equity) based on market conditions
+      `;
+    }
+
+    function resetRetirementForm() {
+      if (confirm('Reset retirement form? This will clear all inputs and checklist.')) {
+        retirementData = { manualPortfolioValue: null, checklist: [false, false, false, false, false] };
+        saveRetirementData();
+        document.getElementById('retirementTotalValueInput').value = '';
+        document.getElementById('retirementAnnualWithdrawal').textContent = 'SEK 0';
+        document.getElementById('retirementMonthlyWithdrawal').textContent = 'SEK 0';
+        for (let i = 1; i <= 5; i++) {
+          const checkbox = document.getElementById('check' + i);
+          if (checkbox) checkbox.checked = false;
+        }
+        document.getElementById('retirementStatus').textContent = 'Enter your portfolio value above to see your retirement analysis.';
+      }
     }
 
     function loadDemoData() {
