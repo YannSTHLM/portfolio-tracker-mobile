@@ -1237,6 +1237,33 @@
                 </div>
               </div>
             </div>
+
+            <!-- Holdings with External Performance Links -->
+            <div id="analyticsHoldingsSection" class="mt-6 animate-fade-in">
+              <div class="card overflow-hidden">
+                <div class="p-4 border-b border-[var(--border)]">
+                  <h3 class="text-lg font-semibold">Portfolio Holdings — Performance Links</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">Click the link icon to add an external performance URL for each holding.</p>
+                </div>
+                <div class="table-container scrollbar-thin">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Asset Name</th>
+                        <th>Brokerage</th>
+                        <th>Category</th>
+                        <th>Bucket</th>
+                        <th class="text-right">Market Value (SEK)</th>
+                        <th class="text-right">% of Portfolio</th>
+                        <th>Performance Link</th>
+                      </tr>
+                    </thead>
+                    <tbody id="analyticsHoldingsTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
         </div>
 
         <!-- Retirement Tab -->
@@ -5052,6 +5079,90 @@ ${text.substring(0, 30000)}`;
       } catch (e) { console.warn('localStorage load failed:', e); return false; }
     }
 
+    // --- ANALYTICS HOLDINGS WITH EXTERNAL LINKS ---
+    const PERF_LINK_LS_KEY = 'portfolioTracker_perfLinks';
+    let performanceLinks = {};
+
+    function loadPerformanceLinks() {
+      try {
+        const raw = localStorage.getItem(PERF_LINK_LS_KEY);
+        if (raw) performanceLinks = JSON.parse(raw);
+      } catch (e) { console.warn('Failed to load performance links:', e); }
+    }
+
+    function savePerformanceLinks() {
+      try {
+        localStorage.setItem(PERF_LINK_LS_KEY, JSON.stringify(performanceLinks));
+      } catch (e) { console.warn('Failed to save performance links:', e); }
+    }
+
+    function setPerformanceLink(name, brokerage) {
+      const key = `${name}|${brokerage}`;
+      const currentUrl = performanceLinks[key] || '';
+      const url = prompt(`Enter external performance link for "${name}" (${brokerage}):`, currentUrl);
+      if (url === null) return; // cancelled
+      if (url.trim()) {
+        performanceLinks[key] = url.trim();
+      } else {
+        delete performanceLinks[key];
+      }
+      savePerformanceLinks();
+      renderAnalyticsHoldings();
+    }
+
+    function renderAnalyticsHoldings() {
+      const tbody = document.getElementById('analyticsHoldingsTable');
+      if (!tbody || !currentSnapshot) return;
+
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      const holdings = getFilteredHoldings(effective);
+
+      // Classify each holding
+      holdings.forEach(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        if (cls.found) { h.category = cls.category; h.bucket = cls.bucket; }
+      });
+
+      holdings.sort((a, b) => b.value - a.value);
+
+      tbody.innerHTML = holdings.map(h => {
+        const bucketInfo = BUCKETS[h.bucket] || { name: 'Unknown', class: 'badge-other' };
+        const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
+        const key = `${h.name}|${h.brokerage}`;
+        const link = performanceLinks[key];
+        const escapedName = h.name.replace(/'/g, "\\'");
+
+        let linkCell;
+        if (link) {
+          linkCell = `<div class="flex items-center gap-2">
+            <a href="${link}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-secondary)] hover:underline text-sm truncate max-w-[200px]" title="${link}">${link.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</a>
+            <button onclick="setPerformanceLink('${escapedName}','${h.brokerage}')" class="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] flex-shrink-0" title="Edit link">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+          </div>`;
+        } else {
+          linkCell = `<button onclick="setPerformanceLink('${escapedName}','${h.brokerage}')" class="flex items-center gap-1.5 text-[var(--fg-muted)] hover:text-[var(--accent-secondary)] text-sm" title="Add performance link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <span>Add link</span>
+          </button>`;
+        }
+
+        return `<tr>
+          <td class="font-medium">${h.name}</td>
+          <td>${h.brokerage}</td>
+          <td><span class="badge" style="background: ${(categoryColors[h.category] || {bg:'rgba(148,163,184,0.15)'}).bg}; color: ${(categoryColors[h.category] || {text:'#94a3b8'}).text}">${h.category || 'Unassigned'}</span></td>
+          <td><span class="badge ${bucketInfo.class}">B${h.bucket}</span></td>
+          <td class="text-right font-mono">${formatCurrency(h.value)}</td>
+          <td class="text-right font-mono">${pct}%</td>
+          <td>${linkCell}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Load performance links on startup
+    loadPerformanceLinks();
+
     // --- PWA REGISTRATION ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -5063,7 +5174,7 @@ ${text.substring(0, 30000)}`;
     const _origSwitchTab = switchTab;
     switchTab = function(tabId) {
       _origSwitchTab(tabId);
-      if (tabId === 'analytics') { renderPerformanceContent(); }
+      if (tabId === 'analytics') { renderPerformanceContent(); renderAnalyticsHoldings(); }
       if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
     };
 
