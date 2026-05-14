@@ -574,6 +574,24 @@
       background: var(--border);
     }
 
+    /* AI Analysis Markdown Styles */
+    .ai-markdown h1 { font-size: 1.25rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--fg-primary); }
+    .ai-markdown h2 { font-size: 1.1rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--accent-secondary); }
+    .ai-markdown h3 { font-size: 1rem; font-weight: 600; margin: 0.75rem 0 0.4rem; color: var(--accent-primary); }
+    .ai-markdown p { margin: 0.4rem 0; line-height: 1.6; color: var(--fg-secondary); }
+    .ai-markdown ul, .ai-markdown ol { margin: 0.4rem 0 0.4rem 1.2rem; }
+    .ai-markdown li { margin: 0.25rem 0; line-height: 1.5; color: var(--fg-secondary); }
+    .ai-markdown strong { color: var(--fg-primary); font-weight: 600; }
+    .ai-markdown em { color: var(--fg-muted); }
+    .ai-markdown code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+    .ai-markdown blockquote { border-left: 3px solid var(--accent-primary); padding-left: 12px; margin: 0.5rem 0; opacity: 0.85; }
+    .ai-markdown table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+    .ai-markdown th, .ai-markdown td { padding: 6px 10px; border: 1px solid var(--border); font-size: 13px; }
+    .ai-markdown th { background: var(--bg-secondary); font-weight: 600; }
+    .ai-chat-user { background: var(--bg-elevated); border-radius: 12px 12px 4px 12px; padding: 8px 12px; max-width: 85%; margin-left: auto; }
+    .ai-chat-ai { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); border-radius: 12px 12px 12px 4px; padding: 8px 12px; max-width: 90%; }
+    .ai-chat-ai p { margin: 0.25rem 0; }
+
   </style>
 </head>
 <body class="bg-grid">
@@ -1146,100 +1164,42 @@
         </div>
         <!-- Analytics Tab -->
         <div id="analyticsTab" class="tab-panel hidden">
-            <!-- Upload Zone for Historical Performance -->
-            <div id="perfUploadCard" class="card p-6 mb-6 animate-fade-in">
-              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div>
-                  <h3 class="text-lg font-semibold">Historical Performance Data</h3>
-                  <p class="text-sm text-[var(--fg-muted)]">Upload an Avanza portfolio PDF report to extract asset returns. <em>Nordnet performance reports are not currently supported.</em></p>
-                </div>
-                <div class="flex gap-2">
-                  <button onclick="document.getElementById('perfFileInput').click()" class="btn-primary flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Upload PDF
-                  </button>
-                  <input type="file" id="perfFileInput" accept=".pdf">
-                  <button onclick="clearPerformanceData()" class="btn-secondary flex items-center gap-2 text-sm" id="clearPerfBtn" style="display:none">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    Clear
-                  </button>
-                </div>
-              </div>
-              <div id="perfDropZone" class="upload-zone rounded-lg p-8 text-center">
-                <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <p class="text-[var(--fg-muted)] mb-2">Drag and drop your Avanza performance PDF here</p>
-                <p class="text-xs text-[var(--fg-muted)]">Expected: Avanza portfolio report with period returns (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)</p>
-              </div>
-            </div>
-
-            <!-- Performance Content (hidden until data loaded) -->
-            <div id="perfContent" class="hidden">
-              <!-- Top/Bottom Performers -->
-              <div id="performerCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
-
-              <!-- Period Selector + Bar Chart -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h3 class="text-lg font-semibold">Returns Comparison</h3>
-                  <div class="flex gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
-                    <button class="perf-period-btn active" data-period="1W">1 Week</button>
-                    <button class="perf-period-btn" data-period="1M">1 Month</button>
-                    <button class="perf-period-btn" data-period="3M">3 Months</button>
-                    <button class="perf-period-btn" data-period="1Y">1 Year</button>
-                    <button class="perf-period-btn" data-period="3Y">3 Years</button>
-                    <button class="perf-period-btn" data-period="5Y">5 Years</button>
+              <!-- AI Holdings Analysis -->
+              <div id="aiAnalysisSection" class="mt-6 animate-fade-in">
+                <div class="card overflow-hidden">
+                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <h3 class="text-lg font-semibold">🤖 AI Holdings Analysis</h3>
+                      <p class="text-sm text-[var(--fg-muted)]">Get AI-powered insights on your portfolio diversification, risk, and allocation</p>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <button onclick="analyzeHoldingsWithAI()" id="aiAnalyzeBtn" class="btn-primary flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <span id="aiAnalyzeBtnText">Analyze Holdings with AI</span>
+                      </button>
+                      <span id="aiLoadingSpinner" class="hidden animate-pulse text-[var(--fg-muted)] text-sm">Analyzing…</span>
+                    </div>
+                  </div>
+                  <div id="aiAnalysisContent" class="hidden p-5 ai-markdown">
+                  </div>
+                  <div id="aiAnalysisEmpty" class="p-8 text-center text-[var(--fg-muted)]">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <p class="text-sm">Click <strong>"Analyze Holdings with AI"</strong> to get AI-powered insights on your portfolio.</p>
+                    <p class="text-xs mt-1">Requires Z.ai API key configured in Settings.</p>
+                  </div>
+                  <div id="aiFollowUpSection" class="hidden p-4 border-t border-[var(--border)]">
+                    <h4 class="text-sm font-semibold mb-3 text-[var(--fg-secondary)]">Ask Follow-up Questions</h4>
+                    <div id="aiChatHistory" class="space-y-3 mb-3 max-h-64 overflow-y-auto scrollbar-thin"></div>
+                    <div class="flex gap-2">
+                      <input type="text" id="aiFollowUpInput" placeholder="Ask a question about your holdings..." class="flex-1 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--fg-primary)] focus:border-[var(--accent-primary)] focus:outline-none" disabled>
+                      <button onclick="askFollowUpQuestion()" id="aiFollowUpBtn" class="btn-secondary px-4 py-2 text-sm" disabled>Ask</button>
+                    </div>
                   </div>
                 </div>
-                <div class="h-96"><canvas id="returnsChart"></canvas></div>
               </div>
 
-              <!-- Correlation Matrix -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h3 class="text-lg font-semibold">Asset Correlation Matrix</h3>
-                </div>
-                <div class="exclude-info-banner mb-3">
-                  <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>Limited data points (6 time periods). Correlations are <strong>indicative only</strong> and should not be used for portfolio decisions without additional data.</span>
-                </div>
-                <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin"></div>
-              </div>
-
-              <!-- Heatmap -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <h3 class="text-lg font-semibold mb-4">Performance Heatmap</h3>
-                <div id="heatmapContainer" class="overflow-x-auto scrollbar-thin"></div>
-              </div>
-
-              <!-- Detailed Table -->
-              <div class="card overflow-hidden animate-fade-in">
-                <div class="p-4 border-b border-[var(--border)]">
-                  <h3 class="text-lg font-semibold">Detailed Performance Table</h3>
-                </div>
-                <div class="table-container scrollbar-thin">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Asset Name</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1W')">1 Week ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1M')">1 Month ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3M')">3 Months ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1Y')">1 Year ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3Y')">3 Years ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('5Y')">5 Years ⇅</th>
-                      </tr>
-                    </thead>
-                    <tbody id="perfTableBody"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <!-- Holdings with External Performance Links -->
-            <div id="analyticsHoldingsSection" class="mt-6 animate-fade-in">
+              <!-- Holdings with External Performance Links -->
+              <div id="analyticsHoldingsSection" class="mt-6 animate-fade-in">
               <div class="card overflow-hidden">
                 <div class="p-4 border-b border-[var(--border)]">
                   <h3 class="text-lg font-semibold">Portfolio Holdings — Performance Links</h3>
@@ -1699,7 +1659,7 @@
       3: [10.8, 16.2, 21.7, 27.1, 32.5, 38.1, 43.6, 49.0, 54.6, 60.0]
     };
 
-    // Generate bucket targets for configured duration (linearly extrapolate beyond month 10)
+    // Generate bucket targets for configured duration (rescale 10-month base schedule)
     function getBucketTargets(months) {
       const m = months || REBALANCING_MONTHS;
       const result = {};
@@ -1707,16 +1667,13 @@
         result[bucket] = [];
         const base = baseBucketTargets[bucket];
         for (let i = 0; i < m; i++) {
-          if (i < 10) {
-            result[bucket].push(base[i]);
-          } else {
-            // Linear extrapolation from month 9-10 trend to final target
-            const m9 = base[8];  // index 8 = M9
-            const m10 = base[9];  // index 9 = M10
-            const monthlyDelta = m10 - m9;
-            const extrapolated = m10 + monthlyDelta * (i - 9);
-            result[bucket].push(Math.round(extrapolated * 10) / 10);
-          }
+          // Map month i (0..m-1) to fractional position in the 10-month base schedule (0..9)
+          const pos = (i / Math.max(m - 1, 1)) * 9;
+          const lo = Math.floor(pos);
+          const hi = Math.min(lo + 1, 9);
+          const frac = pos - lo;
+          const interpolated = base[lo] + (base[hi] - base[lo]) * frac;
+          result[bucket].push(Math.round(interpolated * 10) / 10);
         }
       }
       return result;
@@ -5079,6 +5036,339 @@ ${text.substring(0, 30000)}`;
       } catch (e) { console.warn('localStorage load failed:', e); return false; }
     }
 
+    // --- AI HOLDINGS ANALYSIS ---
+    const AI_ANALYSIS_LS_KEY = 'portfolioTracker_aiAnalysis';
+    let aiAnalysisHistory = []; // { role: 'user'|'assistant', content: '...' }
+
+    function loadAiAnalysis() {
+      try {
+        const raw = localStorage.getItem(AI_ANALYSIS_LS_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          aiAnalysisHistory = data.history || [];
+          if (data.initialAnalysis) {
+            renderAiAnalysisContent(data.initialAnalysis, false);
+          }
+        }
+      } catch (e) { console.warn('Failed to load AI analysis:', e); }
+    }
+
+    function saveAiAnalysis() {
+      try {
+        const initialAnalysis = aiAnalysisHistory.find(m => m.role === 'assistant');
+        localStorage.setItem(AI_ANALYSIS_LS_KEY, JSON.stringify({
+          initialAnalysis: initialAnalysis ? initialAnalysis.content : null,
+          history: aiAnalysisHistory
+        }));
+      } catch (e) { console.warn('Failed to save AI analysis:', e); }
+    }
+
+    function simpleMarkdownToHtml(text) {
+      if (!text) return '';
+      let html = text
+        // Escape HTML
+        .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')
+        // Headers
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        // Bold and italic
+        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Blockquotes
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        // Unordered lists
+        .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+        // Ordered lists
+        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+      // Wrap consecutive <li> in <ul>
+      html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+      // Paragraphs: wrap remaining lines
+      html = html.split('\n').map(line => {
+        if (line.startsWith('<h') || line.startsWith('<ul') || line.startsWith('<blockquote') || line.startsWith('<li') || line.trim() === '') return line;
+        return '<p>' + line + '</p>';
+      }).join('\n');
+      return html;
+    }
+
+    function buildPortfolioSummary() {
+      if (!currentSnapshot) return 'No portfolio data available.';
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      const holdings = getFilteredHoldings(effective);
+      holdings.forEach(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        if (cls.found) { h.category = cls.category; h.bucket = cls.bucket; }
+      });
+      holdings.sort((a, b) => b.value - a.value);
+
+      let summary = `## Portfolio Summary\n`;
+      summary += `- **Total Value:** ${formatCurrency(ft.totalValue)}\n`;
+      summary += `- **Number of Holdings:** ${holdings.length}\n`;
+      summary += `- **Nordnet Value:** ${formatCurrency(currentSnapshot.nordnetValue)} (${ft.totalValue > 0 ? ((currentSnapshot.nordnetValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
+      summary += `- **Avanza Value:** ${formatCurrency(currentSnapshot.avanzaValue)} (${ft.totalValue > 0 ? ((currentSnapshot.avanzaValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
+
+      // Bucket allocation
+      const bucketAlloc = { 1: 0, 2: 0, 3: 0, 0: 0 };
+      holdings.forEach(h => { bucketAlloc[h.bucket] = (bucketAlloc[h.bucket] || 0) + h.value; });
+      summary += `\n### Bucket Allocation\n`;
+      Object.keys(bucketAlloc).forEach(b => {
+        if (bucketAlloc[b] > 0) {
+          const pct = ft.totalValue > 0 ? ((bucketAlloc[b] / ft.totalValue) * 100).toFixed(1) : 0;
+          const bname = BUCKETS[b] ? BUCKETS[b].name : 'Unknown';
+          summary += `- **B${b} (${bname}):** ${formatCurrency(bucketAlloc[b])} (${pct}%)\n`;
+        }
+      });
+
+      // Rebalancing targets
+      summary += `\n### Target Allocation\n`;
+      ['avanza', 'nordnet'].forEach(broker => {
+        const targets = rebalancingTargets[broker];
+        if (targets) {
+          summary += `**${broker.charAt(0).toUpperCase() + broker.slice(1)}:**\n`;
+          targets.forEach(t => {
+            if (t.target > 0) summary += `- ${t.name}: ${t.target}%\n`;
+          });
+        }
+      });
+
+      // Individual holdings
+      summary += `\n### All Holdings\n`;
+      summary += `| Asset | Brokerage | Category | Bucket | Value (SEK) | % of Portfolio |\n`;
+      summary += `|-------|-----------|----------|--------|-------------|---------------|\n`;
+      holdings.forEach(h => {
+        const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
+        const bname = BUCKETS[h.bucket] ? BUCKETS[h.bucket].name : 'Unknown';
+        summary += `| ${h.name} | ${h.brokerage} | ${h.category || 'Unassigned'} | B${h.bucket} (${bname}) | ${Math.round(h.value).toLocaleString('sv-SE')} | ${pct}% |\n`;
+      });
+
+      // Performance links
+      const links = Object.entries(performanceLinks);
+      if (links.length > 0) {
+        summary += `\n### Performance Links\n`;
+        links.forEach(([key, url]) => summary += `- ${key.replace('|', ' (')})}: ${url}\n`);
+      }
+
+      // Performance data
+      if (performanceData && performanceData.assets) {
+        summary += `\n### Historical Performance\n`;
+        performanceData.assets.forEach(a => {
+          const rets = Object.entries(a.returns || {}).map(([k, v]) => `${k}: ${v !== null ? v + '%' : 'N/A'}`).join(', ');
+          summary += `- **${a.name}** (${a.assetType}): ${rets}\n`;
+        });
+      }
+
+      return summary;
+    }
+
+    function renderAiAnalysisContent(markdown, showFollowUp) {
+      const contentEl = document.getElementById('aiAnalysisContent');
+      const emptyEl = document.getElementById('aiAnalysisEmpty');
+      const followUpEl = document.getElementById('aiFollowUpSection');
+      if (!contentEl) return;
+
+      contentEl.innerHTML = simpleMarkdownToHtml(markdown);
+      contentEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      if (showFollowUp !== false) {
+        if (followUpEl) followUpEl.classList.remove('hidden');
+        const input = document.getElementById('aiFollowUpInput');
+        const btn = document.getElementById('aiFollowUpBtn');
+        if (input) input.disabled = false;
+        if (btn) btn.disabled = false;
+      }
+
+      renderAiChatHistory();
+    }
+
+    function renderAiChatHistory() {
+      const chatEl = document.getElementById('aiChatHistory');
+      if (!chatEl) return;
+      // Show only follow-up messages (skip the initial analysis pair)
+      const followUps = aiAnalysisHistory.slice(2);
+      if (followUps.length === 0) {
+        chatEl.innerHTML = '';
+        return;
+      }
+      chatEl.innerHTML = followUps.map(msg => {
+        if (msg.role === 'user') {
+          return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${msg.content}</div>`;
+        } else {
+          return `<div class="ai-chat-ai ai-markdown text-sm">${simpleMarkdownToHtml(msg.content)}</div>`;
+        }
+      }).join('');
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function analyzeHoldingsWithAI() {
+      if (!currentSnapshot) {
+        alert('Please load portfolio data first.');
+        return;
+      }
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        alert('Please configure your AI API key first. Click the "API" button in the header.');
+        showApiSettings();
+        return;
+      }
+
+      const btn = document.getElementById('aiAnalyzeBtn');
+      const btnText = document.getElementById('aiAnalyzeBtnText');
+      const spinner = document.getElementById('aiLoadingSpinner');
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.textContent = 'Analyzing...';
+      if (spinner) spinner.classList.remove('hidden');
+
+      try {
+        const portfolioSummary = buildPortfolioSummary();
+        const prompt = `You are a professional portfolio analyst. Analyze the following Swedish portfolio and provide actionable insights.
+
+${portfolioSummary}
+
+Please provide your analysis in the following sections using Markdown formatting:
+
+## 1. Portfolio Diversification Assessment
+Evaluate how well-diversified the portfolio is across asset classes, sectors, and geographies.
+
+## 2. Risk Analysis
+Identify concentration risks, sector exposure issues, and potential vulnerabilities.
+
+## 3. Allocation vs Targets
+Compare the current bucket allocation against the target allocation. Highlight significant gaps.
+
+## 4. Actionable Recommendations
+Provide 3-5 specific, actionable suggestions for rebalancing or improving the portfolio.
+
+## 5. Market Context
+Brief commentary on the overall asset mix and general positioning considerations.
+
+Be specific, reference actual holdings and numbers from the portfolio data. Use SEK for any currency references.`;
+
+        const response = await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: getApiModel(),
+            messages: [
+              { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data from the portfolio.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 4000
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API error: ${response.status} - ${errText.substring(0, 200)}`);
+        }
+
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content || 'No analysis could be generated.';
+
+        aiAnalysisHistory = [
+          { role: 'user', content: 'Analyze my portfolio holdings' },
+          { role: 'assistant', content: content }
+        ];
+        saveAiAnalysis();
+        renderAiAnalysisContent(content);
+
+      } catch (err) {
+        console.error('AI Holdings Analysis error:', err);
+        alert('AI Analysis failed: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = 'Re-Analyze Holdings';
+        if (spinner) spinner.classList.add('hidden');
+      }
+    }
+
+    async function askFollowUpQuestion() {
+      const input = document.getElementById('aiFollowUpInput');
+      const btn = document.getElementById('aiFollowUpBtn');
+      const question = input ? input.value.trim() : '';
+      if (!question) return;
+
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        alert('Please configure your AI API key first.');
+        showApiSettings();
+        return;
+      }
+
+      // Add user message to history
+      aiAnalysisHistory.push({ role: 'user', content: question });
+      if (input) input.value = '';
+      if (btn) btn.disabled = true;
+      if (input) input.disabled = true;
+
+      renderAiChatHistory();
+
+      try {
+        // Build conversation messages for context
+        const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data when relevant. Keep answers concise.' };
+        const contextMsg = { role: 'user', content: `Here is my portfolio summary for context:\n\n${buildPortfolioSummary()}` };
+        const contextReply = aiAnalysisHistory[1] ? { role: 'assistant', content: aiAnalysisHistory[1].content } : null;
+
+        const messages = [systemMsg, contextMsg];
+        if (contextReply) messages.push(contextReply);
+
+        // Add follow-up conversation (skip first pair which is the initial analysis)
+        const followUps = aiAnalysisHistory.slice(2);
+        // Only include last few exchanges to keep within token limits
+        const recentFollowUps = followUps.slice(-6);
+        messages.push(...recentFollowUps.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })));
+
+        const response = await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: getApiModel(),
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 2000
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content || 'No response could be generated.';
+
+        aiAnalysisHistory.push({ role: 'assistant', content: content });
+        saveAiAnalysis();
+        renderAiChatHistory();
+
+      } catch (err) {
+        console.error('AI Follow-up error:', err);
+        aiAnalysisHistory.push({ role: 'assistant', content: `*Error: ${err.message}*` });
+        renderAiChatHistory();
+      } finally {
+        if (btn) btn.disabled = false;
+        if (input) input.disabled = false;
+        if (input) input.focus();
+      }
+    }
+
+    // Handle Enter key in follow-up input
+    document.addEventListener('DOMContentLoaded', () => {
+      const followUpInput = document.getElementById('aiFollowUpInput');
+      if (followUpInput) {
+        followUpInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !followUpInput.disabled) {
+            e.preventDefault();
+            askFollowUpQuestion();
+          }
+        });
+      }
+    });
+
     // --- ANALYTICS HOLDINGS WITH EXTERNAL LINKS ---
     const PERF_LINK_LS_KEY = 'portfolioTracker_perfLinks';
     let performanceLinks = {};
@@ -5174,7 +5464,7 @@ ${text.substring(0, 30000)}`;
     const _origSwitchTab = switchTab;
     switchTab = function(tabId) {
       _origSwitchTab(tabId);
-      if (tabId === 'analytics') { renderPerformanceContent(); renderAnalyticsHoldings(); }
+      if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); }
       if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
     };
 

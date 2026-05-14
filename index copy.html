@@ -374,6 +374,224 @@
       font-weight: 600;
     }
 
+    /* Retirement Tab Styles */
+    .retirement-tab .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .retirement-tab .field-12 {
+      flex: 1;
+    }
+
+    .retirement-tab .field-6,
+    .retirement-tab .field-4,
+    .retirement-tab .field-3 {
+      flex: 0 0 calc(50% - 6px);
+    }
+
+    .retirement-tab label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--fg-secondary);
+      margin-bottom: 6px;
+    }
+
+    .retirement-tab input,
+    .retirement-tab select,
+    .retirement-tab textarea {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--fg-primary);
+      transition: all 0.2s ease;
+    }
+
+    .retirement-tab input:focus,
+    .retirement-tab select:focus,
+    .retirement-tab textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .retirement-tab .sub {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-bottom: 12px;
+    }
+
+    .retirement-tab .highlight {
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 3px solid var(--accent-primary);
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
+    }
+
+    .retirement-tab .decision-box {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+
+    .retirement-tab .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .retirement-tab .metric .label {
+      font-size: 12px;
+      color: var(--fg-muted);
+      font-weight: 500;
+    }
+
+    .retirement-tab .metric .value {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    .retirement-tab .metric .note {
+      font-size: 12px;
+      color: var(--fg-muted);
+      text-align: right;
+    }
+
+    .retirement-tab .checklist {
+      padding-left: 20px;
+      list-style-type: none;
+    }
+
+    .retirement-tab .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      margin-bottom: 8px;
+    }
+
+    .retirement-tab .checklist input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .retirement-tab .footer-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .retirement-tab table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+
+    .retirement-tab table th,
+    .retirement-tab table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .retirement-tab table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--fg-muted);
+      font-weight: 600;
+    }
+
+    .retirement-tab .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .retirement-tab .pill-b1 {
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+    }
+
+    .retirement-tab .pill-b2 {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+
+    .retirement-tab .pill-b3 {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+
+    .retirement-tab .btn-light {
+      background: var(--bg-elevated);
+      color: var(--fg-primary);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .retirement-tab .btn-light:hover {
+      background: var(--border);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--fg-primary);
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    /* AI Analysis Markdown Styles */
+    .ai-markdown h1 { font-size: 1.25rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--fg-primary); }
+    .ai-markdown h2 { font-size: 1.1rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--accent-secondary); }
+    .ai-markdown h3 { font-size: 1rem; font-weight: 600; margin: 0.75rem 0 0.4rem; color: var(--accent-primary); }
+    .ai-markdown p { margin: 0.4rem 0; line-height: 1.6; color: var(--fg-secondary); }
+    .ai-markdown ul, .ai-markdown ol { margin: 0.4rem 0 0.4rem 1.2rem; }
+    .ai-markdown li { margin: 0.25rem 0; line-height: 1.5; color: var(--fg-secondary); }
+    .ai-markdown strong { color: var(--fg-primary); font-weight: 600; }
+    .ai-markdown em { color: var(--fg-muted); }
+    .ai-markdown code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+    .ai-markdown blockquote { border-left: 3px solid var(--accent-primary); padding-left: 12px; margin: 0.5rem 0; opacity: 0.85; }
+    .ai-markdown table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+    .ai-markdown th, .ai-markdown td { padding: 6px 10px; border: 1px solid var(--border); font-size: 13px; }
+    .ai-markdown th { background: var(--bg-secondary); font-weight: 600; }
+    .ai-chat-user { background: var(--bg-elevated); border-radius: 12px 12px 4px 12px; padding: 8px 12px; max-width: 85%; margin-left: auto; }
+    .ai-chat-ai { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); border-radius: 12px 12px 12px 4px; padding: 8px 12px; max-width: 90%; }
+    .ai-chat-ai p { margin: 0.25rem 0; }
+
   </style>
 </head>
 <body class="bg-grid">
@@ -400,26 +618,20 @@
           <div class="flex items-center gap-3">
             <span id="lastUpdated" class="text-sm text-[var(--fg-muted)] hidden md:block"></span>
 
-            <!-- Export Data Button -->
-            <button onclick="exportData()" class="btn-primary flex items-center gap-2 text-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <button onclick="exportData()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               <span class="hidden sm:inline">Export</span>
             </button>
             
-            <!-- Import CSV Snapshot -->
-<button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2 text-sm">
-               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-               </svg>
-               <span class="hidden sm:inline">Add Snapshot</span>
-             </button>
-             <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
-             <button onclick="document.getElementById('importDataInput').click()" class="btn-primary flex items-center gap-2 text-sm">
-               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-               </svg>
-               <span class="hidden sm:inline">Import Data</span>
-             </button>
+            <button onclick="document.getElementById('fileInput').click()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span class="hidden sm:inline">Add Snapshot</span>
+            </button>
+            <input type="file" id="fileInput" accept=".csv,.pdf" multiple>
+            <button onclick="document.getElementById('importDataInput').click()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span class="hidden sm:inline">Import Data</span>
+            </button>
              <input type="file" id="importDataInput" accept=".json" style="display:none" onchange="handleDataImport(this)">
              <button onclick="showApiSettings()" class="btn-secondary flex items-center gap-2 text-sm" title="AI API Settings">
                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -480,6 +692,7 @@
           <button class="tab-btn" data-tab="comparison">Compare</button>
           <button class="tab-btn" data-tab="snapshots">Snapshots</button>
           <button class="tab-btn" data-tab="analytics">Analytics</button>
+          <button class="tab-btn" data-tab="retirement">Retirement</button>
         </div>
       </div>
 
@@ -594,6 +807,92 @@
                 <h3 class="text-lg font-semibold mb-4">Consolidated Bucket Summary</h3>
                 <div id="bucketSummaryCards" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
             </div>
+
+            <!-- Return Target Rebalancing Calculator -->
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4">Return Target Rebalancing Calculator</h3>
+                <p class="text-sm text-[var(--fg-muted)] mb-4">Calculate how much to buy today to reach a specific portfolio return target.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Cost Basis (SEK)</label>
+                        <input type="number" id="costBasisInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 200899">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Current Market Value (SEK)</label>
+                        <input type="number" id="marketValueInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 216354">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-[var(--fg-muted)] mb-1">Current Profit (SEK)</label>
+                        <input type="number" id="currentProfitInput" class="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" readonly placeholder="Auto-calculated">
+                    </div>
+                </div>
+
+                <!-- Quick Reference Table -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold mb-3 text-[var(--fg-secondary)]">Quick Reference - Amount to Buy for Different Targets</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-[var(--border)]">
+                                    <th class="text-left py-2 text-[var(--fg-muted)] font-medium">Target Return</th>
+                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-10%</th>
+                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-5%</th>
+                                    <th class="text-right py-2 text-[var(--accent-danger)] font-medium">-2%</th>
+                                    <th class="text-right py-2 text-[var(--accent-primary)] font-medium">4%</th>
+                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">5%</th>
+                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">7%</th>
+                                    <th class="text-right py-2 text-[var(--fg-muted)] font-medium">10%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="py-3 text-[var(--fg-secondary)]">Amount to Buy (SEK)</td>
+                                    <td id="buyAmount-10" class="text-right py-3 font-mono">--</td>
+                                    <td id="buyAmount-5" class="text-right py-3 font-mono">--</td>
+                                    <td id="buyAmount-2" class="text-right py-3 font-mono">--</td>
+                                    <td id="buyAmount4" class="text-right py-3 font-mono text-[var(--accent-primary)] font-bold">--</td>
+                                    <td id="buyAmount5" class="text-right py-3 font-mono">--</td>
+                                    <td id="buyAmount7" class="text-right py-3 font-mono">--</td>
+                                    <td id="buyAmount10" class="text-right py-3 font-mono">--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Custom Target Calculator -->
+                <div class="bg-[var(--bg-secondary)] rounded-lg p-4 mb-4">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-sm text-[var(--fg-muted)] mb-1">Custom Target Return (%)</label>
+                            <input type="number" id="customTargetReturnInput" step="0.1" class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--fg)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" placeholder="e.g. 4.0">
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-sm text-[var(--fg-muted)] mb-1">Required Buy Amount (SEK)</label>
+                            <div id="customBuyAmountResult" class="text-xl font-bold font-mono text-[var(--accent-primary)]">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula Explanation -->
+                <div class="text-xs text-[var(--fg-muted)] bg-[var(--bg-elevated)] rounded-lg p-3">
+                    <p class="font-semibold mb-1 text-[var(--fg-secondary)]">Formula:</p>
+                    <code class="block mb-2">Buy Amount = (Profit ÷ Target Return) - Cost Basis</code>
+                    <p class="font-semibold mb-1 text-[var(--fg-secondary)]">Where:</p>
+                    <ul class="list-disc list-inside space-y-1 ml-2">
+                        <li>Profit = Market Value - Cost Basis (can be positive or negative)</li>
+                        <li>Target Return = decimal (e.g., 4% = 0.04, -5% = -0.05)</li>
+                        <li>Buy Amount = amount to invest today to reach the target return</li>
+                    </ul>
+                    <p class="font-semibold mt-3 mb-1 text-[var(--accent-secondary)]">Use Cases:</p>
+                    <ul class="list-disc list-inside space-y-1 ml-2">
+                        <li><strong>Positive profit + positive target:</strong> "Dilute my return to X%"</li>
+                        <li><strong>Negative profit + negative target:</strong> "Average down to reach -X% return"</li>
+                        <li><strong>Negative profit + positive target:</strong> Shows N/A (impossible to reach positive return when underwater)</li>
+                    </ul>
+                </div>
+            </div>
             
             <!-- Consolidated Bucket Overview Table -->
             <div class="card p-6 mb-6">
@@ -605,9 +904,9 @@
                       <tr>
                         <th>Bucket</th>
                         <th class="text-right">Current</th>
-                        <th class="text-right highlight-col">M1 Target</th>
+                        <th class="text-right highlight-col" id="consolidatedMonthHeader">M1 Target</th>
                         <th class="text-right highlight-col">Final Target</th>
-                        <th class="text-right">Δ Current → M1</th>
+                        <th class="text-right" id="consolidatedMonthDeltaHeader">Δ Current → M1</th>
                         <th class="text-right">Δ Current → Final</th>
                       </tr>
                     </thead>
@@ -644,6 +943,13 @@
                             class="w-16 bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm text-center font-mono focus:border-[var(--accent-primary)] outline-none">
                         <span class="text-xs text-[var(--fg-muted)]">months</span>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-[var(--fg-muted)] font-medium" for="rebalancingMonthSelect">View month:</label>
+                        <select id="rebalancingMonthSelect" onchange="onMonthChange()"
+                            class="bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono focus:border-[var(--accent-primary)] outline-none">
+                            <option value="1">M1</option>
+                        </select>
+                    </div>
                     <div class="flex gap-4 text-xs">
                         <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-cyan-400"></span> Bucket 1 (Cash/Short)</span>
                         <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span> Bucket 2 (Fixed Income/Commodities)</span>
@@ -659,39 +965,61 @@
               </div>
               <div class="table-container scrollbar-thin">
                 <table class="rebalance-table">
-                  <thead>
-                    <tr>
-                      <th>Asset Name</th>
-                      <th class="text-right">Current</th>
-                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
-                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
-                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
-                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
-                    </tr>
-                  </thead>
+                  <thead id="avanzaRebalanceThead"><tr></tr></thead>
                   <tbody id="avanzaRebalanceTable"></tbody>
                 </table>
               </div>
             </div>
 
             <!-- Nordnet Schedule -->
-            <div class="card overflow-hidden">
+            <div class="card overflow-hidden mb-6">
               <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
                 <h4 class="font-semibold text-cyan-400">Nordnet Account Rebalancing</h4>
+              </div>
+              <div class="table-container scrollbar-thin">
+                <table class="rebalance-table">
+                  <thead id="nordnetRebalanceThead"><tr></tr></thead>
+                  <tbody id="nordnetRebalanceTable"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Holdings Allocation in SEK — Avanza -->
+            <div class="card overflow-hidden mb-6">
+              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                <h4 class="font-semibold text-cyan-400">Avanza — Holdings Allocation (SEK)</h4>
               </div>
               <div class="table-container scrollbar-thin">
                 <table class="rebalance-table">
                   <thead>
                     <tr>
                       <th>Asset Name</th>
-                      <th class="text-right">Current</th>
-                      <th class="text-right highlight-col">End of Month <span class="target-badge">Target</span></th>
-                      <th class="text-right">M2</th><th class="text-right">M3</th><th class="text-right">M4</th><th class="text-right">M5</th>
-                      <th class="text-right">M6</th><th class="text-right">M7</th><th class="text-right">M8</th><th class="text-right">M9</th>
-                      <th class="text-right highlight-col">Final <span class="target-badge">Target</span></th>
+                      <th class="text-right">Current (SEK)</th>
+                      <th class="text-right highlight-col" id="avanzaSekMonthHeader">M1 Target (SEK)</th>
+                      <th class="text-right highlight-col">Final Target (SEK)</th>
                     </tr>
                   </thead>
-                  <tbody id="nordnetRebalanceTable"></tbody>
+                  <tbody id="avanzaSekTable"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Holdings Allocation in SEK — Nordnet -->
+            <div class="card overflow-hidden mb-6">
+              <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                <h4 class="font-semibold text-cyan-400">Nordnet — Holdings Allocation (SEK)</h4>
+              </div>
+              <div class="table-container scrollbar-thin">
+                <table class="rebalance-table">
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th class="text-right">Current (SEK)</th>
+                      <th class="text-right highlight-col" id="nordnetSekMonthHeader">M1 Target (SEK)</th>
+                      <th class="text-right highlight-col">Final Target (SEK)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="nordnetSekTable"></tbody>
                 </table>
               </div>
             </div>
@@ -836,96 +1164,133 @@
         </div>
         <!-- Analytics Tab -->
         <div id="analyticsTab" class="tab-panel hidden">
-            <!-- Upload Zone for Historical Performance -->
-            <div id="perfUploadCard" class="card p-6 mb-6 animate-fade-in">
-              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div>
-                  <h3 class="text-lg font-semibold">Historical Performance Data</h3>
-                  <p class="text-sm text-[var(--fg-muted)]">Upload an Avanza portfolio PDF report to extract asset returns</p>
-                </div>
-                <div class="flex gap-2">
-                  <button onclick="document.getElementById('perfFileInput').click()" class="btn-primary flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Upload PDF
-                  </button>
-                  <input type="file" id="perfFileInput" accept=".pdf">
-                  <button onclick="clearPerformanceData()" class="btn-secondary flex items-center gap-2 text-sm" id="clearPerfBtn" style="display:none">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    Clear
-                  </button>
-                </div>
-              </div>
-              <div id="perfDropZone" class="upload-zone rounded-lg p-8 text-center">
-                <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <p class="text-[var(--fg-muted)] mb-2">Drag and drop your Avanza performance PDF here</p>
-                <p class="text-xs text-[var(--fg-muted)]">Expected: Avanza portfolio report with period returns (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)</p>
-              </div>
-            </div>
-
-            <!-- Performance Content (hidden until data loaded) -->
-            <div id="perfContent" class="hidden">
-              <!-- Top/Bottom Performers -->
-              <div id="performerCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
-
-              <!-- Period Selector + Bar Chart -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h3 class="text-lg font-semibold">Returns Comparison</h3>
-                  <div class="flex gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
-                    <button class="perf-period-btn active" data-period="1W">1 Week</button>
-                    <button class="perf-period-btn" data-period="1M">1 Month</button>
-                    <button class="perf-period-btn" data-period="3M">3 Months</button>
-                    <button class="perf-period-btn" data-period="1Y">1 Year</button>
-                    <button class="perf-period-btn" data-period="3Y">3 Years</button>
-                    <button class="perf-period-btn" data-period="5Y">5 Years</button>
+              <!-- AI Holdings Analysis -->
+              <div id="aiAnalysisSection" class="mt-6 animate-fade-in">
+                <div class="card overflow-hidden">
+                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <h3 class="text-lg font-semibold">🤖 AI Holdings Analysis</h3>
+                      <p class="text-sm text-[var(--fg-muted)]">Get AI-powered insights on your portfolio diversification, risk, and allocation</p>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                      <button onclick="analyzeHoldingsWithAI()" id="aiAnalyzeBtn" class="btn-primary flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        <span id="aiAnalyzeBtnText">Analyze Holdings with AI</span>
+                      </button>
+                      <span id="aiLoadingSpinner" class="hidden animate-pulse text-[var(--fg-muted)] text-sm">Analyzing…</span>
+                    </div>
+                  </div>
+                  <div id="aiAnalysisContent" class="hidden p-5 ai-markdown">
+                  </div>
+                  <div id="aiAnalysisEmpty" class="p-8 text-center text-[var(--fg-muted)]">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <p class="text-sm">Click <strong>"Analyze Holdings with AI"</strong> to get AI-powered insights on your portfolio.</p>
+                    <p class="text-xs mt-1">Requires Z.ai API key configured in Settings.</p>
+                  </div>
+                  <div id="aiFollowUpSection" class="hidden p-4 border-t border-[var(--border)]">
+                    <h4 class="text-sm font-semibold mb-3 text-[var(--fg-secondary)]">Ask Follow-up Questions</h4>
+                    <div id="aiChatHistory" class="space-y-3 mb-3 max-h-64 overflow-y-auto scrollbar-thin"></div>
+                    <div class="flex gap-2">
+                      <input type="text" id="aiFollowUpInput" placeholder="Ask a question about your holdings..." class="flex-1 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--fg-primary)] focus:border-[var(--accent-primary)] focus:outline-none" disabled>
+                      <button onclick="askFollowUpQuestion()" id="aiFollowUpBtn" class="btn-secondary px-4 py-2 text-sm" disabled>Ask</button>
+                    </div>
                   </div>
                 </div>
-                <div class="h-96"><canvas id="returnsChart"></canvas></div>
               </div>
 
-              <!-- Correlation Matrix -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h3 class="text-lg font-semibold">Asset Correlation Matrix</h3>
-                  <span class="text-xs text-[var(--fg-muted)]">Based on returns across available time periods (Pearson). <em>Note: limited data points — correlations are indicative.</em></span>
-                </div>
-                <div id="correlationMatrixContainer" class="overflow-x-auto scrollbar-thin"></div>
-              </div>
-
-              <!-- Heatmap -->
-              <div class="card p-6 mb-6 animate-fade-in">
-                <h3 class="text-lg font-semibold mb-4">Performance Heatmap</h3>
-                <div id="heatmapContainer" class="overflow-x-auto scrollbar-thin"></div>
-              </div>
-
-              <!-- Detailed Table -->
-              <div class="card overflow-hidden animate-fade-in">
+              <!-- Holdings with External Performance Links -->
+              <div id="analyticsHoldingsSection" class="mt-6 animate-fade-in">
+              <div class="card overflow-hidden">
                 <div class="p-4 border-b border-[var(--border)]">
-                  <h3 class="text-lg font-semibold">Detailed Performance Table</h3>
+                  <h3 class="text-lg font-semibold">Portfolio Holdings — Performance Links</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">Click the link icon to add an external performance URL for each holding.</p>
                 </div>
                 <div class="table-container scrollbar-thin">
                   <table>
                     <thead>
                       <tr>
-                        <th>Type</th>
                         <th>Asset Name</th>
-                        <th>Country</th>
-                        <th>Holding</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1W')">1 Week ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1M')">1 Month ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3M')">3 Months ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('1Y')">1 Year ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('3Y')">3 Years ⇅</th>
-                        <th class="text-right cursor-pointer" onclick="sortPerfTable('5Y')">5 Years ⇅</th>
+                        <th>Brokerage</th>
+                        <th>Category</th>
+                        <th>Bucket</th>
+                        <th class="text-right">Market Value (SEK)</th>
+                        <th class="text-right">% of Portfolio</th>
+                        <th>Performance Link</th>
                       </tr>
                     </thead>
-                    <tbody id="perfTableBody"></tbody>
+                    <tbody id="analyticsHoldingsTable"></tbody>
                   </table>
                 </div>
               </div>
             </div>
+
+        </div>
+
+        <!-- Retirement Tab -->
+        <div id="retirementTab" class="tab-panel hidden retirement-tab">
+          <div class="card p-6 animate-fade-in">
+            <h3 class="text-lg font-semibold mb-4">Retirement Income Projection</h3>
+
+            <!-- Compact controls -->
+            <div class="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-lg" style="background:var(--bg-elevated);">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-[var(--fg-muted)]">Portfolio:</span>
+                <input type="number" id="retirementTotalValueInput" placeholder="e.g. 18000000"
+                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" style="width:120px;">
+                <span class="text-xs text-[var(--fg-muted)]">SEK</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-[var(--fg-muted)]">Default WR%:</span>
+                <input type="number" id="retirementDefaultWR" value="4.7" step="0.1" min="0" max="10"
+                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" style="width:72px;"
+                  onchange="applyDefaultWR(this.value)">
+                <button onclick="applyDefaultWR(document.getElementById('retirementDefaultWR').value)" class="text-xs px-2 py-1 rounded bg-[var(--accent-primary)] text-white hover:opacity-80">Set All Years</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-[var(--fg-muted)]">Default WR Tax%:</span>
+                <input type="number" id="retirementDefaultTax" value="15" step="1" min="0" max="50"
+                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-warning)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-warning)]" style="width:72px;"
+                  onchange="applyDefaultTax(this.value)">
+                <button onclick="applyDefaultTax(document.getElementById('retirementDefaultTax').value)" class="text-xs px-2 py-1 rounded" style="background:var(--accent-warning);color:#000;">Set All Years</button>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-[var(--fg-muted)]">Growth Rate%:</span>
+                <input type="number" id="retirementGrowthRate" value="5" step="0.5" min="-5" max="15"
+                  class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono text-[var(--accent-secondary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-secondary)]" style="width:72px;"
+                  onchange="updateRetirementTab()">
+                <span class="text-xs text-[var(--fg-muted)]">(annual real, after inflation)</span>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="mb-6" style="height:400px;">
+              <canvas id="pensionProjectionChart"></canvas>
+            </div>
+
+            <!-- Enhanced table -->
+            <h4 class="text-sm font-semibold mb-2">Detailed Income Projection (SEK/month)</h4>
+            <div class="table-container scrollbar-thin" style="max-height:480px;overflow-y:auto;">
+              <table class="rebalance-table" style="min-width:100%;">
+                <thead>
+                  <tr>
+                    <th class="text-left">Year</th>
+                    <th class="text-left">Age</th>
+                    <th class="text-right">Karin Pension</th>
+                    <th class="text-right">Yann Pension</th>
+                    <th class="text-right" style="color:var(--accent-secondary);">Portfolio Value</th>
+                    <th class="text-right">WR%</th>
+                    <th class="text-right">Portfolio WR</th>
+                    <th class="text-right">Tax%</th>
+                    <th class="text-right" style="color:var(--accent-warning);">WR Tax</th>
+                    <th class="text-right">Portfolio WR Net</th>
+                    <th class="text-right" style="color:var(--accent-primary);">Combined Gross</th>
+                    <th class="text-right" style="color:var(--accent-secondary);">Combined Net</th>
+                  </tr>
+                </thead>
+                <tbody id="retirementProjectionTable"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -1209,7 +1574,9 @@
 
     // Rebalancing duration configuration (10-18 months)
     const REBALANCING_DURATION_LS_KEY = 'portfolioTracker_rebalancingDuration';
+    const REBALANCING_MONTH_LS_KEY = 'portfolioTracker_rebalancingCurrentMonth';
     let REBALANCING_MONTHS = 10;
+    let currentRebalancingMonth = 1;
 
     function loadRebalancingDuration() {
       try {
@@ -1220,6 +1587,62 @@
         }
       } catch (e) { console.warn('Failed to load rebalancing duration:', e); }
       REBALANCING_MONTHS = 10;
+    }
+
+    function loadRebalancingMonth() {
+      try {
+        const raw = localStorage.getItem(REBALANCING_MONTH_LS_KEY);
+        if (raw) {
+          const val = parseInt(raw);
+          if (val >= 1 && val <= REBALANCING_MONTHS) { currentRebalancingMonth = val; return; }
+        }
+      } catch (e) { console.warn('Failed to load rebalancing month:', e); }
+      currentRebalancingMonth = 1;
+    }
+
+    function saveRebalancingMonth() {
+      try {
+        localStorage.setItem(REBALANCING_MONTH_LS_KEY, String(currentRebalancingMonth));
+      } catch (e) { console.warn('Failed to save rebalancing month:', e); }
+    }
+
+    function updateMonthSelector() {
+      const sel = document.getElementById('rebalancingMonthSelect');
+      if (!sel) return;
+      const prev = currentRebalancingMonth;
+      sel.innerHTML = '';
+      for (let m = 1; m <= REBALANCING_MONTHS; m++) {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = getMonthLabel(m);
+        sel.appendChild(opt);
+      }
+      currentRebalancingMonth = Math.min(prev, REBALANCING_MONTHS);
+      sel.value = currentRebalancingMonth;
+    }
+
+    // Returns real calendar month label for a rebalancing month index (1-based)
+    // Month 1 = end of March 2026 (the reference date's month)
+    function getMonthLabel(monthIndex) {
+      const refMonth = 2; // March = index 2 (0-based)
+      const refYear = 2026;
+      const date = new Date(refYear, refMonth + monthIndex - 1, 1);
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); // e.g. "Mar 2026"
+    }
+
+    function getMonthShortLabel(monthIndex) {
+      const refMonth = 2; // March = index 2 (0-based)
+      const refYear = 2026;
+      const date = new Date(refYear, refMonth + monthIndex - 1, 1);
+      return date.toLocaleDateString('en-US', { month: 'short' }); // e.g. "Mar"
+    }
+
+    function onMonthChange() {
+      const sel = document.getElementById('rebalancingMonthSelect');
+      if (!sel) return;
+      currentRebalancingMonth = parseInt(sel.value) || 1;
+      saveRebalancingMonth();
+      renderRebalancingTables();
     }
 
     function saveRebalancingDuration() {
@@ -1236,7 +1659,7 @@
       3: [10.8, 16.2, 21.7, 27.1, 32.5, 38.1, 43.6, 49.0, 54.6, 60.0]
     };
 
-    // Generate bucket targets for configured duration (linearly extrapolate beyond month 10)
+    // Generate bucket targets for configured duration (rescale 10-month base schedule)
     function getBucketTargets(months) {
       const m = months || REBALANCING_MONTHS;
       const result = {};
@@ -1244,16 +1667,13 @@
         result[bucket] = [];
         const base = baseBucketTargets[bucket];
         for (let i = 0; i < m; i++) {
-          if (i < 10) {
-            result[bucket].push(base[i]);
-          } else {
-            // Linear extrapolation from month 9-10 trend to final target
-            const m9 = base[8];  // index 8 = M9
-            const m10 = base[9];  // index 9 = M10
-            const monthlyDelta = m10 - m9;
-            const extrapolated = m10 + monthlyDelta * (i - 9);
-            result[bucket].push(Math.round(extrapolated * 10) / 10);
-          }
+          // Map month i (0..m-1) to fractional position in the 10-month base schedule (0..9)
+          const pos = (i / Math.max(m - 1, 1)) * 9;
+          const lo = Math.floor(pos);
+          const hi = Math.min(lo + 1, 9);
+          const frac = pos - lo;
+          const interpolated = base[lo] + (base[hi] - base[lo]) * frac;
+          result[bucket].push(Math.round(interpolated * 10) / 10);
         }
       }
       return result;
@@ -1269,6 +1689,7 @@
       if (val >= 10 && val <= 18) {
         REBALANCING_MONTHS = val;
         saveRebalancingDuration();
+        updateMonthSelector();
         refreshRebalancingSchedule();
         renderRebalancingTables();
         // Update header text
@@ -1476,6 +1897,30 @@
       }
     }
 
+    function updateScheduleTableHeaders() {
+      // Build schedule table headers dynamically with real month names
+      ['avanzaRebalanceThead', 'nordnetRebalanceThead'].forEach(theadId => {
+        const thead = document.getElementById(theadId);
+        if (!thead) return;
+        
+        let html = '<tr>';
+        html += '<th>Asset Name</th>';
+        html += '<th class="text-right">Current</th>';
+        // Build all month columns, highlighting selected month and final month
+        for (let m = 1; m <= REBALANCING_MONTHS; m++) {
+          const isSelected = (m === currentRebalancingMonth);
+          const isFinal = (m === REBALANCING_MONTHS);
+          const isHL = isSelected || isFinal;
+          const label = (m === currentRebalancingMonth) 
+            ? `${getMonthShortLabel(m)} <span class="target-badge">Target</span>` 
+            : `${getMonthShortLabel(m)}${isFinal ? ' <span class="target-badge">Target</span>' : ''}`;
+          html += `<th class="text-right ${isHL ? 'highlight-col' : ''}">${label}</th>`;
+        }
+        html += '</tr>';
+        thead.innerHTML = html;
+      });
+    }
+
     // --- END TARGETS CONFIG UI ---
 
     const categoryColors = {
@@ -1510,6 +1955,9 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
       document.getElementById('brokerageFilter').addEventListener('change', renderHoldingsTable);
       document.getElementById('categoryFilter').addEventListener('change', renderHoldingsTable);
+      
+      // Setup return target calculator listeners
+      setupReturnTargetCalculatorListeners();
     }
 
     function checkUrlParams() {
@@ -1573,7 +2021,8 @@
                 classificationReference: classificationReference,
                 rebalancingTargets: rebalancingTargets,
                 excludedAssets: [...excludedAssets],
-                performanceData: performanceData
+                performanceData: performanceData,
+                retirementData: retirementData
             };
 
             const dataStr = JSON.stringify(exportBundle, null, 2);
@@ -1605,51 +2054,57 @@
         }
     }
 
-    function handleDataImport(event) {
-        const file = event.target.files[0];
+    function handleDataImport(input) {
+        const file = input.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const importedData = JSON.parse(e.target.result);
-                
+
                 // Handle new structured export format (v1)
                 if (importedData && importedData.version === 1 && importedData.snapshots) {
                     const bundle = importedData;
-                    
+
                     // Restore snapshots
                     bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
                     snapshots = bundle.snapshots;
                     snapshots.sort((a, b) => a.date - b.date);
                     currentSnapshot = snapshots[snapshots.length - 1];
-                    
+
                     // Restore classification reference
                     if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
                         classificationReference = bundle.classificationReference;
                         try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
                     }
-                    
+
                     // Restore rebalancing targets
                     if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
                         rebalancingTargets = bundle.rebalancingTargets;
                         saveRebalancingTargets();
                     }
-                    
+
                     // Restore excluded assets
                     if (Array.isArray(bundle.excludedAssets)) {
                         excludedAssets = new Set(bundle.excludedAssets);
                         saveExcludedAssets();
                     }
-                    
+
                     // Restore performance data
                     if (bundle.performanceData && bundle.performanceData.assets) {
                         performanceData = bundle.performanceData;
                         savePerformanceData();
                     }
-                    
+
+                    // Restore retirement data
+                    if (bundle.retirementData) {
+                        retirementData = bundle.retirementData;
+                        saveRetirementData();
+                    }
+
                     showDashboard();
-                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
-                    
+                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data.");
+
                 // Handle legacy array format (backward compatible)
                 } else if (Array.isArray(importedData)) {
                     if (importedData[0].date && importedData[0].holdings) {
@@ -1664,7 +2119,7 @@
             } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
         };
         reader.readAsText(file);
-        event.target.value = '';
+        input.value = '';
     }
 
     // --- End Import / Export ---
@@ -1673,68 +2128,6 @@
       const files = e.target.files;
       // Don't clear input until processing is done
       handleFiles(files).finally(() => { e.target.value = ''; });
-    }
-
-    function handleDataImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-          try {
-              const importedData = JSON.parse(e.target.result);
-
-              // Handle new structured export format (v1)
-              if (importedData && importedData.version === 1 && importedData.snapshots) {
-                  const bundle = importedData;
-
-                  // Restore snapshots
-                  bundle.snapshots.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
-                  snapshots = bundle.snapshots;
-                  snapshots.sort((a, b) => a.date - b.date);
-                  currentSnapshot = snapshots[snapshots.length - 1];
-
-                  // Restore classification reference
-                  if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
-                      classificationReference = bundle.classificationReference;
-                      try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
-                  }
-
-                  // Restore rebalancing targets
-                  if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
-                      rebalancingTargets = bundle.rebalancingTargets;
-                      saveRebalancingTargets();
-                  }
-
-                  // Restore excluded assets
-                  if (Array.isArray(bundle.excludedAssets)) {
-                      excludedAssets = new Set(bundle.excludedAssets);
-                      saveExcludedAssets();
-                  }
-
-                  // Restore performance data
-                  if (bundle.performanceData && bundle.performanceData.assets) {
-                      performanceData = bundle.performanceData;
-                      savePerformanceData();
-                  }
-
-                  showDashboard();
-                  alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data.");
-
-              // Handle legacy array format (backward compatible)
-              } else if (Array.isArray(importedData)) {
-                  if (importedData[0].date && importedData[0].holdings) {
-                      importedData.forEach(snap => { snap.date = new Date(snap.date); snap.dateStr = formatDate(snap.date); });
-                      snapshots = importedData;
-                      snapshots.sort((a, b) => a.date - b.date);
-                      currentSnapshot = snapshots[snapshots.length - 1];
-                      showDashboard();
-                      alert("Snapshots imported successfully!\n\nNote: This was a legacy export file. Only snapshot data was restored.");
-                  } else { alert("Invalid JSON structure."); }
-              } else { alert("Invalid JSON format. Expected a Portfolio Tracker export file."); }
-          } catch (err) { console.error(err); alert("Failed to parse JSON file: " + err.message); }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
     }
 
     function datesAreEqual(d1, d2) {
@@ -2404,6 +2797,7 @@ ${text}`;
       else if (tabId === 'comparison') populateCompareSelects();
       else if (tabId === 'reference') renderReferenceTable();
       else if (tabId === 'snapshots') renderSnapshotsTab();
+      else if (tabId === 'retirement') populateRetirementForm();
     }
 
     function renderSnapshotsTab() {
@@ -2547,7 +2941,7 @@ ${text}`;
             
             cells += `<td class="text-right font-mono">${currentVal.toFixed(1)}%</td>`;
             item.schedule.forEach((val, idx) => {
-                const isHighlight = (idx === 0 || idx === 9);
+                const isHighlight = (idx === currentRebalancingMonth - 1 || idx === REBALANCING_MONTHS - 1);
                 cells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">${val.toFixed(1)}%</td>`;
             });
             
@@ -2570,8 +2964,8 @@ ${text}`;
               
               otherCells += `<td class="text-right font-mono">${item.val.toFixed(1)}%</td>`;
               
-              for(let i=0; i<10; i++) {
-                  const isHighlight = (i === 0 || i === 9);
+              for(let i=0; i<REBALANCING_MONTHS; i++) {
+                  const isHighlight = (i === currentRebalancingMonth - 1 || i === REBALANCING_MONTHS - 1);
                   otherCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : 'text-[var(--fg-muted)]'}">0.0%</td>`;
               }
               otherRow.innerHTML = otherCells;
@@ -2582,8 +2976,8 @@ ${text}`;
         sumRow.className = 'sum-row';
         let sumCells = `<td>TOTAL</td>`;
         sumCells += `<td class="text-right font-mono">${currentSum.toFixed(1)}%</td>`;
-        for(let i=0; i<10; i++) {
-            const isHighlight = (i === 0 || i === 9);
+        for(let i=0; i<REBALANCING_MONTHS; i++) {
+            const isHighlight = (i === currentRebalancingMonth - 1 || i === REBALANCING_MONTHS - 1);
             sumCells += `<td class="text-right font-mono ${isHighlight ? 'highlight-col' : ''}">100.0%</td>`;
         }
         sumRow.innerHTML = sumCells;
@@ -2605,6 +2999,207 @@ ${text}`;
         
         // Render consolidated bucket overview table
         renderConsolidatedBucketTable();
+
+        // Update consolidated table headers to show selected month
+        const monthHeaderEl = document.getElementById('consolidatedMonthHeader');
+        if (monthHeaderEl) monthHeaderEl.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target';
+        const monthDeltaHeaderEl = document.getElementById('consolidatedMonthDeltaHeader');
+        if (monthDeltaHeaderEl) monthDeltaHeaderEl.textContent = 'Δ Current → ' + getMonthShortLabel(currentRebalancingMonth) + ' 2026';
+
+        // Update schedule table headers with real month names
+        updateScheduleTableHeaders();
+
+        // Populate and update Return Target Rebalancing Calculator
+        updateReturnTargetCalculator();
+
+        // Render holdings allocation tables in SEK
+        renderHoldingsAllocationSek('avanzaSekTable', 'Avanza');
+        renderHoldingsAllocationSek('nordnetSekTable', 'Nordnet');
+
+        // Update SEK table month headers
+        const avanzaMonthHdr = document.getElementById('avanzaSekMonthHeader');
+        if (avanzaMonthHdr) avanzaMonthHdr.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target (SEK)';
+        const nordnetMonthHdr = document.getElementById('nordnetSekMonthHeader');
+        if (nordnetMonthHdr) nordnetMonthHdr.textContent = getMonthShortLabel(currentRebalancingMonth) + ' 2026 Target (SEK)';
+    }
+
+    function renderHoldingsAllocationSek(tbodyId, broker) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody || !currentSnapshot) return;
+
+        const brokerKey = broker.toLowerCase();
+        const currentData = calculateBrokerCurrents(broker);
+        const totalBrokerValue = currentData.totalBrokerValue;
+        const scheduleData = rebalancingSchedule[brokerKey] || [];
+
+        tbody.innerHTML = '';
+
+        let sumCurrent = 0;
+        let sumMonthTarget = 0;
+        let sumFinalTarget = 0;
+
+        // Scheduled assets
+        scheduleData.forEach(item => {
+            const currentPct = currentData.assets[item.name] || 0;
+            const currentSek = (currentPct / 100) * totalBrokerValue;
+            const monthPct = item.schedule[currentRebalancingMonth - 1] || 0;
+            const monthSek = (monthPct / 100) * totalBrokerValue;
+            const finalPct = item.schedule[REBALANCING_MONTHS - 1] || 0;
+            const finalSek = (finalPct / 100) * totalBrokerValue;
+
+            sumCurrent += currentSek;
+            sumMonthTarget += monthSek;
+            sumFinalTarget += finalSek;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="font-medium">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
+                <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
+                <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(monthSek))}</td>
+                <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(finalSek))}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Unscheduled holdings
+        currentData.unscheduled
+            .sort((a, b) => {
+                if (a.bucket !== b.bucket) return a.bucket - b.bucket;
+                return a.name.localeCompare(b.name);
+            })
+            .forEach(item => {
+                const currentSek = (item.val / 100) * totalBrokerValue;
+                sumCurrent += currentSek;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="font-medium text-[var(--fg-muted)]">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
+                    <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
+                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+        // Sum row
+        const sumRow = document.createElement('tr');
+        sumRow.className = 'sum-row';
+        sumRow.innerHTML = `
+            <td>TOTAL</td>
+            <td class="text-right font-mono">${formatCurrency(Math.round(sumCurrent))}</td>
+            <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumMonthTarget))}</td>
+            <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumFinalTarget))}</td>
+        `;
+        tbody.appendChild(sumRow);
+    }
+
+    // --- RETURN TARGET REBALANCING CALCULATOR ---
+
+    function updateReturnTargetCalculator() {
+        const costBasisInput = document.getElementById('costBasisInput');
+        const marketValueInput = document.getElementById('marketValueInput');
+        const currentProfitInput = document.getElementById('currentProfitInput');
+
+        if (!costBasisInput || !marketValueInput || !currentProfitInput) return;
+
+        // Get current portfolio value from snapshot
+        let currentPortfolioValue = 0;
+        if (currentSnapshot) {
+            const effective = getEffectiveSnapshot(currentSnapshot);
+            const ft = calculateFilteredTotals(effective);
+            currentPortfolioValue = ft.totalValue;
+        }
+
+        // Set initial values if inputs are empty (only on first load)
+        if (!costBasisInput.value && currentPortfolioValue > 0) {
+            costBasisInput.value = Math.round(currentPortfolioValue);
+        }
+        if (!marketValueInput.value && currentPortfolioValue > 0) {
+            marketValueInput.value = Math.round(currentPortfolioValue);
+        }
+
+        // Calculate and update
+        calculateReturnTargetAmounts();
+    }
+
+    function calculateReturnTargetAmounts() {
+        const costBasis = parseFloat(document.getElementById('costBasisInput').value) || 0;
+        const marketValue = parseFloat(document.getElementById('marketValueInput').value) || 0;
+        const currentProfit = marketValue - costBasis;
+
+        // Update current profit display - show negative values
+        document.getElementById('currentProfitInput').value = currentProfit !== 0 ? Math.round(currentProfit) : 0;
+
+        // Quick reference table amounts - include negative targets
+        const targets = [-0.10, -0.05, -0.02, 0.04, 0.05, 0.07, 0.10];
+        const elementIds = ['buyAmount-10', 'buyAmount-5', 'buyAmount-2', 'buyAmount4', 'buyAmount5', 'buyAmount7', 'buyAmount10'];
+
+        targets.forEach((targetReturn, index) => {
+            const buyAmount = calculateBuyAmount(costBasis, currentProfit, targetReturn);
+            const el = document.getElementById(elementIds[index]);
+            if (el) {
+                if (buyAmount >= 0) {
+                    el.textContent = formatCurrency(Math.round(buyAmount));
+                    el.className = 'text-right py-3 font-mono';
+                } else if (targetReturn > 0 && currentProfit > 0) {
+                    // Should buy but formula gives negative - impossible scenario
+                    el.textContent = 'N/A';
+                    el.className = 'text-right py-3 font-mono text-[var(--fg-muted)]';
+                } else {
+                    // Negative buy amount means SELL - display negative value in red
+                    el.textContent = '-' + formatCurrency(Math.round(Math.abs(buyAmount)));
+                    el.className = 'text-right py-3 font-mono change-negative';
+                }
+            }
+        });
+
+        // Custom target return calculator - allow negative targets
+        const customTargetReturnInput = document.getElementById('customTargetReturnInput');
+        const customResultEl = document.getElementById('customBuyAmountResult');
+        if (customTargetReturnInput && customTargetReturnInput.value && customResultEl) {
+            const customTargetReturn = parseFloat(customTargetReturnInput.value) / 100; // Supports negative values
+            const customBuyAmount = calculateBuyAmount(costBasis, currentProfit, customTargetReturn);
+            if (customBuyAmount >= 0) {
+                customResultEl.textContent = formatCurrency(Math.round(customBuyAmount));
+                customResultEl.className = 'text-xl font-bold font-mono text-[var(--accent-primary)]';
+            } else if (customTargetReturn > 0 && currentProfit > 0) {
+                customResultEl.textContent = 'N/A';
+                customResultEl.className = 'text-xl font-bold font-mono text-[var(--fg-muted)]';
+            } else {
+                customResultEl.textContent = '-' + formatCurrency(Math.round(Math.abs(customBuyAmount)));
+                customResultEl.className = 'text-xl font-bold font-mono change-negative';
+            }
+        } else if (customResultEl) {
+            customResultEl.textContent = '--';
+            customResultEl.className = 'text-xl font-bold font-mono text-[var(--accent-primary)]';
+        }
+    }
+
+    function calculateBuyAmount(costBasis, currentProfit, targetReturn) {
+        // Generic formula: Buy Amount = (Profit ÷ Target Return) - Cost Basis
+        // Works for all scenarios: positive/negative profit, positive/negative target return
+        // Returns -1 for impossible scenarios (target return = 0 or no profit to achieve positive target when underwater)
+        if (targetReturn === 0) {
+            return -1; // Cannot divide by zero
+        }
+        return (currentProfit / targetReturn) - costBasis;
+    }
+
+    // Setup event listeners for the return target calculator
+    function setupReturnTargetCalculatorListeners() {
+        const costBasisInput = document.getElementById('costBasisInput');
+        const marketValueInput = document.getElementById('marketValueInput');
+        const customTargetReturnInput = document.getElementById('customTargetReturnInput');
+
+        if (costBasisInput) {
+            costBasisInput.addEventListener('input', calculateReturnTargetAmounts);
+        }
+        if (marketValueInput) {
+            marketValueInput.addEventListener('input', calculateReturnTargetAmounts);
+        }
+        if (customTargetReturnInput) {
+            customTargetReturnInput.addEventListener('input', calculateReturnTargetAmounts);
+        }
     }
 
     function renderConsolidatedBucketTable() {
@@ -2666,22 +3261,22 @@ ${text}`;
 
         [1, 2, 3, 0].forEach(b => {
             const current = (avanzaCurrent[b] * avanzaWeight) + (nordnetCurrent[b] * nordnetWeight);
-            const m1 = getBucketTargets(REBALANCING_MONTHS)[b][0]; // M1 is the same for both brokers
+            const selectedMonthTarget = getBucketTargets(REBALANCING_MONTHS)[b][currentRebalancingMonth - 1]; // Selected month target
             const finalTarget = (avanzaFinal[b] * avanzaWeight) + (nordnetFinal[b] * nordnetWeight);
             const info = bucketNames[b];
 
             totalCurrent += current;
-            totalM1 += m1;
+            totalM1 += selectedMonthTarget;
             totalFinal += finalTarget;
 
-            const deltaM1 = current - m1;
+            const deltaM1 = current - selectedMonthTarget;
             const deltaFinal = current - finalTarget;
 
             rows.push(`
                 <tr>
                     <td><span class="badge ${info.class}">B${b}</span> <span class="text-sm">${info.name.split('—')[1]?.trim() || info.name}</span></td>
                     <td class="text-right font-mono">${current.toFixed(1)}%</td>
-                    <td class="text-right font-mono highlight-col">${m1.toFixed(1)}%</td>
+                    <td class="text-right font-mono highlight-col">${selectedMonthTarget.toFixed(1)}%</td>
                     <td class="text-right font-mono highlight-col">${finalTarget.toFixed(1)}%</td>
                     <td class="text-right font-mono ${deltaM1 >= 0 ? 'change-positive' : 'change-negative'}">${deltaM1 >= 0 ? '+' : ''}${deltaM1.toFixed(1)}%</td>
                     <td class="text-right font-mono ${deltaFinal >= 0 ? 'change-positive' : 'change-negative'}">${deltaFinal >= 0 ? '+' : ''}${deltaFinal.toFixed(1)}%</td>
@@ -2756,7 +3351,7 @@ ${text}`;
         const nordnetFinal = calcFinalTargets('nordnet');
 
         const _bt = getBucketTargets(REBALANCING_MONTHS);
-        const getM1 = (b) => _bt[b] ? _bt[b][0] : 0;
+        const getSelectedMonthTarget = (b) => _bt[b] ? _bt[b][currentRebalancingMonth - 1] : 0;
 
         // Determine which buckets to show
         const bucketsToShow = [1, 2, 3];
@@ -2789,14 +3384,14 @@ ${text}`;
         // Build a single card with all bullet charts stacked vertically
         const bulletRows = bucketsToShow.map(b => {
             const meta = bucketMeta[b];
-            const m1 = getM1(b);
+            const monthTarget = getSelectedMonthTarget(b);
             const aC = avanzaCurrent[b];
             const nC = nordnetCurrent[b];
             const aT = avanzaFinal[b];
             const nT = nordnetFinal[b];
             const combined = (aC * avanzaWeight) + (nC * nordnetWeight);
             const combinedTarget = (aT * avanzaWeight) + (nT * nordnetWeight);
-            const scaleMax = Math.max(combined, m1, combinedTarget, 10) * 1.25;
+            const scaleMax = Math.max(combined, monthTarget, combinedTarget, 10) * 1.25;
             const delta = combined - combinedTarget;
             const deltaSign = delta >= 0 ? '+' : '';
             const deltaColor = Math.abs(delta) < 2 ? 'text-emerald-400' : (delta > 0 ? 'text-amber-400' : 'text-amber-400');
@@ -2815,10 +3410,10 @@ ${text}`;
                     </div>
                 </div>
                 <!-- Bullet chart -->
-                ${renderBullet(combined, m1, combinedTarget, meta.color, scaleMax)}
+                ${renderBullet(combined, monthTarget, combinedTarget, meta.color, scaleMax)}
                 <!-- Target legend -->
                 <div class="flex items-center gap-4 mt-1 text-[10px] text-[var(--fg-muted)]">
-                    <span>M1 <span class="font-mono" style="color:#fbbf24;">${m1.toFixed(1)}%</span></span>
+                    <span>${getMonthShortLabel(currentRebalancingMonth)} Target <span class="font-mono" style="color:#fbbf24;">${monthTarget.toFixed(1)}%</span></span>
                     <span>Final <span class="font-mono" style="color:#34d399;">${combinedTarget.toFixed(1)}%</span></span>
                 </div>
             </div>`;
@@ -2827,7 +3422,7 @@ ${text}`;
         // Global legend
         const legend = `<div class="flex items-center gap-6 mb-4 text-xs text-[var(--fg-muted)] px-1">
             <span class="flex items-center gap-1.5"><span style="display:inline-block;width:12px;height:6px;border-radius:3px;opacity:0.6;background:#94a3b8;"></span> Current allocation</span>
-            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#fbbf24;border-radius:1px;"></span> M1 Target</span>
+            <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#fbbf24;border-radius:1px;"></span> ${getMonthShortLabel(currentRebalancingMonth)} Target</span>
             <span class="flex items-center gap-1.5"><span style="display:inline-block;width:2px;height:10px;background:#34d399;border-radius:1px;"></span> Final Target</span>
         </div>`;
 
@@ -3644,12 +4239,27 @@ ${text}`;
 
     const PERF_LS_KEY = 'portfolioTracker_performance';
 
+    // --- DYNAMIC ASSET LIST FOR PERFORMANCE PARSING ---
+    function getKnownAssetNames() {
+      const names = new Set();
+      // From reference table (Avanza only — performance data comes from Avanza)
+      (classificationReference.avanza || []).forEach(r => names.add(r.name));
+      // From all snapshots (Avanza holdings)
+      snapshots.forEach(s => {
+        s.holdings.filter(h => h.brokerage === 'Avanza').forEach(h => names.add(h.name));
+      });
+      // Always include these as fallback
+      const fallback = ['Newmont', 'Range Resources', 'Cash'];
+      fallback.forEach(n => names.add(n));
+      return Array.from(names);
+    }
+
     // Parse Avanza performance PDF text
     function parseAvanzaPerformancePDFText(text) {
       // Helper: Parse Swedish number format (comma as decimal separator)
       const parseSwedishPercent = (str) => {
         if (!str) return null;
-        const cleaned = str.replace(/\s/g, '').replace(',', '.').replace('%', '');
+        const cleaned = str.replace(/[\u2212−]/g, '-').replace(/\s/g, '').replace(',', '.').replace('%', '');
         const val = parseFloat(cleaned);
         return isNaN(val) ? null : val;
       };
@@ -3659,42 +4269,103 @@ ${text}`;
 
       const assets = [];
 
-      // Known asset names to search for
-      const knownStocks = ['Newmont', 'Range Resources'];
-      const knownFunds = [
-        'AMF Företagsobligationsfond', 'AMF Räntefond Kort', 'AMF Räntefond Mix',
-        'Avanza Global', 'Avanza Ränta Kort', 'Avanza Zero',
-        'Pareto Räntefond A', 'SEB FRN Fond A'
-      ];
+      // DYNAMIC: Build asset list from reference table + snapshots
+      const allKnownNames = getKnownAssetNames();
 
-      // The PDF text has spaces between percentage values like:
-      // +9,42 %   −2,98 %   +3,32 %   +13,00 %   +155,39 %   +116,73 %   +79,64 %
-      // Pattern: 7 values per asset (1W, 1M, 3M, YTD, 1Y, 3Y, 5Y)
-      // We need to find asset name followed by a cluster of percentages
+      // Determine which assets are stocks vs funds based on reference table
+      const stockNames = new Set();
+      const fundNames = new Set();
+      allKnownNames.forEach(name => {
+        const cls = getClassificationFromReference(name, 'avanza');
+        if (cls.found) {
+          // Stocks typically have categories like Energy, Materials, etc.
+          const stockCategories = ['Energy', 'Materials', 'Financials', 'Industrials', 'Real Estate',
+            'Communication Services', 'Consumer Discretionary', 'Consumer Staples', 'Health Care',
+            'Information Technology', 'Utilities'];
+          if (stockCategories.includes(cls.category)) {
+            stockNames.add(name);
+          } else {
+            fundNames.add(name);
+          }
+        } else {
+          // Check snapshots to determine type
+          const inSnapshots = snapshots.flatMap(s => s.holdings)
+            .filter(h => h.brokerage === 'Avanza' && namesMatch(h.name, name));
+          if (inSnapshots.length > 0) {
+            const cat = inSnapshots[0].category || '';
+            if (['Energy', 'Materials'].includes(cat)) {
+              stockNames.add(name);
+            } else {
+              fundNames.add(name);
+            }
+          } else {
+            // Fallback: known stocks
+            if (['Newmont', 'Range Resources'].some(s => namesMatch(s, name))) {
+              stockNames.add(name);
+            } else {
+              fundNames.add(name);
+            }
+          }
+        }
+      });
 
-      // First extract stocks section (between "Aktier" and "Fonder")
-      let aktierSection = '';
-      let fonderSection = '';
-      const aktierIdx = text.indexOf('Aktier');
-      const fonderIdx = text.indexOf('Fonder');
+      // Merge all names for searching (we search full text, not sections)
+      const allNames = [...new Set([...stockNames, ...fundNames])];
+      const processedNames = new Set();
+      const assetMap = new Map(); // name -> {assetType, name, returns}
 
-      if (aktierIdx >= 0 && fonderIdx > aktierIdx) {
-        const afterFonder = text.substring(fonderIdx);
-        const endIdx = afterFonder.indexOf('Totalt värde') >= 0 ? afterFonder.indexOf('Totalt värde') : (afterFonder.indexOf('%') >= 0 ? afterFonder.indexOf('%') : afterFonder.length);
-        fonderSection = afterFonder.substring(0, endIdx);
-        aktierSection = text.substring(aktierIdx, fonderIdx);
-      }
+      // Helper: find the best fuzzy match for a name in the text
+      const fuzzyIndexOf = (haystack, needle) => {
+        // Exact match
+        const exactIdx = haystack.indexOf(needle);
+        if (exactIdx >= 0) return exactIdx;
 
-      // Parse stocks - look for stock name then find 7 percentage values after it
-      knownStocks.forEach(stockName => {
-        if (aktierSection.includes(stockName)) {
-          const idx = aktierSection.indexOf(stockName);
-          const afterName = aktierSection.substring(idx + stockName.length);
-          // Extract all percentages that follow (with spaces: "+9,42 %")
-          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
-          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
-          if (percentMatch && percentMatch.length >= 7) {
-            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
+        // Try finding the longest common prefix (handles truncated names like "AMF Företagsobligati...")
+        // Find where the name starts in the text by looking for significant substrings
+        const words = needle.split(/\s+/);
+        if (words.length >= 2) {
+          // Try matching with first word + start of second word
+          const prefix = words[0] + ' ' + words[1].substring(0, Math.max(3, words[1].length - 3));
+          const prefixIdx = haystack.indexOf(prefix);
+          if (prefixIdx >= 0) return prefixIdx;
+        }
+
+        // Try each word >= 5 chars as a search term
+        for (const word of words) {
+          if (word.length >= 5) {
+            const wordIdx = haystack.indexOf(word);
+            if (wordIdx >= 0) {
+              // Verify there's a percentage cluster nearby (within 200 chars)
+              const nearby = haystack.substring(wordIdx, wordIdx + 200);
+              if (/[+\u2212-]?\s*\d+,\d{2}\s*%/.test(nearby)) {
+                return wordIdx;
+              }
+            }
+          }
+        }
+
+        return -1;
+      };
+
+      // Pattern for 7 percentage values: handles both "+9,42 %" and "−2,98 %" (Unicode minus)
+      // Values may be separated by spaces or directly concatenated
+      const sevenPctPattern = /([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)[\s]*([+\u2212-]?\s*\d+,\d{2}\s*%)/;
+
+      // Search for each known asset name in the FULL text (not section-limited)
+      allNames.forEach(assetName => {
+        if (processedNames.has(assetName)) return;
+
+        const idx = fuzzyIndexOf(text, assetName);
+        if (idx < 0) return;
+
+        const afterName = text.substring(idx + 1); // +1 to avoid matching the name itself
+        const pctMatch = afterName.match(sevenPctPattern);
+        if (!pctMatch || pctMatch.length < 7) {
+          // Try alternate: just find 7 consecutive percentage values near the name
+          const nearby = text.substring(idx, idx + 400);
+          const allPcts = nearby.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
+          if (allPcts && allPcts.length >= 7) {
+            const values = allPcts.slice(0, 7).map(m => parseSwedishPercent(m));
             const returns = {};
             returns['1W'] = values[0];
             returns['1M'] = values[1];
@@ -3704,45 +4375,38 @@ ${text}`;
             returns['3Y'] = values[5];
             returns['5Y'] = values[6];
 
-            assets.push({
-              assetType: 'Stock',
-              name: stockName,
-              country: '',
-              holding: '',
+            const isStock = stockNames.has(assetName);
+            assetMap.set(assetName, {
+              assetType: isStock ? 'Stock' : 'Fund',
+              name: assetName,
               returns
             });
+            processedNames.add(assetName);
           }
+          return;
         }
+
+        const values = pctMatch.slice(0, 7).map(m => parseSwedishPercent(m));
+        const returns = {};
+        returns['1W'] = values[0];
+        returns['1M'] = values[1];
+        returns['3M'] = values[2];
+        // Skip index 3 (YTD/i år)
+        returns['1Y'] = values[4];
+        returns['3Y'] = values[5];
+        returns['5Y'] = values[6];
+
+        const isStock = stockNames.has(assetName);
+        assetMap.set(assetName, {
+          assetType: isStock ? 'Stock' : 'Fund',
+          name: assetName,
+          returns
+        });
+        processedNames.add(assetName);
       });
 
-      // Parse funds - each fund name is followed by percentages
-      knownFunds.forEach(fundName => {
-        if (fonderSection.includes(fundName)) {
-          const idx = fonderSection.indexOf(fundName);
-          const afterName = fonderSection.substring(idx + fundName.length);
-          // Extract all percentages - with spaces between value and %
-          // The minus sign in the PDF is the Unicode minus (U+2212), not hyphen
-          const percentMatch = afterName.match(/([+\u2212-]?\s*\d+,\d{2}\s*%)/g);
-          if (percentMatch && percentMatch.length >= 7) {
-            const values = percentMatch.slice(0, 7).map(m => parseSwedishPercent(m));
-            const returns = {};
-            returns['1W'] = values[0];
-            returns['1M'] = values[1];
-            returns['3M'] = values[2];
-            returns['1Y'] = values[4];
-            returns['3Y'] = values[5];
-            returns['5Y'] = values[6];
-
-            assets.push({
-              assetType: 'Fund',
-              name: fundName,
-              country: '',
-              holding: '',
-              returns
-            });
-          }
-        }
-      });
+      // Convert map to array
+      assetMap.forEach((asset) => assets.push(asset));
 
       if (assets.length === 0) return null;
 
@@ -3774,13 +4438,75 @@ ${text}`;
           savePerformanceData();
           renderPerformanceContent();
         } else {
-          // Show debug modal for PDF parsing issues
+          // Try AI fallback parser if regex parser found nothing
+          const apiKey = getApiKey();
+          if (apiKey) {
+            const aiData = await callAiForPerformanceExtraction(fullText, file.name);
+            if (aiData && aiData.assets && aiData.assets.length > 0) {
+              performanceData = aiData;
+              savePerformanceData();
+              renderPerformanceContent();
+              return;
+            }
+          }
+          // Show debug modal as last resort
           await showPerformancePdfDebugModal(fullText, file.name);
         }
       } catch (err) {
         console.error('Error parsing performance PDF:', err);
         alert('Failed to parse PDF: ' + err.message);
       }
+    }
+
+    async function callAiForPerformanceExtraction(text, filename) {
+      const apiKey = getApiKey();
+      const apiUrl = getApiUrl();
+      const allKnownNames = getKnownAssetNames();
+
+      const prompt = `Extract historical return data from this Avanza portfolio performance PDF.
+
+Return ONLY valid JSON with this EXACT format:
+{
+  "assets": [
+    {"assetType":"Stock","name":"Asset Name","returns":{"1W":1.23,"1M":4.56,"3M":-2.34,"1Y":12.34,"3Y":45.67,"5Y":89.01}}
+  ]
+}
+
+MANDATORY RULES:
+1. Look for these known asset names in the text: ${allKnownNames.join(', ')}
+2. assetType must be "Stock" for individual stocks, "Fund" for funds
+3. Returns are percentages. Look for numbers with "%" after each asset name
+4. The text has 7 percentage values per asset: 1W, 1M, 3M, YTD (skip this), 1Y, 3Y, 5Y
+5. The minus sign may appear as Unicode minus (U+2212) - use regular minus in JSON
+6. Return ONLY valid JSON. No markdown. No code blocks. No trailing commas.
+
+TEXT FROM ${filename}:
+${text.substring(0, 30000)}`;
+
+      try {
+        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey }, body: JSON.stringify({ model: getApiModel(), messages: [{ role: 'system', content: 'You are a precise data extraction assistant. Return ONLY valid JSON with asset performance data. No markdown. No code blocks.' }, { role: 'user', content: prompt }], temperature: 0.1, max_tokens: 4000 }) });
+        if (!response.ok) return null;
+        const result = await response.json();
+        let jsonStr = (result.choices?.[0]?.message?.content || '').trim();
+        if (!jsonStr) return null;
+
+        jsonStr = repairJsonString(jsonStr);
+        const parsed = attemptJsonParse(jsonStr);
+        if (parsed && parsed.assets && Array.isArray(parsed.assets)) {
+          // Add period metadata
+          parsed.periodKeys = ['1W', '1M', '3M', '1Y', '3Y', '5Y'];
+          parsed.periodLabels = ['1 Week', '1 Month', '3 Months', '1 Year', '3 Years', '5 Years'];
+          // Ensure all assets have the returns object
+          parsed.assets.forEach(a => {
+            if (!a.returns) a.returns = {};
+            parsed.periodKeys.forEach(k => {
+              if (a.returns[k] === undefined || a.returns[k] === null) a.returns[k] = null;
+            });
+          });
+          return parsed;
+        }
+        return null;
+      } catch (err) { console.error('AI performance extraction error:', err); return null; }
     }
 
     function showPerformancePdfDebugModal(text, filename) {
@@ -4047,6 +4773,11 @@ ${text}`;
 
       const { assets, periodKeys, periodLabels } = performanceData;
 
+      if (!assets || assets.length === 0) {
+        container.innerHTML = '<div class="flex items-center justify-center h-32 text-[var(--fg-muted)]"><p>No performance data available</p></div>';
+        return;
+      }
+
       // Find max absolute value for color scaling
       let maxAbs = 1;
       assets.forEach(a => {
@@ -4065,7 +4796,7 @@ ${text}`;
       html += '</tr>';
 
       assets.forEach(asset => {
-        html += `<tr><td class="text-sm font-medium pr-3 whitespace-nowrap">${asset.name} <span class="text-xs text-[var(--fg-muted)]">(${asset.country})</span></td>`;
+        html += `<tr><td class="text-sm font-medium pr-3 whitespace-nowrap">${asset.name}</td>`;
         periodKeys.forEach(key => {
           const val = asset.returns[key];
           if (val !== null && !isNaN(val)) {
@@ -4104,12 +4835,6 @@ ${text}`;
 
       const { assets, periodKeys } = performanceData;
 
-      const holdingBadges = {
-        'Köp': '<span class="badge badge-bucket-3">BUY</span>',
-        'Byt': '<span class="badge badge-bucket-2">SWITCH</span>',
-        'Sälj': '<span class="badge badge-sell">SELL</span>'
-      };
-
       let sorted = [...assets];
       if (perfSortKey) {
         sorted.sort((a, b) => {
@@ -4123,11 +4848,9 @@ ${text}`;
       }
 
       tbody.innerHTML = sorted.map(asset => {
-        const typeBadge = asset.assetType === 'Aktie'
+        const typeBadge = asset.assetType === 'Stock'
           ? '<span class="badge badge-bucket-1">STOCK</span>'
           : '<span class="badge badge-bucket-3">FUND</span>';
-
-        const holdingBadge = holdingBadges[asset.holding] || `<span class="badge badge-other">${asset.holding}</span>`;
 
         const returnCells = periodKeys.map(key => {
           const val = asset.returns[key];
@@ -4140,8 +4863,6 @@ ${text}`;
         return `<tr>
           <td>${typeBadge}</td>
           <td class="font-medium">${asset.name}</td>
-          <td>${asset.country}</td>
-          <td>${holdingBadge}</td>
           ${returnCells}
         </tr>`;
       }).join('');
@@ -4315,6 +5036,423 @@ ${text}`;
       } catch (e) { console.warn('localStorage load failed:', e); return false; }
     }
 
+    // --- AI HOLDINGS ANALYSIS ---
+    const AI_ANALYSIS_LS_KEY = 'portfolioTracker_aiAnalysis';
+    let aiAnalysisHistory = []; // { role: 'user'|'assistant', content: '...' }
+
+    function loadAiAnalysis() {
+      try {
+        const raw = localStorage.getItem(AI_ANALYSIS_LS_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          aiAnalysisHistory = data.history || [];
+          if (data.initialAnalysis) {
+            renderAiAnalysisContent(data.initialAnalysis, false);
+          }
+        }
+      } catch (e) { console.warn('Failed to load AI analysis:', e); }
+    }
+
+    function saveAiAnalysis() {
+      try {
+        const initialAnalysis = aiAnalysisHistory.find(m => m.role === 'assistant');
+        localStorage.setItem(AI_ANALYSIS_LS_KEY, JSON.stringify({
+          initialAnalysis: initialAnalysis ? initialAnalysis.content : null,
+          history: aiAnalysisHistory
+        }));
+      } catch (e) { console.warn('Failed to save AI analysis:', e); }
+    }
+
+    function simpleMarkdownToHtml(text) {
+      if (!text) return '';
+      let html = text
+        // Escape HTML
+        .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>')
+        // Headers
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        // Bold and italic
+        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Blockquotes
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        // Unordered lists
+        .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+        // Ordered lists
+        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+      // Wrap consecutive <li> in <ul>
+      html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+      // Paragraphs: wrap remaining lines
+      html = html.split('\n').map(line => {
+        if (line.startsWith('<h') || line.startsWith('<ul') || line.startsWith('<blockquote') || line.startsWith('<li') || line.trim() === '') return line;
+        return '<p>' + line + '</p>';
+      }).join('\n');
+      return html;
+    }
+
+    function buildPortfolioSummary() {
+      if (!currentSnapshot) return 'No portfolio data available.';
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      const holdings = getFilteredHoldings(effective);
+      holdings.forEach(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        if (cls.found) { h.category = cls.category; h.bucket = cls.bucket; }
+      });
+      holdings.sort((a, b) => b.value - a.value);
+
+      let summary = `## Portfolio Summary\n`;
+      summary += `- **Total Value:** ${formatCurrency(ft.totalValue)}\n`;
+      summary += `- **Number of Holdings:** ${holdings.length}\n`;
+      summary += `- **Nordnet Value:** ${formatCurrency(currentSnapshot.nordnetValue)} (${ft.totalValue > 0 ? ((currentSnapshot.nordnetValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
+      summary += `- **Avanza Value:** ${formatCurrency(currentSnapshot.avanzaValue)} (${ft.totalValue > 0 ? ((currentSnapshot.avanzaValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
+
+      // Bucket allocation
+      const bucketAlloc = { 1: 0, 2: 0, 3: 0, 0: 0 };
+      holdings.forEach(h => { bucketAlloc[h.bucket] = (bucketAlloc[h.bucket] || 0) + h.value; });
+      summary += `\n### Bucket Allocation\n`;
+      Object.keys(bucketAlloc).forEach(b => {
+        if (bucketAlloc[b] > 0) {
+          const pct = ft.totalValue > 0 ? ((bucketAlloc[b] / ft.totalValue) * 100).toFixed(1) : 0;
+          const bname = BUCKETS[b] ? BUCKETS[b].name : 'Unknown';
+          summary += `- **B${b} (${bname}):** ${formatCurrency(bucketAlloc[b])} (${pct}%)\n`;
+        }
+      });
+
+      // Rebalancing targets
+      summary += `\n### Target Allocation\n`;
+      ['avanza', 'nordnet'].forEach(broker => {
+        const targets = rebalancingTargets[broker];
+        if (targets) {
+          summary += `**${broker.charAt(0).toUpperCase() + broker.slice(1)}:**\n`;
+          targets.forEach(t => {
+            if (t.target > 0) summary += `- ${t.name}: ${t.target}%\n`;
+          });
+        }
+      });
+
+      // Individual holdings
+      summary += `\n### All Holdings\n`;
+      summary += `| Asset | Brokerage | Category | Bucket | Value (SEK) | % of Portfolio |\n`;
+      summary += `|-------|-----------|----------|--------|-------------|---------------|\n`;
+      holdings.forEach(h => {
+        const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
+        const bname = BUCKETS[h.bucket] ? BUCKETS[h.bucket].name : 'Unknown';
+        summary += `| ${h.name} | ${h.brokerage} | ${h.category || 'Unassigned'} | B${h.bucket} (${bname}) | ${Math.round(h.value).toLocaleString('sv-SE')} | ${pct}% |\n`;
+      });
+
+      // Performance links
+      const links = Object.entries(performanceLinks);
+      if (links.length > 0) {
+        summary += `\n### Performance Links\n`;
+        links.forEach(([key, url]) => summary += `- ${key.replace('|', ' (')})}: ${url}\n`);
+      }
+
+      // Performance data
+      if (performanceData && performanceData.assets) {
+        summary += `\n### Historical Performance\n`;
+        performanceData.assets.forEach(a => {
+          const rets = Object.entries(a.returns || {}).map(([k, v]) => `${k}: ${v !== null ? v + '%' : 'N/A'}`).join(', ');
+          summary += `- **${a.name}** (${a.assetType}): ${rets}\n`;
+        });
+      }
+
+      return summary;
+    }
+
+    function renderAiAnalysisContent(markdown, showFollowUp) {
+      const contentEl = document.getElementById('aiAnalysisContent');
+      const emptyEl = document.getElementById('aiAnalysisEmpty');
+      const followUpEl = document.getElementById('aiFollowUpSection');
+      if (!contentEl) return;
+
+      contentEl.innerHTML = simpleMarkdownToHtml(markdown);
+      contentEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      if (showFollowUp !== false) {
+        if (followUpEl) followUpEl.classList.remove('hidden');
+        const input = document.getElementById('aiFollowUpInput');
+        const btn = document.getElementById('aiFollowUpBtn');
+        if (input) input.disabled = false;
+        if (btn) btn.disabled = false;
+      }
+
+      renderAiChatHistory();
+    }
+
+    function renderAiChatHistory() {
+      const chatEl = document.getElementById('aiChatHistory');
+      if (!chatEl) return;
+      // Show only follow-up messages (skip the initial analysis pair)
+      const followUps = aiAnalysisHistory.slice(2);
+      if (followUps.length === 0) {
+        chatEl.innerHTML = '';
+        return;
+      }
+      chatEl.innerHTML = followUps.map(msg => {
+        if (msg.role === 'user') {
+          return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${msg.content}</div>`;
+        } else {
+          return `<div class="ai-chat-ai ai-markdown text-sm">${simpleMarkdownToHtml(msg.content)}</div>`;
+        }
+      }).join('');
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function analyzeHoldingsWithAI() {
+      if (!currentSnapshot) {
+        alert('Please load portfolio data first.');
+        return;
+      }
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        alert('Please configure your AI API key first. Click the "API" button in the header.');
+        showApiSettings();
+        return;
+      }
+
+      const btn = document.getElementById('aiAnalyzeBtn');
+      const btnText = document.getElementById('aiAnalyzeBtnText');
+      const spinner = document.getElementById('aiLoadingSpinner');
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.textContent = 'Analyzing...';
+      if (spinner) spinner.classList.remove('hidden');
+
+      try {
+        const portfolioSummary = buildPortfolioSummary();
+        const prompt = `You are a professional portfolio analyst. Analyze the following Swedish portfolio and provide actionable insights.
+
+${portfolioSummary}
+
+Please provide your analysis in the following sections using Markdown formatting:
+
+## 1. Portfolio Diversification Assessment
+Evaluate how well-diversified the portfolio is across asset classes, sectors, and geographies.
+
+## 2. Risk Analysis
+Identify concentration risks, sector exposure issues, and potential vulnerabilities.
+
+## 3. Allocation vs Targets
+Compare the current bucket allocation against the target allocation. Highlight significant gaps.
+
+## 4. Actionable Recommendations
+Provide 3-5 specific, actionable suggestions for rebalancing or improving the portfolio.
+
+## 5. Market Context
+Brief commentary on the overall asset mix and general positioning considerations.
+
+Be specific, reference actual holdings and numbers from the portfolio data. Use SEK for any currency references.`;
+
+        const response = await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: getApiModel(),
+            messages: [
+              { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data from the portfolio.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 4000
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API error: ${response.status} - ${errText.substring(0, 200)}`);
+        }
+
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content || 'No analysis could be generated.';
+
+        aiAnalysisHistory = [
+          { role: 'user', content: 'Analyze my portfolio holdings' },
+          { role: 'assistant', content: content }
+        ];
+        saveAiAnalysis();
+        renderAiAnalysisContent(content);
+
+      } catch (err) {
+        console.error('AI Holdings Analysis error:', err);
+        alert('AI Analysis failed: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = 'Re-Analyze Holdings';
+        if (spinner) spinner.classList.add('hidden');
+      }
+    }
+
+    async function askFollowUpQuestion() {
+      const input = document.getElementById('aiFollowUpInput');
+      const btn = document.getElementById('aiFollowUpBtn');
+      const question = input ? input.value.trim() : '';
+      if (!question) return;
+
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        alert('Please configure your AI API key first.');
+        showApiSettings();
+        return;
+      }
+
+      // Add user message to history
+      aiAnalysisHistory.push({ role: 'user', content: question });
+      if (input) input.value = '';
+      if (btn) btn.disabled = true;
+      if (input) input.disabled = true;
+
+      renderAiChatHistory();
+
+      try {
+        // Build conversation messages for context
+        const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data when relevant. Keep answers concise.' };
+        const contextMsg = { role: 'user', content: `Here is my portfolio summary for context:\n\n${buildPortfolioSummary()}` };
+        const contextReply = aiAnalysisHistory[1] ? { role: 'assistant', content: aiAnalysisHistory[1].content } : null;
+
+        const messages = [systemMsg, contextMsg];
+        if (contextReply) messages.push(contextReply);
+
+        // Add follow-up conversation (skip first pair which is the initial analysis)
+        const followUps = aiAnalysisHistory.slice(2);
+        // Only include last few exchanges to keep within token limits
+        const recentFollowUps = followUps.slice(-6);
+        messages.push(...recentFollowUps.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })));
+
+        const response = await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: getApiModel(),
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 2000
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content || 'No response could be generated.';
+
+        aiAnalysisHistory.push({ role: 'assistant', content: content });
+        saveAiAnalysis();
+        renderAiChatHistory();
+
+      } catch (err) {
+        console.error('AI Follow-up error:', err);
+        aiAnalysisHistory.push({ role: 'assistant', content: `*Error: ${err.message}*` });
+        renderAiChatHistory();
+      } finally {
+        if (btn) btn.disabled = false;
+        if (input) input.disabled = false;
+        if (input) input.focus();
+      }
+    }
+
+    // Handle Enter key in follow-up input
+    document.addEventListener('DOMContentLoaded', () => {
+      const followUpInput = document.getElementById('aiFollowUpInput');
+      if (followUpInput) {
+        followUpInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !followUpInput.disabled) {
+            e.preventDefault();
+            askFollowUpQuestion();
+          }
+        });
+      }
+    });
+
+    // --- ANALYTICS HOLDINGS WITH EXTERNAL LINKS ---
+    const PERF_LINK_LS_KEY = 'portfolioTracker_perfLinks';
+    let performanceLinks = {};
+
+    function loadPerformanceLinks() {
+      try {
+        const raw = localStorage.getItem(PERF_LINK_LS_KEY);
+        if (raw) performanceLinks = JSON.parse(raw);
+      } catch (e) { console.warn('Failed to load performance links:', e); }
+    }
+
+    function savePerformanceLinks() {
+      try {
+        localStorage.setItem(PERF_LINK_LS_KEY, JSON.stringify(performanceLinks));
+      } catch (e) { console.warn('Failed to save performance links:', e); }
+    }
+
+    function setPerformanceLink(name, brokerage) {
+      const key = `${name}|${brokerage}`;
+      const currentUrl = performanceLinks[key] || '';
+      const url = prompt(`Enter external performance link for "${name}" (${brokerage}):`, currentUrl);
+      if (url === null) return; // cancelled
+      if (url.trim()) {
+        performanceLinks[key] = url.trim();
+      } else {
+        delete performanceLinks[key];
+      }
+      savePerformanceLinks();
+      renderAnalyticsHoldings();
+    }
+
+    function renderAnalyticsHoldings() {
+      const tbody = document.getElementById('analyticsHoldingsTable');
+      if (!tbody || !currentSnapshot) return;
+
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      const holdings = getFilteredHoldings(effective);
+
+      // Classify each holding
+      holdings.forEach(h => {
+        const cls = getClassificationFromReference(h.name, h.brokerage);
+        if (cls.found) { h.category = cls.category; h.bucket = cls.bucket; }
+      });
+
+      holdings.sort((a, b) => b.value - a.value);
+
+      tbody.innerHTML = holdings.map(h => {
+        const bucketInfo = BUCKETS[h.bucket] || { name: 'Unknown', class: 'badge-other' };
+        const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
+        const key = `${h.name}|${h.brokerage}`;
+        const link = performanceLinks[key];
+        const escapedName = h.name.replace(/'/g, "\\'");
+
+        let linkCell;
+        if (link) {
+          linkCell = `<div class="flex items-center gap-2">
+            <a href="${link}" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-secondary)] hover:underline text-sm truncate max-w-[200px]" title="${link}">${link.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</a>
+            <button onclick="setPerformanceLink('${escapedName}','${h.brokerage}')" class="text-[var(--fg-muted)] hover:text-[var(--fg-primary)] flex-shrink-0" title="Edit link">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+          </div>`;
+        } else {
+          linkCell = `<button onclick="setPerformanceLink('${escapedName}','${h.brokerage}')" class="flex items-center gap-1.5 text-[var(--fg-muted)] hover:text-[var(--accent-secondary)] text-sm" title="Add performance link">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+            <span>Add link</span>
+          </button>`;
+        }
+
+        return `<tr>
+          <td class="font-medium">${h.name}</td>
+          <td>${h.brokerage}</td>
+          <td><span class="badge" style="background: ${(categoryColors[h.category] || {bg:'rgba(148,163,184,0.15)'}).bg}; color: ${(categoryColors[h.category] || {text:'#94a3b8'}).text}">${h.category || 'Unassigned'}</span></td>
+          <td><span class="badge ${bucketInfo.class}">B${h.bucket}</span></td>
+          <td class="text-right font-mono">${formatCurrency(h.value)}</td>
+          <td class="text-right font-mono">${pct}%</td>
+          <td>${linkCell}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Load performance links on startup
+    loadPerformanceLinks();
+
     // --- PWA REGISTRATION ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -4326,7 +5464,8 @@ ${text}`;
     const _origSwitchTab = switchTab;
     switchTab = function(tabId) {
       _origSwitchTab(tabId);
-      if (tabId === 'analytics') { renderPerformanceContent(); }
+      if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); }
+      if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
     };
 
     // Override data loading to auto-save
@@ -4345,14 +5484,20 @@ ${text}`;
       loadReferenceTable(); // Load reference table on startup
       loadRebalancingTargets(); // Load custom rebalancing targets
       loadRebalancingDuration(); // Load rebalancing duration
+      loadRebalancingMonth(); // Load selected rebalancing month
       loadTargetSettings(); // Load target return tracker settings
+      loadRetirementData(); // Load retirement data early so it's available when tab opens
       // Set duration input value
       const durInput = document.getElementById('rebalancingDurationInput');
       if (durInput) durInput.value = REBALANCING_MONTHS;
       // Update header text
       const headerEl = document.getElementById('rebalancingScheduleHeader');
       if (headerEl) headerEl.textContent = REBALANCING_MONTHS + '-Month Rebalancing Schedule';
-      if (loadFromLocalStorage()) showDashboard();
+        // Initialize month selector
+        updateMonthSelector();
+        // Update schedule table headers
+        updateScheduleTableHeaders();
+        if (loadFromLocalStorage()) showDashboard();
       setupPerformanceListeners();
       // Setup target tracker input listeners
       document.getElementById('yearStartValueInput')?.addEventListener('change', function() {
@@ -4584,6 +5729,318 @@ ${text}`;
       
       return ref.some(r => namesMatch(r.name, name));
     };
+
+    // --- RETIREMENT PLANNING ---
+    const RETIREMENT_LS_KEY = 'portfolioTracker_retirement';
+    let retirementData = { manualPortfolioValue: null, withdrawalRate: 0.047, yearOverrides: {} };
+    let pensionProjectionChart = null;
+
+    // External Pension Data (from minPension.se)
+    const PENSION_DATA = {
+      karin: {
+        name: 'Karin', birthYear: 1970,
+        allman: { capital: 3852188 },
+        privat: { capital: 216345 },
+        policies: [
+          { provider: 'Alecta', name: 'ITP2 Ålderspension', type: 'tjanstepension', capital: 1550000, minPensionMonthly: 9921, startAge: 65, durationYears: Infinity, status: 'active' },
+          { provider: 'Alecta', name: 'Optimal Pension ITPK', type: 'tjanstepension', capital: 145134, minPensionMonthly: 703, startAge: 65, durationYears: Infinity, status: 'active' },
+          { provider: 'Alecta', name: 'ITP1 Optimal (1)', type: 'tjanstepension', capital: 155508, minPensionMonthly: 878, startAge: 66, durationYears: Infinity, status: 'completed' },
+          { provider: 'Alecta', name: 'ITP1 Optimal (2)', type: 'tjanstepension', capital: 128426, minPensionMonthly: 725, startAge: 66, durationYears: Infinity, status: 'completed' },
+          { provider: 'KPA Pension', name: 'KAP-KL Livränta', type: 'tjanstepension', capital: 160000, minPensionMonthly: 1038, startAge: 65, durationYears: Infinity, status: 'completed' },
+          { provider: 'KPA Pension', name: 'KAP-KL/AKAP-KR', type: 'tjanstepension', capital: 197608, minPensionMonthly: 1086, startAge: 70, durationYears: Infinity, status: 'completed' },
+          { provider: 'SEB', name: 'Avtalspension ITPK (5 år)', type: 'tjanstepension', capital: 192465, minPensionMonthly: null, startAge: 65, durationYears: 5, status: 'completed' },
+          { provider: 'SEB', name: 'Avtalspension ITPK (liv)', type: 'tjanstepension', capital: 129375, minPensionMonthly: null, startAge: 65, durationYears: Infinity, status: 'completed' },
+          { provider: 'SEB', name: 'Avtalspension ITPK Entré', type: 'tjanstepension', capital: 52746, minPensionMonthly: null, startAge: 65, durationYears: Infinity, status: 'completed' },
+          { provider: 'Skandia', name: 'ITP Avtalspension', type: 'tjanstepension', capital: 42258, minPensionMonthly: 180, startAge: 65, durationYears: Infinity, status: 'completed' },
+          { provider: 'Skandia', name: 'Pensionsförsäkring (15 år)', type: 'tjanstepension', capital: 55819, minPensionMonthly: 390, startAge: 65, durationYears: 15, status: 'completed' },
+          { provider: 'Skandia', name: 'Tjänstepension (5 år)', type: 'tjanstepension', capital: 179709, minPensionMonthly: 3522, startAge: 65, durationYears: 5, status: 'completed' },
+          { provider: 'Skandia', name: 'Tjänstepension (10 år)', type: 'tjanstepension', capital: 503524, minPensionMonthly: 4997, startAge: 65, durationYears: 10, status: 'completed' }
+        ]
+      },
+      yann: {
+        name: 'Yann', birthYear: 1972,
+        allman: { capital: 3819909 },
+        privat: { capital: 0 },
+        policies: [
+          { provider: 'Various', name: 'Tjänstepension', type: 'tjanstepension', capital: 505484, minPensionMonthly: null, startAge: 65, durationYears: Infinity, status: 'completed' }
+        ]
+      }
+    };
+
+    function isPolicyActive(policy, age) {
+      if (age < policy.startAge) return false;
+      if (policy.durationYears === Infinity) return true;
+      return age < policy.startAge + policy.durationYears;
+    }
+
+    function getPolicyMonthly(policy, withdrawalRate) {
+      if (policy.minPensionMonthly) return policy.minPensionMonthly;
+      if (policy.durationYears !== Infinity && policy.durationYears > 0) {
+        return policy.capital / (policy.durationYears * 12);
+      }
+      return policy.capital * (withdrawalRate / 100) / 12;
+    }
+
+    function calculateAllmanMonthly(capital) {
+      const lifeExpectancy = 84;
+      const startAge = 65;
+      const years = Math.max(lifeExpectancy - startAge, 1);
+      return (capital / years) / 12;
+    }
+
+    function loadRetirementData() {
+      try {
+        const raw = localStorage.getItem(RETIREMENT_LS_KEY);
+        if (raw) { retirementData = JSON.parse(raw); }
+      } catch (e) { console.warn('Failed to load retirement data:', e); }
+    }
+
+    function saveRetirementData() {
+      try { localStorage.setItem(RETIREMENT_LS_KEY, JSON.stringify(retirementData)); }
+      catch (e) { console.warn('Failed to save retirement data:', e); }
+    }
+
+    function populateRetirementForm() {
+      const valueInput = document.getElementById('retirementTotalValueInput');
+      if (valueInput) {
+        if (retirementData.manualPortfolioValue) {
+          valueInput.value = Math.round(retirementData.manualPortfolioValue);
+        } else if (currentSnapshot) {
+          const effective = getEffectiveSnapshot(currentSnapshot);
+          const ft = calculateFilteredTotals(effective);
+          valueInput.value = Math.round(ft.totalValue);
+        }
+      }
+      // Restore saved default WR%, tax%, and growth rate
+      if (retirementData.defaultWR !== undefined) {
+        const wrInput = document.getElementById('retirementDefaultWR');
+        if (wrInput) wrInput.value = retirementData.defaultWR;
+      }
+      if (retirementData.defaultTax !== undefined) {
+        const taxInput = document.getElementById('retirementDefaultTax');
+        if (taxInput) taxInput.value = retirementData.defaultTax;
+      }
+      if (retirementData.growthRate !== undefined) {
+        const growthInput = document.getElementById('retirementGrowthRate');
+        if (growthInput) growthInput.value = retirementData.growthRate;
+      }
+      const portfolioValueInput = document.getElementById('retirementTotalValueInput');
+      if (portfolioValueInput) {
+        portfolioValueInput.addEventListener('input', updateRetirementTab);
+        portfolioValueInput.addEventListener('change', updateRetirementTab);
+      }
+      updateRetirementTab();
+    }
+
+    function getYearOverride(year) {
+      return retirementData.yearOverrides && retirementData.yearOverrides[year] 
+        ? retirementData.yearOverrides[year] : null;
+    }
+
+    function getYearWR(year) {
+      const o = getYearOverride(year);
+      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
+      return o && o.wr !== undefined ? o.wr : defWR;
+    }
+
+    function getYearTax(year) {
+      const o = getYearOverride(year);
+      const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
+      return o && o.tax !== undefined ? o.tax : defTax;
+    }
+
+    function applyDefaultWR(val) {
+      const wr = parseFloat(val) || 4.7;
+      document.getElementById('retirementDefaultWR').value = wr;
+      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
+      Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].wr = wr; });
+      saveRetirementData();
+      updateRetirementTab();
+    }
+
+    function applyDefaultTax(val) {
+      const tax = parseFloat(val) || 15;
+      document.getElementById('retirementDefaultTax').value = tax;
+      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
+      Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].tax = tax; });
+      saveRetirementData();
+      updateRetirementTab();
+    }
+
+    function setYearWR(year, val) {
+      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
+      if (!retirementData.yearOverrides[year]) retirementData.yearOverrides[year] = {};
+      retirementData.yearOverrides[year].wr = parseFloat(val) || 0;
+      saveRetirementData();
+      const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
+      renderRetirementChart(pv);
+      renderRetirementTable(pv);
+    }
+
+    function setYearTax(year, val) {
+      if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
+      if (!retirementData.yearOverrides[year]) retirementData.yearOverrides[year] = {};
+      retirementData.yearOverrides[year].tax = parseFloat(val) || 0;
+      saveRetirementData();
+      const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
+      renderRetirementChart(pv);
+      renderRetirementTable(pv);
+    }
+
+    function updateRetirementTab() {
+      const portfolioValue = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
+      retirementData.manualPortfolioValue = portfolioValue;
+      // Persist default WR%, tax%, and growth rate
+      const wrInput = document.getElementById('retirementDefaultWR');
+      if (wrInput) retirementData.defaultWR = parseFloat(wrInput.value) || 4.7;
+      const taxInput = document.getElementById('retirementDefaultTax');
+      if (taxInput) retirementData.defaultTax = parseFloat(taxInput.value) || 15;
+      const growthInput = document.getElementById('retirementGrowthRate');
+      if (growthInput) retirementData.growthRate = parseFloat(growthInput.value) || 5;
+      saveRetirementData();
+      renderRetirementChart(portfolioValue);
+      renderRetirementTable(portfolioValue);
+    }
+
+    // Helper: compute yearly retirement projection data with portfolio depletion
+    function computeRetirementProjection(portfolioValue) {
+      const karinBirthYear = 1970, yannBirthYear = 1972;
+      const startAge = 57;
+      const startYear = Math.min(startAge + karinBirthYear, startAge + yannBirthYear);
+      const endYear = 90 + Math.min(karinBirthYear, yannBirthYear);
+      const PENSION_TAX = 0.30;
+      const growthRate = parseFloat(document.getElementById('retirementGrowthRate').value) || 5;
+      const projection = [];
+      let currentPortfolio = portfolioValue;
+
+      for (let year = startYear; year <= endYear; year++) {
+        const karinAge = year - karinBirthYear;
+        const yannAge = year - yannBirthYear;
+        const wrPct = getYearWR(year);
+        const taxPct = getYearTax(year);
+
+        let karinMonthly = 0;
+        if (karinAge >= 65) {
+          karinMonthly += calculateAllmanMonthly(PENSION_DATA.karin.allman.capital);
+          karinMonthly += PENSION_DATA.karin.privat.capital * 0.04 / 12;
+        }
+        PENSION_DATA.karin.policies.forEach(p => {
+          if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, 4);
+        });
+
+        let yannMonthly = 0;
+        if (yannAge >= 65) {
+          yannMonthly += calculateAllmanMonthly(PENSION_DATA.yann.allman.capital);
+        }
+        PENSION_DATA.yann.policies.forEach(p => {
+          if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, 4);
+        });
+
+        const portfolioStartOfYear = Math.max(currentPortfolio, 0);
+        const portfolioWRMonthly = portfolioStartOfYear > 0 ? portfolioStartOfYear * (wrPct / 100) / 12 : 0;
+        const wrTax = portfolioWRMonthly * (taxPct / 100);
+        const wrNet = portfolioWRMonthly - wrTax;
+        const combinedGross = karinMonthly + yannMonthly + portfolioWRMonthly;
+        const pensionNet = (karinMonthly + yannMonthly) * (1 - PENSION_TAX);
+        const combinedNet = pensionNet + wrNet;
+
+        projection.push({
+          year, karinAge, yannAge, karinMonthly, yannMonthly,
+          portfolioStartOfYear, wrPct, taxPct,
+          portfolioWRMonthly, wrTax, wrNet,
+          combinedGross, combinedNet
+        });
+
+        // Deplete portfolio: withdraw WR% then grow by growthRate
+        // P_next = P * (1 - WR%) * (1 + growth%)
+        if (currentPortfolio > 0) {
+          currentPortfolio = currentPortfolio * (1 - wrPct / 100) * (1 + growthRate / 100);
+          if (currentPortfolio < 0) currentPortfolio = 0;
+        }
+      }
+      return projection;
+    }
+
+    function renderRetirementChart(portfolioValue) {
+      const ctx = document.getElementById('pensionProjectionChart');
+      if (!ctx) return;
+      if (pensionProjectionChart) pensionProjectionChart.destroy();
+
+      const projection = computeRetirementProjection(portfolioValue);
+      const years = [], grossData = [], netData = [], karinData = [], yannData = [], portfolioData = [], portfolioValueData = [];
+
+      projection.forEach(p => {
+        years.push(p.year);
+        karinData.push(Math.round(p.karinMonthly));
+        yannData.push(Math.round(p.yannMonthly));
+        portfolioData.push(Math.round(p.portfolioWRMonthly));
+        portfolioValueData.push(Math.round(p.portfolioStartOfYear));
+        grossData.push(Math.round(p.combinedGross));
+        netData.push(Math.round(p.combinedNet));
+      });
+
+      pensionProjectionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: years,
+          datasets: [
+            { label: 'Combined Gross', data: grossData, borderColor: 'rgba(16,185,129,1)', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.1, borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
+            { label: 'Combined Net', data: netData, borderColor: 'rgba(6,182,212,1)', backgroundColor: 'rgba(6,182,212,0.08)', fill: true, tension: 0.1, borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
+            { label: 'Karin Pension', data: karinData, borderColor: 'rgba(52,211,153,0.7)', borderDash: [4,4], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
+            { label: 'Yann Pension', data: yannData, borderColor: 'rgba(34,211,238,0.7)', borderDash: [4,4], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
+            { label: 'Portfolio WR', data: portfolioData, borderColor: 'rgba(251,191,36,0.7)', borderDash: [6,3], tension: 0.1, borderWidth: 1.5, pointRadius: 0, fill: false, yAxisID: 'y' },
+            { label: 'Portfolio Value', data: portfolioValueData, borderColor: 'rgba(139,92,246,0.6)', borderDash: [2,2], tension: 0.1, borderWidth: 1, pointRadius: 0, fill: false, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans', size: 11 }, usePointStyle: true, pointStyle: 'circle' } },
+            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y > 0 ? ctx.parsed.y.toLocaleString('sv-SE') : '0') + (ctx.dataset.yAxisID === 'y1' ? ' kr' : ' kr/mån') } }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8', maxTicksLimit: 15 }, title: { display: true, text: 'Year', color: '#94a3b8' } },
+            y: { position: 'left', grid: { color: 'rgba(45,58,82,0.5)' }, ticks: { color: '#94a3b8', callback: v => (v/1000).toFixed(0) + 'k' }, title: { display: true, text: 'Monthly (SEK)', color: '#94a3b8' } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: 'rgba(139,92,246,0.6)', callback: v => (v/1e6).toFixed(1) + 'M' }, title: { display: true, text: 'Portfolio Value (SEK)', color: 'rgba(139,92,246,0.6)' } }
+          }
+        }
+      });
+    }
+
+    function renderRetirementTable(portfolioValue) {
+      const tbody = document.getElementById('retirementProjectionTable');
+      if (!tbody) return;
+
+      const projection = computeRetirementProjection(portfolioValue);
+      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
+      const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
+      let rows = '';
+
+      projection.forEach(p => {
+        const fmt = (v) => Math.round(v).toLocaleString('sv-SE');
+        const isDefaultWR = Math.abs(p.wrPct - defWR) < 0.01;
+        const isDefaultTax = Math.abs(p.taxPct - defTax) < 0.01;
+        const depleted = p.portfolioStartOfYear < portfolioValue * 0.1;
+        const pvStyle = depleted ? 'color:var(--accent-danger);' : 'color:var(--accent-secondary);';
+
+        rows += `<tr>
+          <td class="font-mono text-sm">${p.year}</td>
+          <td class="text-sm text-[var(--fg-muted)]">K${p.karinAge} / Y${p.yannAge}</td>
+          <td class="text-right font-mono text-sm">${fmt(p.karinMonthly)}</td>
+          <td class="text-right font-mono text-sm">${fmt(p.yannMonthly)}</td>
+          <td class="text-right font-mono text-sm" style="${pvStyle}">${fmt(p.portfolioStartOfYear)}</td>
+          <td class="text-right"><input type="number" value="${p.wrPct}" step="0.1" min="0" max="10" data-year="${p.year}" class="yr-wr-input" style="width:48px;background:${isDefaultWR?'transparent':'rgba(16,185,129,0.15)'};border:1px solid ${isDefaultWR?'transparent':'var(--accent-primary)'};border-radius:3px;padding:2px 4px;font-size:12px;font-family:'Space Grotesk',monospace;text-align:right;color:var(--accent-primary);outline:none;" onchange="setYearWR(${p.year},this.value)"></td>
+          <td class="text-right font-mono text-sm">${fmt(p.portfolioWRMonthly)}</td>
+          <td class="text-right"><input type="number" value="${p.taxPct}" step="1" min="0" max="50" data-year="${p.year}" class="yr-tax-input" style="width:42px;background:${isDefaultTax?'transparent':'rgba(245,158,11,0.15)'};border:1px solid ${isDefaultTax?'transparent':'var(--accent-warning)'};border-radius:3px;padding:2px 4px;font-size:12px;font-family:'Space Grotesk',monospace;text-align:right;color:var(--accent-warning);outline:none;" onchange="setYearTax(${p.year},this.value)"></td>
+          <td class="text-right font-mono text-sm" style="color:var(--accent-warning);">${fmt(p.wrTax)}</td>
+          <td class="text-right font-mono text-sm">${fmt(p.wrNet)}</td>
+          <td class="text-right font-mono text-sm font-semibold" style="color:var(--accent-primary);">${fmt(p.combinedGross)}</td>
+          <td class="text-right font-mono text-sm font-semibold" style="color:var(--accent-secondary);">${fmt(p.combinedNet)}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = rows;
+    }
 
     function loadDemoData() {
       const demoData1 = { 
