@@ -116,6 +116,17 @@
 
     .btn-secondary:hover { background: var(--border); }
 
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: default;
+      transition: all 0.2s ease;
+    }
+
     .table-container { overflow-x: auto; }
 
     table { width: 100%; border-collapse: collapse; }
@@ -305,6 +316,66 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     .perf-period-btn:hover:not(.active) { color: var(--fg-secondary); }
+
+    .perf-bucket-btn {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--fg-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .perf-bucket-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+      border-color: var(--accent-primary);
+    }
+    .perf-bucket-btn:hover:not(.active) { border-color: var(--fg-muted); }
+
+    .perf-sort-icon {
+      font-size: 10px;
+      margin-left: 2px;
+      opacity: 0.5;
+    }
+    .perf-sort-icon.active { opacity: 1; color: var(--accent-primary); }
+
+    .perf-tracked-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .perf-tracked-chip button {
+      background: none;
+      border: none;
+      color: var(--fg-muted);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .perf-tracked-chip button:hover { color: var(--accent-danger); }
+
+    .perf-bucket-badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .perf-bucket-badge.b1 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .perf-bucket-badge.b2 { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+    .perf-bucket-badge.b3 { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .perf-bucket-badge.b0 { background: rgba(148, 163, 184, 0.1); color: var(--fg-muted); }
 
     .exclude-checkbox {
       width: 18px;
@@ -691,6 +762,7 @@
           <button class="tab-btn" data-tab="evolution">Evolution</button>
           <button class="tab-btn" data-tab="comparison">Compare</button>
           <button class="tab-btn" data-tab="snapshots">Snapshots</button>
+          <button class="tab-btn" data-tab="live-prices">Performance</button>
           <button class="tab-btn" data-tab="analytics">Analytics</button>
           <button class="tab-btn" data-tab="retirement">Retirement</button>
         </div>
@@ -795,6 +867,129 @@
                 </thead>
                 <tbody id="holdingsTable"></tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Prices / Performance Tab -->
+        <div id="live-pricesTab" class="tab-panel hidden">
+          <div class="card animate-fade-in">
+            <div class="p-6 border-b border-[var(--border)]">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-lg font-semibold">Performance — Yahoo Finance</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">
+                    <span id="serverStatusDot" class="inline-block w-2 h-2 rounded-full mr-1.5" style="background:var(--fg-muted);"></span>
+                    <span id="serverStatusText" class="mr-3 text-[var(--fg-muted)]">Checking...</span>
+                    Track & rank holdings by performance, grouped by bucket
+                  </p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="startServer()" id="startServerBtn" class="btn-secondary flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Start Server
+                  </button>
+                  <button onclick="stopServer()" id="stopServerBtn" class="btn-secondary flex items-center gap-2 text-sm hidden" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                    Stop Server
+                  </button>
+                  <button onclick="fetchLivePrices()" id="fetchPricesBtn" class="btn-primary flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh Prices
+                  </button>
+                </div>
+              </div>
+              <!-- Manage Tracked Holdings -->
+              <div id="perfTrackedSection" class="mt-4 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg hidden">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                  <span class="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">Tracked Holdings</span>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <select id="perfAddHoldingSelect" class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded px-2 py-1 text-xs text-[var(--fg-primary)]">
+                      <option value="">— Add holding —</option>
+                    </select>
+                    <button onclick="addPerfTrackedHolding()" class="text-xs px-2 py-1 rounded bg-[var(--accent-primary)] text-white hover:opacity-80">+ Add</button>
+                    <span id="perfTrackedCount" class="text-xs text-[var(--fg-muted)]"></span>
+                  </div>
+                </div>
+                <div id="perfTrackedChips" class="flex flex-wrap gap-1.5 mt-2"></div>
+              </div>
+              <!-- Bucket Filter Buttons -->
+              <div id="perfBucketFilters" class="flex items-center gap-2 mt-4 hidden">
+                <span class="text-xs text-[var(--fg-muted)] mr-2">Bucket:</span>
+                <button class="perf-bucket-btn active" data-bucket="all" onclick="setPerfBucketFilter('all')">All</button>
+                <button class="perf-bucket-btn" data-bucket="1" onclick="setPerfBucketFilter('1')">B1 — Cash/Short</button>
+                <button class="perf-bucket-btn" data-bucket="2" onclick="setPerfBucketFilter('2')">B2 — Fixed Income</button>
+                <button class="perf-bucket-btn" data-bucket="3" onclick="setPerfBucketFilter('3')">B3 — Equity</button>
+              </div>
+              <div id="serverCommandBox" class="hidden mx-6 mb-4 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <span class="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">Server Start Command</span>
+                  <button onclick="copyServerCommand()" class="text-xs px-3 py-1 rounded bg-[var(--bg-card)] hover:bg-[var(--border)] transition-colors">📋 Copy</button>
+                </div>
+                <code id="serverCommandText" class="block text-sm break-all select-all p-2 rounded bg-[var(--bg-card)]" style="line-height:1.6;">cd "/Users/yannlemerle/Sync/Finance/Portfolio Tracker" && npm start</code>
+                <p class="text-xs text-[var(--fg-muted)] mt-2">Paste this command in a terminal, then wait a few seconds and click "Refresh Prices".</p>
+              </div>
+            </div>
+            <div id="livePricesContent" class="p-6">
+              <div id="livePricesIntro" class="text-center py-8">
+                <svg class="w-16 h-16 mx-auto mb-4 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                <h4 class="text-lg font-semibold mb-2">Fetch Live Prices</h4>
+                <p class="text-[var(--fg-muted)] mb-4 max-w-md mx-auto">Click "Refresh Prices" to get current market prices from Yahoo Finance for your tracked holdings</p>
+                <div class="text-xs text-[var(--fg-muted)] max-w-md mx-auto">
+                  <p class="font-semibold mb-1">Data Source:</p>
+                  <ul class="list-disc list-inside space-y-1 ml-2">
+                    <li>Yahoo Finance (all tracked holdings)</li>
+                  </ul>
+                </div>
+              </div>
+              <div id="livePricesTableContainer" class="hidden">
+                <div id="livePricesLoading" class="text-center py-8 hidden">
+                  <div class="animate-pulse text-[var(--fg-muted)]">
+                    <svg class="w-8 h-8 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p>Fetching prices...</p>
+                  </div>
+                </div>
+                <div id="livePricesError" class="text-center py-8 hidden">
+                  <svg class="w-12 h-12 mx-auto mb-3 text-[var(--accent-danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                  <p class="text-[var(--accent-danger)] font-semibold mb-2">Error Fetching Prices</p>
+                  <p id="livePricesErrorText" class="text-sm text-[var(--fg-muted)]"></p>
+                </div>
+                <div id="livePricesSuccess" class="hidden">
+                  <div class="mb-4 text-sm text-[var(--fg-muted)] flex items-center flex-wrap gap-4">
+                    <span>Last updated: <span id="livePricesTimestamp">--</span></span>
+                    <span>Prices from: <span id="livePricesSource" class="font-semibold">--</span></span>
+                    <span id="livePricesBucketFilterLabel" class="hidden text-xs bg-[var(--bg-elevated)] px-2 py-0.5 rounded-full"></span>
+                  </div>
+                  <div class="table-container scrollbar-thin">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="cursor:pointer;" onclick="sortPerfLiveTable('name')">Asset Name <span id="perfSortIcon_name"></span></th>
+                          <th>Symbol</th>
+                          <th>Bucket</th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('price')">Price <span id="perfSortIcon_price"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('dayChange')">Day Chg <span id="perfSortIcon_dayChange"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('ytd')">YTD <span id="perfSortIcon_ytd"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('oneMonth')">1M <span id="perfSortIcon_oneMonth"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('threeMonth')">3M <span id="perfSortIcon_threeMonth"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('oneYear')">1Y <span id="perfSortIcon_oneYear"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('threeYear')">3Y <span id="perfSortIcon_threeYear"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('fiveYear')">5Y <span id="perfSortIcon_fiveYear"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('tenYear')">10Y <span id="perfSortIcon_tenYear"></span></th>
+                        </tr>
+                      </thead>
+                      <tbody id="livePricesTable"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -996,6 +1191,7 @@
                       <th>Asset Name</th>
                       <th class="text-right">Current (SEK)</th>
                       <th class="text-right highlight-col" id="avanzaSekMonthHeader">M1 Target (SEK)</th>
+                      <th class="text-right">Δ Current → M1 (SEK)</th>
                       <th class="text-right highlight-col">Final Target (SEK)</th>
                     </tr>
                   </thead>
@@ -1016,6 +1212,7 @@
                       <th>Asset Name</th>
                       <th class="text-right">Current (SEK)</th>
                       <th class="text-right highlight-col" id="nordnetSekMonthHeader">M1 Target (SEK)</th>
+                      <th class="text-right">Δ Current → M1 (SEK)</th>
                       <th class="text-right highlight-col">Final Target (SEK)</th>
                     </tr>
                   </thead>
@@ -1271,22 +1468,22 @@
             <h4 class="text-sm font-semibold mb-2">Detailed Income Projection (SEK/month)</h4>
             <div class="table-container scrollbar-thin" style="max-height:480px;overflow-y:auto;">
               <table class="rebalance-table" style="min-width:100%;">
-                <thead>
-                  <tr>
-                    <th class="text-left">Year</th>
-                    <th class="text-left">Age</th>
-                    <th class="text-right">Karin Pension</th>
-                    <th class="text-right">Yann Pension</th>
-                    <th class="text-right" style="color:var(--accent-secondary);">Portfolio Value</th>
-                    <th class="text-right">WR%</th>
-                    <th class="text-right">Portfolio WR</th>
-                    <th class="text-right">Tax%</th>
-                    <th class="text-right" style="color:var(--accent-warning);">WR Tax</th>
-                    <th class="text-right">Portfolio WR Net</th>
-                    <th class="text-right" style="color:var(--accent-primary);">Combined Gross</th>
-                    <th class="text-right" style="color:var(--accent-secondary);">Combined Net</th>
-                  </tr>
-                </thead>
+                      <thead>
+                        <tr>
+                          <th>Asset Name</th>
+                          <th>Ticker</th>
+                          <th>Brokerage</th>
+                          <th class="text-right">Price</th>
+                          <th class="text-right">Day</th>
+                          <th class="text-right">YTD</th>
+                          <th class="text-right">1M</th>
+                          <th class="text-right">3M</th>
+                          <th class="text-right">1Y</th>
+                          <th class="text-right">3Y</th>
+                          <th class="text-right">5Y</th>
+                          <th class="text-right">10Y</th>
+                        </tr>
+                      </thead>
                 <tbody id="retirementProjectionTable"></tbody>
               </table>
             </div>
@@ -1321,7 +1518,7 @@
     const DEFAULT_CATEGORIES = [
         'Communication Services', 'Consumer Discretionary', 'Consumer Staples', 'Energy', 'Financials', 'Health Care', 'Industrials', 'Information Technology', 'Materials', 'Real Estate', 'Utilities', 'Global Index', 'Sweden Index',
         'Credit', 'Long Term Bond', 'Mix Term Bond',
-        'Precious Metals', 'Base Metals', 'Energy', 'Agriculture', 'Livestock',
+        'Commodity', 'Precious Metals', 'Base Metals', 'Energy', 'Agriculture', 'Livestock',
         'Cash', 'Corporate / Credit', 'Short Duration', 'Other', 'Unassigned'
     ];
 
@@ -1346,26 +1543,26 @@
     // Classification Reference Table (Editable)
     const DEFAULT_REFERENCE = {
       avanza: [
-        { name: 'AMF Företagsobligationsfond', category: 'Corporate / Credit', bucket: 2 },
-        { name: 'AMF Räntefond Kort', category: 'Short Duration', bucket: 1 },
-        { name: 'Avanza Ränta Kort', category: 'Short Duration', bucket: 1 },
-        { name: 'SEB FRN Fond A', category: 'Short Duration', bucket: 1 },
-        { name: 'Avanza Zero', category: 'Sweden Index', bucket: 3 },
-        { name: 'Pareto Räntefond A', category: 'Short Duration', bucket: 1 },
-        { name: 'AMF Räntefond Mix', category: 'Corporate / Credit', bucket: 2 },
-        { name: 'Range Resources', category: 'Energy', bucket: 3 },
-        { name: 'Avanza Global', category: 'Global Index', bucket: 3 },
-        { name: 'Newmont', category: 'Materials', bucket: 3 }
+        { name: 'AMF Företagsobligationsfond', symbol: '0P0001ED4A.ST', category: 'Corporate / Credit', bucket: 2 },
+        { name: 'AMF Räntefond Kort', symbol: '0P00000T7U.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'Avanza Ränta Kort', symbol: '', category: 'Short Duration', bucket: 1 },
+        { name: 'SEB FRN Fond A', symbol: '0P0001H70O.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'Avanza Zero', symbol: '0P00005U1J.ST', category: 'Sweden Index', bucket: 3 },
+        { name: 'Pareto Räntefond A', symbol: '0P00000F04.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'AMF Räntefond Mix', symbol: '0P0000V3HS.ST', category: 'Corporate / Credit', bucket: 2 },
+        { name: 'Range Resources', symbol: 'RRC', category: 'Energy', bucket: 3 },
+        { name: 'Avanza Global', symbol: '0P0001ECQR.ST', category: 'Global Index', bucket: 3 },
+        { name: 'Newmont', symbol: 'NEM', category: 'Materials', bucket: 3 }
       ],
       nordnet: [
-        { name: 'AMF Företagsobligationsfond', category: 'Corporate / Credit', bucket: 2 },
-        { name: 'AMF Räntefond Kort', category: 'Short Duration', bucket: 1 },
-        { name: 'SEB FRN Fond A', category: 'Short Duration', bucket: 1 },
-        { name: 'Spiltan Räntefond Sverige', category: 'Short Duration', bucket: 1 },
-        { name: 'Pareto Räntefond A', category: 'Short Duration', bucket: 1 },
-        { name: 'Nordnet Sverige Index', category: 'Sweden Index', bucket: 3 },
-        { name: 'Cash', category: 'Cash', bucket: 1 },
-        { name: 'Nordea Global Passive A Acc SEK', category: 'Global Index', bucket: 3 }
+        { name: 'AMF Företagsobligationsfond', symbol: '0P0001ED4A.ST', category: 'Corporate / Credit', bucket: 2 },
+        { name: 'AMF Räntefond Kort', symbol: '0P00000T7U.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'SEB FRN Fond A', symbol: '0P0001H70O.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'Spiltan Räntefond Sverige', symbol: '0P00009NT9.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'Pareto Räntefond A', symbol: '0P00000F04.ST', category: 'Short Duration', bucket: 1 },
+        { name: 'Nordnet Sverige Index', symbol: '0P0000J24W.ST', category: 'Sweden Index', bucket: 3 },
+        { name: 'Cash', symbol: '', category: 'Cash', bucket: 1 },
+        { name: 'Nordea Global Passive A Acc SEK', symbol: '0P0000XAIN.ST', category: 'Global Index', bucket: 3 }
       ]
     };
 
@@ -2022,7 +2219,9 @@
                 rebalancingTargets: rebalancingTargets,
                 excludedAssets: [...excludedAssets],
                 performanceData: performanceData,
-                retirementData: retirementData
+                retirementData: retirementData,
+                perfTrackedHoldings: perfTrackedHoldings,
+                perfLivePrices: perfLivePrices
             };
 
             const dataStr = JSON.stringify(exportBundle, null, 2);
@@ -2102,8 +2301,20 @@
                         saveRetirementData();
                     }
 
+                    // Restore tracked holdings for performance tab
+                    if (Array.isArray(bundle.perfTrackedHoldings)) {
+                        perfTrackedHoldings = bundle.perfTrackedHoldings;
+                        savePerfTrackedHoldings();
+                    }
+
+                    // Restore live prices for performance tab
+                    if (bundle.perfLivePrices && Array.isArray(bundle.perfLivePrices)) {
+                        perfLivePrices = bundle.perfLivePrices;
+                        savePerfLiveData();
+                    }
+
                     showDashboard();
-                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data.");
+                    alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data, tracked holdings, live prices.");
 
                 // Handle legacy array format (backward compatible)
                 } else if (Array.isArray(importedData)) {
@@ -2798,6 +3009,7 @@ ${text}`;
       else if (tabId === 'reference') renderReferenceTable();
       else if (tabId === 'snapshots') renderSnapshotsTab();
       else if (tabId === 'retirement') populateRetirementForm();
+      else if (tabId === 'va') renderVATab();
     }
 
     function renderSnapshotsTab() {
@@ -3051,11 +3263,14 @@ ${text}`;
             sumMonthTarget += monthSek;
             sumFinalTarget += finalSek;
 
+            const deltaSek = monthSek - currentSek;
+            const deltaClass = deltaSek < 0 ? 'text-red-400' : deltaSek > 0 ? 'text-emerald-400' : '';
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="font-medium">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
                 <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
                 <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(monthSek))}</td>
+                <td class="text-right font-mono ${deltaClass}">${deltaSek >= 0 ? '+' : ''}${formatCurrency(Math.round(deltaSek))}</td>
                 <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(finalSek))}</td>
             `;
             tbody.appendChild(row);
@@ -3071,23 +3286,27 @@ ${text}`;
                 const currentSek = (item.val / 100) * totalBrokerValue;
                 sumCurrent += currentSek;
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="font-medium text-[var(--fg-muted)]">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
-                    <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
-                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
-                    <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
-                `;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="font-medium text-[var(--fg-muted)]">${item.name} <span class="badge ${BUCKETS[item.bucket].class} ml-2">B${item.bucket}</span></td>
+                <td class="text-right font-mono">${formatCurrency(Math.round(currentSek))}</td>
+                <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+                <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+                <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            `;
                 tbody.appendChild(row);
             });
 
         // Sum row
+        const sumDelta = sumMonthTarget - sumCurrent;
+        const sumDeltaClass = sumDelta < 0 ? 'text-red-400' : sumDelta > 0 ? 'text-emerald-400' : '';
         const sumRow = document.createElement('tr');
         sumRow.className = 'sum-row';
         sumRow.innerHTML = `
             <td>TOTAL</td>
             <td class="text-right font-mono">${formatCurrency(Math.round(sumCurrent))}</td>
             <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumMonthTarget))}</td>
+            <td class="text-right font-mono ${sumDeltaClass}">${sumDelta >= 0 ? '+' : ''}${formatCurrency(Math.round(sumDelta))}</td>
             <td class="text-right font-mono highlight-col">${formatCurrency(Math.round(sumFinalTarget))}</td>
         `;
         tbody.appendChild(sumRow);
@@ -5466,6 +5685,19 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
       _origSwitchTab(tabId);
       if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); }
       if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
+      if (tabId === 'live-prices') {
+        checkServerStatus();
+        initPerfTrackedHoldings();
+        loadPerfLiveData();
+        if (perfLivePrices.length > 0) {
+          document.getElementById('livePricesIntro').classList.add('hidden');
+          document.getElementById('livePricesTableContainer').classList.remove('hidden');
+          document.getElementById('livePricesSuccess').classList.remove('hidden');
+          document.getElementById('livePricesTimestamp').textContent = localStorage.getItem(PERF_LIVE_LS_KEY) ? JSON.parse(localStorage.getItem(PERF_LIVE_LS_KEY)).timestamp : '--';
+          document.getElementById('livePricesSource').textContent = localStorage.getItem(PERF_LIVE_LS_KEY) ? JSON.parse(localStorage.getItem(PERF_LIVE_LS_KEY)).source : 'Yahoo Finance';
+          renderPerfLivePricesTable();
+        }
+      }
     };
 
     // Override data loading to auto-save
@@ -5540,7 +5772,7 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
 
       const renderSection = (broker, brokerLabel, assets) => {
         const rows = assets.map((asset, index) => `
-          <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
+          <div class="grid grid-cols-[40px_1fr_160px_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
             <div>
               <button onclick="deleteReferenceAsset('${broker}', ${index})" class="text-red-400 hover:text-red-300 p-1" title="Delete">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -5549,6 +5781,10 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
             <div>
               <input type="text" value="${asset.name}" onchange="updateReferenceAsset('${broker}', ${index}, 'name', this.value)" 
                 class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm focus:border-[var(--accent-primary)] outline-none">
+            </div>
+            <div>
+              <input type="text" value="${asset.symbol || ''}" placeholder="e.g. 0P0001Q7VH.ST" onchange="updateReferenceAsset('${broker}', ${index}, 'symbol', this.value)"
+                class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono focus:border-[var(--accent-primary)] outline-none" style="font-size:11px;">
             </div>
             <div>
               <select class="edit-select w-full" onchange="updateReferenceAsset('${broker}', ${index}, 'category', this.value)">
@@ -5566,8 +5802,8 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
         return `
           <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
             <h4 class="font-semibold mb-3 text-cyan-400">${brokerLabel} <span class="text-xs text-[var(--fg-muted)]">(${assets.length} assets)</span></h4>
-            <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
-              <div></div><div>Asset Name</div><div>Category</div><div>Bucket</div>
+            <div class="grid grid-cols-[40px_1fr_160px_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
+              <div></div><div>Asset Name</div><div>Symbol</div><div>Category</div><div>Bucket</div>
             </div>
             ${rows || '<div class="py-4 text-center text-[var(--fg-muted)]">No assets defined</div>'}
           </div>
@@ -5589,6 +5825,7 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
     function addNewAssetRow(broker) {
       const newAsset = {
         name: 'New Asset',
+        symbol: '',
         category: 'Other',
         bucket: 0
       };
@@ -6040,6 +6277,959 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
         </tr>`;
       });
       tbody.innerHTML = rows;
+    }
+
+    // ============================================================
+    // VALUE AVERAGING (VA) TAB
+    // ============================================================
+    const VA_LS_KEY = 'portfolioTracker_vaConfig';
+
+    function getVAConfig() {
+      const defaults = { duration: 18, annualReturn: 5, allowNegative: true };
+      try {
+        const raw = localStorage.getItem(VA_LS_KEY);
+        if (raw) return { ...defaults, ...JSON.parse(raw) };
+      } catch (e) { console.warn('Failed to load VA config:', e); }
+      return defaults;
+    }
+
+    function saveVAConfig() {
+      const config = {
+        duration: parseInt(document.getElementById('vaDuration').value) || 18,
+        annualReturn: parseFloat(document.getElementById('vaAnnualReturn').value) || 5,
+        allowNegative: document.getElementById('vaAllowNegative').checked
+      };
+      try { localStorage.setItem(VA_LS_KEY, JSON.stringify(config)); } catch (e) { console.warn('Failed to save VA config:', e); }
+    }
+
+    function applyVAConfig() {
+      const cfg = getVAConfig();
+      document.getElementById('vaDuration').value = cfg.duration;
+      document.getElementById('vaAnnualReturn').value = cfg.annualReturn;
+      document.getElementById('vaAllowNegative').checked = cfg.allowNegative;
+    }
+
+    function renderVATab() {
+      applyVAConfig();
+      if (!currentSnapshot) {
+        document.getElementById('vaCurrentTotal').textContent = 'No data';
+        return;
+      }
+      const cfg = getVAConfig();
+      const N = cfg.duration;
+      const r_annual = cfg.annualReturn / 100;
+      const r_monthly = Math.pow(1 + r_annual, 1 / 12) - 1; // monthly growth rate
+      const allowNeg = cfg.allowNegative;
+
+      // Current portfolio data
+      const effective = getEffectiveSnapshot(currentSnapshot);
+      const ft = calculateFilteredTotals(effective);
+      const currentTotal = ft.totalValue;
+      if (currentTotal <= 0) {
+        document.getElementById('vaCurrentTotal').textContent = '—';
+        return;
+      }
+
+      // Get final target allocation (SEK)
+      // We use the rebalancingTargets and scale them to the current portfolio value
+      // per broker, assuming final targets should sum to 100% of total portfolio
+      const targetMap = {}; // assetName -> { bucket, pct }
+      const brokerAssets = {}; // brokerage -> assetName -> currentSEK
+      ['avanza', 'nordnet'].forEach(b => {
+        const holdings = getFilteredHoldings(effective).filter(h => h.brokerage.toLowerCase() === b);
+        brokerAssets[b] = {};
+        holdings.forEach(h => { brokerAssets[b][h.name] = h.value; });
+      });
+
+      // Build combined final target % from both brokers' targets
+      // Scale each broker's targets by that broker's share of the portfolio
+      const avanzaWeight = ft.avanzaValue / currentTotal;
+      const nordnetWeight = ft.nordnetValue / currentTotal;
+
+      (rebalancingTargets.avanza || []).forEach(t => {
+        const pct = t.target * avanzaWeight;
+        if (pct > 0 || (brokerAssets.avanza && brokerAssets.avanza[t.name] > 0)) {
+          targetMap[t.name] = { bucket: t.bucket, pct: (targetMap[t.name]?.pct || 0) + pct, b: 'avanza', target: t.target * avanzaWeight };
+        }
+      });
+      (rebalancingTargets.nordnet || []).forEach(t => {
+        const pct = t.target * nordnetWeight;
+        if (pct > 0 || (brokerAssets.nordnet && brokerAssets.nordnet[t.name] > 0)) {
+          targetMap[t.name] = { bucket: t.bucket, pct: (targetMap[t.name]?.pct || 0) + pct, b: 'nordnet', target: pct };
+        }
+      });
+
+      // Current asset-level allocation (SEK)
+      const currentAssets = {};
+      Object.keys(brokerAssets).forEach(b => {
+        Object.keys(brokerAssets[b]).forEach(name => {
+          currentAssets[name] = (currentAssets[name] || 0) + brokerAssets[b][name];
+        });
+      });
+
+      // Also include assets that are in target but not in current (new purchases)
+      Object.keys(targetMap).forEach(name => {
+        if (!currentAssets[name]) currentAssets[name] = 0;
+      });
+
+      // Build the VA schedule
+      // For each month m (1..N):
+      //   Target portfolio value = currentTotal * (1 + r_monthly)^m
+      //   Projected holdings = previous holdings * (1 + r_monthly)  (growth of what we hold)
+      //   Deposit needed = target - projected
+      //   If allowNeg == false, deposit = max(0, deposit)
+      //   Allocate deposit across assets to move towards target allocation
+
+      // Current asset values are starting point
+      let assetValues = { ...currentAssets };
+      let totalPrev = currentTotal;
+      let totalDeposits = 0;
+
+      const schedule = [];
+      const allocationDeviations = []; // max deviation per month
+
+      for (let m = 1; m <= N; m++) {
+        const targetValue = currentTotal * Math.pow(1 + r_monthly, m);
+
+        // Grow existing holdings
+        let projectedValue = 0;
+        const projectedAssets = {};
+        Object.keys(assetValues).forEach(name => {
+          const grown = assetValues[name] * (1 + r_monthly);
+          projectedAssets[name] = grown;
+          projectedValue += grown;
+        });
+
+        // Deposit needed
+        let deposit = targetValue - projectedValue;
+
+        // Apply no-negative constraint
+        if (!allowNeg && deposit < 0) deposit = 0;
+
+        totalDeposits += deposit;
+
+        // Allocate deposit to assets to move towards target allocation
+        // Target SEK for each asset at this month = targetValue * (targetPct / 100)
+        // We linearly interpolate: at month m, target = start_pct + (final_pct - start_pct) * (m / N)
+        const finalAssetSEK = {};
+        Object.keys(targetMap).forEach(name => {
+          const currentPct = currentTotal > 0 ? (currentAssets[name] / currentTotal) * 100 : 0;
+          const targetPct = targetMap[name].pct || 0;
+          const interpolatedPct = currentPct + (targetPct - currentPct) * (m / N);
+          finalAssetSEK[name] = targetValue * (interpolatedPct / 100);
+        });
+        // Also project unscheduled assets (they stay at projected values)
+        Object.keys(projectedAssets).forEach(name => {
+          if (!finalAssetSEK[name]) {
+            finalAssetSEK[name] = projectedAssets[name];
+          }
+        });
+
+        // Compute deposit allocation: distribute deposit proportionally to close gaps
+        const gaps = {};
+        Object.keys(finalAssetSEK).forEach(name => {
+          const target = finalAssetSEK[name];
+          const projected = projectedAssets[name] || 0;
+          gaps[name] = target - projected;
+        });
+
+        const positiveGaps = Object.entries(gaps).filter(([_, g]) => g > 0);
+        const totalPositiveGap = positiveGaps.reduce((s, [_, g]) => s + g, 0);
+
+        // Resulting asset values after deposit
+        let allocatedTotal = 0;
+        let maxDev = 0;
+        const allocated = {};
+        Object.keys(projectedAssets).forEach(name => {
+          let val = projectedAssets[name];
+          if (deposit > 0 && totalPositiveGap > 0 && gaps[name] > 0) {
+            val += deposit * (gaps[name] / totalPositiveGap);
+          }
+          allocated[name] = val;
+          allocatedTotal += val;
+          // Calculate deviation from target allocation
+          const targetPct = targetMap[name] ? targetMap[name].pct : 0;
+          const actualPct = targetValue > 0 ? (val / targetValue) * 100 : 0;
+          const dev = Math.abs(actualPct - targetPct);
+          if (dev > maxDev) maxDev = dev;
+        });
+
+        allocationDeviations.push(maxDev);
+
+        // Handle unscheduled assets (new assets that appeared)
+        Object.keys(projectedAssets).forEach(name => {
+          if (allocated[name] === undefined) allocated[name] = projectedAssets[name];
+        });
+
+        // If deposit is negative (selling), reduce proportionally from assets with negative gaps
+        if (deposit < 0 && allowNeg) {
+          const negativeGaps = Object.entries(gaps).filter(([_, g]) => g < 0);
+          const totalNegativeGap = Math.abs(negativeGaps.reduce((s, [_, g]) => s + g, 0));
+          if (totalNegativeGap > 0) {
+            negativeGaps.forEach(([name, gap]) => {
+              const reduction = Math.abs(deposit) * (Math.abs(gap) / totalNegativeGap);
+              allocated[name] = (allocated[name] || 0) - reduction;
+              allocatedTotal -= reduction;
+            });
+          }
+        }
+
+        schedule.push({
+          month: m,
+          targetValue: Math.round(targetValue),
+          projectedValue: Math.round(projectedValue),
+          deposit: Math.round(deposit),
+          allocated: allocated,
+          allocatedTotal: Math.round(allocatedTotal),
+          gaps,
+          maxDev
+        });
+
+        assetValues = { ...allocated };
+        totalPrev = allocatedTotal;
+      }
+
+      // Render summary cards
+      const targetFinal = schedule[N - 1]?.targetValue || 0;
+      const finalAllocCheck = Math.abs(targetFinal - schedule[N - 1]?.allocatedTotal) < 1 ? '✅ Balanced' : '⚠️ Mismatch';
+
+      document.getElementById('vaCurrentTotal').textContent = formatCurrency(currentTotal);
+      document.getElementById('vaTargetFinal').textContent = formatCurrency(targetFinal);
+      document.getElementById('vaTotalInvestment').textContent = formatCurrency(Math.round(totalDeposits));
+      document.getElementById('vaAllocationCheck').textContent = finalAllocCheck;
+
+      // Render schedule table
+      const tbody = document.getElementById('vaScheduleBody');
+      tbody.innerHTML = schedule.map(s => {
+        const depClass = s.deposit > 0 ? 'deposit-positive' : s.deposit < 0 ? 'deposit-negative' : '';
+        const devClass = s.maxDev < 1 ? 'deviation-ok' : 'deviation-warning';
+        return `<tr>
+          <td class="py-2 pr-2 font-medium">M${s.month}</td>
+          <td class="py-2 px-2 font-mono">${formatCurrency(s.targetValue)}</td>
+          <td class="py-2 px-2 font-mono">${formatCurrency(s.projectedValue)}</td>
+          <td class="py-2 px-2 font-mono ${depClass}">${s.deposit >= 0 ? '+' : ''}${formatCurrency(s.deposit)}</td>
+          <td class="py-2 px-2 font-mono ${devClass}">${s.maxDev.toFixed(2)}%</td>
+          <td class="py-2 px-2 text-xs text-[var(--fg-muted)]">${s.maxDev < 1 ? '✅' : s.maxDev < 5 ? '⚠️' : '🔴'}</td>
+        </tr>`;
+      }).join('');
+
+      // Render per-broker breakdown tables
+      renderVABrokerTables(schedule, brokerAssets, targetMap);
+    }
+
+    function renderVABrokerTables(schedule, brokerAssets, targetMap) {
+      const container = document.getElementById('vaBrokerTablesContainer');
+      if (!container) return;
+
+      // Per broker: show the monthly schedule for each asset in that broker
+      const brokers = [
+        { key: 'avanza', label: 'Avanza' },
+        { key: 'nordnet', label: 'Nordnet' }
+      ];
+
+      container.innerHTML = brokers.map(b => {
+        // Get assets for this broker
+        const assets = Object.keys(brokerAssets[b.key] || {});
+        // Also include target-only assets for this broker
+        Object.keys(targetMap).forEach(name => {
+          if ((targetMap[name].b === b.key || (targetMap[name].b === 'avanza' && b.key === 'avanza')) && !assets.includes(name)) {
+            assets.push(name);
+          }
+        });
+
+        if (assets.length === 0) return '';
+
+        const headers = `<thead>
+          <tr class="text-left text-[var(--fg-muted)] border-b border-[var(--border)]">
+            <th class="py-2 pr-2 font-medium">Month</th>
+            ${assets.map(a => `<th class="py-2 px-1 font-medium text-xs text-right">${a.split(' ').length > 2 ? a.split(' ').slice(0,2).join(' ') : a}</th>`).join('')}
+          </tr>
+        </thead>`;
+
+        const body = schedule.map(s => {
+          const cells = assets.map(a => {
+            const val = s.allocated ? s.allocated[a] : 0;
+            if (val === undefined || val === 0) return `<td class="py-1 px-1 text-right font-mono text-xs text-[var(--fg-muted)]">—</td>`;
+            // Determine if this deposit was added this month
+            const prevAlloc = s.month > 1 ? (schedule[s.month - 2]?.allocated[a] || 0) : brokerAssets[b.key]?.[a] || 0;
+            const change = (val || 0) - prevAlloc;
+            const cls = change > 0 ? 'deposit-positive' : change < 0 ? 'deposit-negative' : '';
+            return `<td class="py-1 px-1 text-right font-mono text-xs ${cls}">${formatCurrency(Math.round(val))}</td>`;
+          }).join('');
+          return `<tr><td class="py-2 pr-2 font-medium text-sm">M${s.month}</td>${cells}</tr>`;
+        }).join('');
+
+        return `<div class="card overflow-hidden mb-4 animate-fade-in">
+          <div class="p-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+            <h4 class="font-semibold text-cyan-400">${b.label} — Monthly Asset Values (SEK)</h4>
+          </div>
+          <div class="table-container scrollbar-thin">
+            <table class="w-full text-sm">${headers}<tbody>${body}</tbody></table>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ============================================================
+    // LIVE PRICES TAB
+    // ============================================================
+    
+    // Fetch live prices for all holdings from the proxy server
+    // --- SERVER STATUS CHECK ---
+    let serverRunning = false;
+    let serverCheckInProgress = false;
+
+    // Performance tab state
+    const PERF_LIVE_LS_KEY = 'portfolioTracker_perfLiveData';
+    const PERF_TRACKED_LS_KEY = 'portfolioTracker_perfTracked';
+    let perfLivePrices = [];        // latest fetched price data from Yahoo
+    let perfTrackedHoldings = [];   // array of {name, brokerage} to track
+    let perfBucketFilter = 'all';   // 'all', '1', '2', or '3'
+    let perfLiveSortKey = 'ytd';
+    let perfLiveSortAsc = false;
+
+    function savePerfLiveData() {
+      try {
+        if (perfLivePrices.length > 0) {
+          localStorage.setItem(PERF_LIVE_LS_KEY, JSON.stringify({
+            prices: perfLivePrices,
+            timestamp: document.getElementById('livePricesTimestamp')?.textContent || new Date().toLocaleString(),
+            source: document.getElementById('livePricesSource')?.textContent || 'Yahoo Finance'
+          }));
+        }
+      } catch (e) { console.warn('Failed to save perf live data:', e); }
+    }
+
+    function loadPerfLiveData() {
+      try {
+        const raw = localStorage.getItem(PERF_LIVE_LS_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.prices && Array.isArray(data.prices) && data.prices.length > 0) {
+            perfLivePrices = data.prices;
+            return data;
+          }
+        }
+      } catch (e) { console.warn('Failed to load perf live data:', e); }
+      return null;
+    }
+
+    function savePerfTrackedHoldings() {
+      try {
+        localStorage.setItem(PERF_TRACKED_LS_KEY, JSON.stringify(perfTrackedHoldings));
+      } catch (e) { console.warn('Failed to save perf tracked:', e); }
+    }
+
+    function loadPerfTrackedHoldings() {
+      try {
+        const raw = localStorage.getItem(PERF_TRACKED_LS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) perfTrackedHoldings = parsed;
+        }
+      } catch (e) { console.warn('Failed to load perf tracked:', e); }
+    }
+
+    function initPerfTrackedHoldings() {
+      // If empty, pre-populate from reference table
+      if (perfTrackedHoldings.length === 0) {
+        const seen = new Set();
+        ['avanza', 'nordnet'].forEach(broker => {
+          (classificationReference[broker] || []).forEach(r => {
+            if (!seen.has(r.name)) {
+              seen.add(r.name);
+              perfTrackedHoldings.push({ name: r.name, brokerage: broker });
+            }
+          });
+        });
+        savePerfTrackedHoldings();
+      }
+    }
+
+    // --- Perf Tracked Holdings UI ---
+    function updatePerfTrackedUI() {
+      const section = document.getElementById('perfTrackedSection');
+      const countEl = document.getElementById('perfTrackedCount');
+      const select = document.getElementById('perfAddHoldingSelect');
+      const chipsContainer = document.getElementById('perfTrackedChips');
+      const bucketFilters = document.getElementById('perfBucketFilters');
+      const bucketFilterLabel = document.getElementById('livePricesBucketFilterLabel');
+
+      if (!section) return;
+
+      if (perfTrackedHoldings.length > 0) {
+        section.classList.remove('hidden');
+        bucketFilters?.classList.remove('hidden');
+      }
+
+      // Update count
+      if (countEl) countEl.textContent = `${perfTrackedHoldings.length} tracked`;
+
+      // Populate add select with available holdings from reference + snapshots
+      if (select) {
+        const allAvailable = [];
+        const seen = new Set();
+        // From reference table
+        ['avanza', 'nordnet'].forEach(broker => {
+          (classificationReference[broker] || []).forEach(r => {
+            if (!seen.has(r.name)) {
+              seen.add(r.name);
+              allAvailable.push({ name: r.name, brokerage: broker });
+            }
+          });
+        });
+        // From current snapshot if any
+        if (currentSnapshot) {
+          const effective = getEffectiveSnapshot(currentSnapshot);
+          (effective?.holdings || []).forEach(h => {
+            if (!seen.has(h.name)) {
+              seen.add(h.name);
+              allAvailable.push({ name: h.name, brokerage: h.brokerage });
+            }
+          });
+        }
+        // Filter out already tracked
+        const trackedKeys = new Set(perfTrackedHoldings.map(h => `${h.name}|${h.brokerage}`));
+        const available = allAvailable.filter(a => !trackedKeys.has(`${a.name}|${a.brokerage}`));
+        select.innerHTML = '<option value="">— Add holding —</option>' +
+          available.map(a => `<option value="${a.name}|${a.brokerage}">${a.name} (${a.brokerage})</option>`).join('');
+      }
+
+      // Render tracked chips
+      if (chipsContainer) {
+        chipsContainer.innerHTML = perfTrackedHoldings.map((h, idx) => `
+          <span class="perf-tracked-chip">
+            ${h.name}
+            <button onclick="removePerfTrackedHolding(${idx})" title="Remove">&times;</button>
+          </span>
+        `).join('');
+      }
+
+      // Update bucket filter label
+      if (bucketFilterLabel) {
+        if (perfBucketFilter !== 'all') {
+          const labels = { '1': 'B1 — Cash/Short', '2': 'B2 — Fixed Income', '3': 'B3 — Equity' };
+          bucketFilterLabel.textContent = 'Filter: ' + (labels[perfBucketFilter] || perfBucketFilter);
+          bucketFilterLabel.classList.remove('hidden');
+        } else {
+          bucketFilterLabel.classList.add('hidden');
+        }
+      }
+    }
+
+    function addPerfTrackedHolding() {
+      const select = document.getElementById('perfAddHoldingSelect');
+      if (!select || !select.value) return;
+      const [name, brokerage] = select.value.split('|');
+      if (name && brokerage) {
+        perfTrackedHoldings.push({ name, brokerage });
+        savePerfTrackedHoldings();
+        updatePerfTrackedUI();
+      }
+    }
+
+    function removePerfTrackedHolding(index) {
+      perfTrackedHoldings.splice(index, 1);
+      savePerfTrackedHoldings();
+      updatePerfTrackedUI();
+      // Re-render table if data exists
+      if (perfLivePrices.length > 0 && currentSnapshot) {
+        renderPerfLivePricesTable();
+      }
+    }
+
+    function setPerfBucketFilter(bucket) {
+      perfBucketFilter = bucket;
+      // Update button active states
+      document.querySelectorAll('.perf-bucket-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.bucket === bucket);
+      });
+      updatePerfTrackedUI();
+      if (perfLivePrices.length > 0 && currentSnapshot) {
+        renderPerfLivePricesTable();
+      }
+    }
+
+    function sortPerfLiveTable(key) {
+      if (perfLiveSortKey === key) {
+        perfLiveSortAsc = !perfLiveSortAsc;
+      } else {
+        perfLiveSortKey = key;
+        perfLiveSortAsc = (key === 'name' || key === 'price'); // ascending for name/price, descending for returns
+      }
+      renderPerfLivePricesTable();
+    }
+
+    // Helper: get bucket for a holding name
+    function getPerfAssetBucket(name) {
+      for (const brokerage of ['avanza', 'nordnet']) {
+        const ref = classificationReference[brokerage] || [];
+        const match = ref.find(r => namesMatch(r.name, name));
+        if (match) return match.bucket;
+      }
+      // Fallback: check from current snapshot
+      if (currentSnapshot) {
+        const h = currentSnapshot.holdings.find(hh => namesMatch(hh.name, name));
+        if (h) return h.bucket || 0;
+      }
+      return 0;
+    }
+
+    function renderPerfLivePricesTable() {
+      const tbody = document.getElementById('livePricesTable');
+      if (!tbody || perfLivePrices.length === 0) return;
+
+      // Build lookup map for prices
+      const priceMap = new Map(perfLivePrices.map(p => [p.name.toLowerCase(), p]));
+
+      // Build rows from tracked holdings
+      let rows = perfTrackedHoldings.map(th => {
+        const priceData = priceMap.get(th.name.toLowerCase());
+        const bucket = getPerfAssetBucket(th.name);
+
+        // Look up current symbol from classification reference table
+        let currentSymbol = '';
+        for (const broker of ['avanza', 'nordnet']) {
+          const ref = classificationReference[broker] || [];
+          const match = ref.find(r => namesMatch(r.name, th.name));
+          if (match && match.symbol) { currentSymbol = match.symbol; break; }
+        }
+
+        if (!priceData || !priceData.price) {
+          return {
+            name: th.name,
+            symbol: currentSymbol || priceData?.symbol || '—',
+            bucket,
+            price: null,
+            dayChange: null,
+            ytd: null,
+            oneMonth: null,
+            threeMonth: null,
+            oneYear: null,
+            threeYear: null,
+            fiveYear: null,
+            tenYear: null
+          };
+        }
+
+        const tr = priceData.trailingReturns || {};
+        return {
+          name: th.name,
+          symbol: currentSymbol || priceData.symbol || '—',
+          bucket,
+          price: priceData.price,
+          currency: priceData.currency || 'SEK',
+          dayChange: priceData.changePercent,
+          ytd: tr.ytd,
+          oneMonth: tr.oneMonth,
+          threeMonth: tr.threeMonth,
+          oneYear: tr.oneYear,
+          threeYear: tr.threeYear,
+          fiveYear: tr.fiveYear,
+          tenYear: tr.tenYear
+        };
+      });
+
+      // Also add any returned price data for holdings not in tracked list
+      const trackedKeys = new Set(perfTrackedHoldings.map(h => h.name.toLowerCase()));
+      perfLivePrices.forEach(p => {
+        if (!trackedKeys.has(p.name.toLowerCase())) {
+          const bucket = getPerfAssetBucket(p.name);
+          const tr = p.trailingReturns || {};
+          rows.push({
+            name: p.name,
+            symbol: p.symbol || '—',
+            bucket,
+            price: p.price,
+            currency: p.currency || 'SEK',
+            dayChange: p.changePercent,
+            ytd: tr.ytd,
+            oneMonth: tr.oneMonth,
+            threeMonth: tr.threeMonth,
+            oneYear: tr.oneYear,
+            threeYear: tr.threeYear,
+            fiveYear: tr.fiveYear,
+            tenYear: tr.tenYear
+          });
+        }
+      });
+
+      // Apply bucket filter
+      if (perfBucketFilter !== 'all') {
+        rows = rows.filter(r => r.bucket === parseInt(perfBucketFilter));
+      }
+
+      // Sort rows
+      rows.sort((a, b) => {
+        const va = a[perfLiveSortKey];
+        const vb = b[perfLiveSortKey];
+        if (va === null && vb === null) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        if (perfLiveSortKey === 'name') {
+          return perfLiveSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+        }
+        return perfLiveSortAsc ? va - vb : vb - va;
+      });
+
+      // Update sort icons
+      ['name', 'price', 'dayChange', 'ytd', 'oneMonth', 'threeMonth', 'oneYear', 'threeYear', 'fiveYear', 'tenYear'].forEach(k => {
+        const icon = document.getElementById('perfSortIcon_' + k);
+        if (icon) {
+          icon.textContent = perfLiveSortKey === k ? (perfLiveSortAsc ? ' ▲' : ' ▼') : '';
+          icon.className = 'perf-sort-icon' + (perfLiveSortKey === k ? ' active' : '');
+        }
+      });
+
+      // Render
+      tbody.innerHTML = rows.map(r => {
+        const bucketLabels = { 1: 'B1', 2: 'B2', 3: 'B3', 0: '—' };
+        const bucketBadge = `<span class="perf-bucket-badge b${r.bucket}">${bucketLabels[r.bucket] || '—'}</span>`;
+
+        if (r.price === null) {
+          return `<tr>
+            <td class="font-medium">${r.name}</td>
+            <td class="text-sm text-[var(--fg-muted)]">${r.symbol}</td>
+            <td>${bucketBadge}</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">N/A</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+          </tr>`;
+        }
+
+        const dayClass = r.dayChange !== null && r.dayChange >= 0 ? 'change-positive' : 'change-negative';
+        const dayStr = r.dayChange !== null ? `<span class="${dayClass}">${r.dayChange >= 0 ? '+' : ''}${r.dayChange.toFixed(2)}%</span>` : '<span class="text-[var(--fg-muted)]">—</span>';
+
+        const fmtR = (val) => {
+          if (val === null || val === undefined || isNaN(val)) return '<span class="text-[var(--fg-muted)]">—</span>';
+          const cls = val >= 0 ? 'change-positive' : 'change-negative';
+          return `<span class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(2)}%</span>`;
+        };
+
+        return `<tr>
+          <td class="font-medium">${r.name}</td>
+          <td class="text-sm text-[var(--fg-muted)]">${r.symbol}</td>
+          <td>${bucketBadge}</td>
+          <td class="text-right font-mono">${r.price.toFixed(2)} ${r.currency}</td>
+          <td class="text-right font-mono">${dayStr}</td>
+          <td class="text-right font-mono">${fmtR(r.ytd)}</td>
+          <td class="text-right font-mono">${fmtR(r.oneMonth)}</td>
+          <td class="text-right font-mono">${fmtR(r.threeMonth)}</td>
+          <td class="text-right font-mono">${fmtR(r.oneYear)}</td>
+          <td class="text-right font-mono">${fmtR(r.threeYear)}</td>
+          <td class="text-right font-mono">${fmtR(r.fiveYear)}</td>
+          <td class="text-right font-mono">${fmtR(r.tenYear)}</td>
+        </tr>`;
+      }).join('');
+
+      // Show the track section and bucket filters
+      document.getElementById('perfTrackedSection')?.classList.remove('hidden');
+      document.getElementById('perfBucketFilters')?.classList.remove('hidden');
+    }
+
+    function stopServer() {
+      // Try to call the shutdown endpoint
+      fetch('http://localhost:3000/api/shutdown', { method: 'POST', cache: 'no-store' })
+        .then(() => {})
+        .catch(() => {});
+      serverRunning = false;
+      updateServerStatusUI();
+    }
+
+    async function checkServerStatus() {
+      if (serverCheckInProgress) return;
+      serverCheckInProgress = true;
+      try {
+        const ctrl = new AbortController();
+        const timeout = setTimeout(() => ctrl.abort(), 2000);
+        const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+        clearTimeout(timeout);
+        serverRunning = resp.ok;
+      } catch(e) {
+        serverRunning = false;
+      }
+      serverCheckInProgress = false;
+      updateServerStatusUI();
+    }
+
+    function updateServerStatusUI() {
+      const dot = document.getElementById('serverStatusDot');
+      const text = document.getElementById('serverStatusText');
+      const btn = document.getElementById('startServerBtn');
+      const stopBtn = document.getElementById('stopServerBtn');
+      if (!dot || !text || !btn) return;
+      if (serverRunning) {
+        dot.style.background = '#22c55e'; // green
+        text.textContent = 'Server running ✅';
+        text.style.color = '#22c55e';
+        btn.textContent = '✓ Server Running';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-secondary');
+        btn.disabled = true;
+        if (stopBtn) stopBtn.classList.remove('hidden');
+      } else {
+        dot.style.background = '#ef4444'; // red
+        text.textContent = 'Server offline ❌';
+        text.style.color = '#ef4444';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Start Server`;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-secondary');
+        btn.disabled = false;
+        if (stopBtn) stopBtn.classList.add('hidden');
+      }
+    }
+
+    function startServer() {
+      const box = document.getElementById('serverCommandBox');
+      box.classList.remove('hidden');
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Auto-copy the command so user just needs to paste in terminal
+      const cmd = document.getElementById('serverCommandText').textContent;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const copyBtn = document.getElementById('serverCommandBox').querySelector('button');
+        if (copyBtn) {
+          copyBtn.textContent = '✓ Copied to clipboard!';
+          setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 3000);
+        }
+      }).catch(() => {});
+
+      // Start polling for server to come online
+      if (window._serverPollInterval) clearInterval(window._serverPollInterval);
+      window._serverPollInterval = setInterval(async () => {
+        try {
+          const ctrl = new AbortController();
+          const timeout = setTimeout(() => ctrl.abort(), 2000);
+          const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+          clearTimeout(timeout);
+          if (resp.ok) {
+            // Server is now running!
+            clearInterval(window._serverPollInterval);
+            window._serverPollInterval = null;
+            serverRunning = true;
+            updateServerStatusUI();
+            // Hide the command box now that server is detected
+            box.classList.add('hidden');
+            // Show a brief success notification
+            showServerStartedNotification();
+          }
+        } catch(e) {
+          // Server not ready yet, keep polling
+        }
+      }, 2000);
+      // Stop polling after 60 seconds
+      setTimeout(() => {
+        if (window._serverPollInterval) {
+          clearInterval(window._serverPollInterval);
+          window._serverPollInterval = null;
+        }
+        // Check one final time
+        checkServerStatus();
+      }, 60000);
+    }
+
+    function showServerStartedNotification() {
+      // Create a brief toast notification
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 right-4 z-50 bg-green-600/90 text-white px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-fade-in';
+      toast.style.cssText = 'position:fixed;top:5rem;right:1rem;z-index:100;';
+      toast.innerHTML = '✅ Server started! Prices are now available.';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s';
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+    }
+
+    function copyServerCommand() {
+      const cmd = document.getElementById('serverCommandText').textContent;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const copyBtn = event.target;
+        copyBtn.textContent = '✓ Copied!';
+        setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+      }).catch(() => {
+        // Fallback: select the text so user can manually copy
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('serverCommandText'));
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+      });
+    }
+
+    async function fetchLivePrices() {
+      // Ensure tracked holdings are initialized from reference table
+      if (perfTrackedHoldings.length === 0) {
+        initPerfTrackedHoldings();
+      }
+
+      if (perfTrackedHoldings.length === 0) {
+        alert('No holdings to fetch prices for. Add holdings in the Reference Table or via the "Tracked Holdings" section.');
+        return;
+      }
+
+      // Show loading state
+      document.getElementById('livePricesIntro').classList.add('hidden');
+      document.getElementById('livePricesTableContainer').classList.remove('hidden');
+      document.getElementById('livePricesLoading').classList.remove('hidden');
+      document.getElementById('livePricesSuccess').classList.add('hidden');
+      document.getElementById('livePricesError').classList.add('hidden');
+
+      const btn = document.getElementById('fetchPricesBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Fetching...';
+
+      try {
+        // Build list of unique assets from tracked holdings (reference table + manually added)
+        const seen = new Set();
+        const assetPayload = [];
+
+        perfTrackedHoldings.forEach(th => {
+          const key = th.name.toLowerCase();
+          if (seen.has(key)) return;
+          seen.add(key);
+
+          // Look up symbol from classification reference table
+          let symbol = '';
+          for (const broker of ['avanza', 'nordnet']) {
+            const ref = classificationReference[broker] || [];
+            const match = ref.find(r => namesMatch(r.name, th.name));
+            if (match && match.symbol) { symbol = match.symbol; break; }
+          }
+          // Skip holdings without a ticker — user must set symbol in Reference tab
+          if (!symbol) return;
+          assetPayload.push({ name: th.name, symbol });
+        });
+        
+        // Check if proxy server is running, otherwise show setup instructions
+        const proxyUrl = 'http://localhost:3000/api/prices';
+        
+        // First, try to fetch from proxy
+        const response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ assets: assetPayload })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.prices || !Array.isArray(data.prices)) {
+          throw new Error('Invalid response format from server');
+        }
+
+        // Store fetched prices globally and persist
+        perfLivePrices = data.prices;
+        savePerfLiveData();
+
+        // Initialize tracked holdings from assets if none set
+        initPerfTrackedHoldings();
+
+        // Render the results
+        renderPerfLivePricesTable();
+
+        // Update metadata
+        document.getElementById('livePricesTimestamp').textContent = new Date().toLocaleString();
+        document.getElementById('livePricesSource').textContent = data.source || 'Proxy Server';
+
+        // Show success state
+        document.getElementById('livePricesLoading').classList.add('hidden');
+        document.getElementById('livePricesSuccess').classList.remove('hidden');
+
+      } catch (err) {
+        console.error('Failed to fetch live prices:', err);
+        
+        // Show error state
+        document.getElementById('livePricesLoading').classList.add('hidden');
+        document.getElementById('livePricesError').classList.remove('hidden');
+        document.getElementById('livePricesErrorText').textContent = err.message;
+
+        // Check if it's a connection error (proxy not running)
+        if (err.message.includes('Failed to fetch') || err.message.includes('ECONNREFUSED')) {
+          document.getElementById('livePricesErrorText').innerHTML = 
+            'Proxy server not running. Start it with:<br><code class="text-xs">cd "/Users/yannlemerle/Sync/Finance/Portfolio Tracker" && npm install && npm start</code>';
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Refresh Prices';
+      }
+    }
+
+    // Helper: format a period return value for display
+    function fmtReturn(val) {
+      if (val === null || val === undefined || isNaN(val)) return '<span class="text-[var(--fg-muted)]">—</span>';
+      const cls = val >= 0 ? 'change-positive' : 'change-negative';
+      const sign = val >= 0 ? '+' : '';
+      return `<span class="${cls}">${sign}${val.toFixed(2)}%</span>`;
+    }
+
+    function renderLivePricesTable(prices, assets, snapshot) {
+      const tbody = document.getElementById('livePricesTable');
+      if (!tbody) return;
+
+      // Create a map for quick lookup
+      const priceMap = new Map(prices.map(p => [p.name.toLowerCase(), p]));
+
+      // Render table rows
+      tbody.innerHTML = assets.map(asset => {
+        const priceData = priceMap.get(asset.name.toLowerCase());
+
+        if (!priceData || !priceData.price) {
+          // No price data found
+          return `
+            <tr>
+              <td class="font-medium">${asset.name}</td>
+              <td class="text-sm text-[var(--fg-muted)]">${priceData?.symbol || '—'}</td>
+              <td>${asset.brokerage}</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">N/A</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+              <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+            </tr>
+          `;
+        }
+
+        const price = priceData.price;
+        const changePercent = priceData.changePercent;
+        const tr = priceData.trailingReturns || {};
+
+        // Day change
+        const dayClass = changePercent >= 0 ? 'change-positive' : 'change-negative';
+        const dayStr = changePercent !== null && changePercent !== undefined
+          ? `<span class="${dayClass}">${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%</span>`
+          : '<span class="text-[var(--fg-muted)]">—</span>';
+
+        return `
+          <tr>
+            <td class="font-medium">${asset.name}</td>
+            <td class="text-sm text-[var(--fg-muted)]">${priceData.symbol || '—'}</td>
+            <td>${asset.brokerage}</td>
+            <td class="text-right font-mono">${price.toFixed(2)} ${priceData.currency || 'SEK'}</td>
+            <td class="text-right font-mono">${dayStr}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.ytd)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.oneMonth)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.threeMonth)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.oneYear)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.threeYear)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.fiveYear)}</td>
+            <td class="text-right font-mono">${fmtReturn(tr.tenYear)}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function loadDemoData() {
