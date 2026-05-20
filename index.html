@@ -400,6 +400,46 @@
       gap: 8px;
     }
 
+    /* Momentum Table Styles */
+    .momentum-row-green td { background: rgba(34, 197, 94, 0.08); }
+    .momentum-row-green:hover td { background: rgba(34, 197, 94, 0.14) !important; }
+    .momentum-row-yellow td { background: rgba(250, 204, 21, 0.06); }
+    .momentum-row-yellow:hover td { background: rgba(250, 204, 21, 0.12) !important; }
+    .momentum-row-orange td { background: rgba(251, 146, 60, 0.06); }
+    .momentum-row-orange:hover td { background: rgba(251, 146, 60, 0.12) !important; }
+    .momentum-row-red td { background: rgba(239, 68, 68, 0.06); }
+    .momentum-row-red:hover td { background: rgba(239, 68, 68, 0.12) !important; }
+
+    .momentum-signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .momentum-signal-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .momentum-signal-yellow { background: rgba(250, 204, 21, 0.2); color: #facc15; }
+    .momentum-signal-orange { background: rgba(251, 146, 60, 0.2); color: #fb923c; }
+    .momentum-signal-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .momentum-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .momentum-rank-top { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .momentum-rank-mid { background: rgba(250, 204, 21, 0.15); color: #facc15; }
+    .momentum-rank-low { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+
     /* Snapshots Tab Styles */
     .snapshot-table th,
     .snapshot-table td {
@@ -989,6 +1029,53 @@
                     </table>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Momentum Analysis -->
+          <div id="momentumCard" class="card animate-fade-in mt-6 hidden">
+            <div class="p-6 border-b border-[var(--border)]">
+              <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 class="text-lg font-semibold">Momentum Analysis</h3>
+                  <p class="text-sm text-[var(--fg-muted)]">
+                    12-1 Month Momentum with 3M confirmation, ranked within each bucket
+                  </p>
+                </div>
+                <div class="flex items-center gap-4 text-xs text-[var(--fg-muted)] flex-wrap">
+                  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgba(34,197,94,0.4);"></span> Strong</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgba(250,204,21,0.4);"></span> Monitor</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgba(251,146,60,0.4);"></span> Weak</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgba(239,68,68,0.4);"></span> Avoid</span>
+                </div>
+              </div>
+              <div class="mt-3 p-3 bg-[var(--bg-elevated)] rounded-lg text-xs text-[var(--fg-muted)]">
+                <strong class="text-[var(--fg-secondary)]">Methodology:</strong>
+                12-1M Momentum = (1+1Y)/(1+1M) - 1 &nbsp;|&nbsp;
+                Composite Score = 70% × 12-1M + 30% × 3M &nbsp;|&nbsp;
+                Ranked within each bucket &nbsp;|&nbsp;
+                <em>No Green if 3M is negative</em>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="table-container scrollbar-thin">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Asset Name</th>
+                      <th>Bucket</th>
+                      <th class="text-right">1M</th>
+                      <th class="text-right">3M</th>
+                      <th class="text-right">1Y</th>
+                      <th class="text-right">12-1M Momentum</th>
+                      <th class="text-right">Composite Score</th>
+                      <th class="text-center">Bucket Rank</th>
+                      <th class="text-center">Signal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="momentumTableBody"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -6931,6 +7018,9 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
       // Show the track section and bucket filters
       document.getElementById('perfTrackedSection')?.classList.remove('hidden');
       document.getElementById('perfBucketFilters')?.classList.remove('hidden');
+
+      // Also render the momentum table
+      renderMomentumTable();
     }
 
     function stopServer() {
@@ -7162,6 +7252,160 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
         btn.disabled = false;
         btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Refresh Prices';
       }
+    }
+
+    // --- MOMENTUM TABLE ---
+    function renderMomentumTable() {
+      const tbody = document.getElementById('momentumTableBody');
+      const card = document.getElementById('momentumCard');
+      if (!tbody || perfLivePrices.length === 0) return;
+
+      const priceMap = new Map(perfLivePrices.map(p => [p.name.toLowerCase(), p]));
+
+      // Build momentum rows from tracked holdings
+      let rows = perfTrackedHoldings.map(th => {
+        const priceData = priceMap.get(th.name.toLowerCase());
+        const bucket = getPerfAssetBucket(th.name);
+        const tr = priceData?.trailingReturns || {};
+        const oneMonth = tr.oneMonth ?? null;
+        const threeMonth = tr.threeMonth ?? null;
+        const oneYear = tr.oneYear ?? null;
+
+        // 12-1M Momentum = (1+1Y)/(1+1M) - 1
+        let twelveMinusOne = null;
+        if (oneMonth !== null && oneYear !== null && (1 + oneMonth / 100) !== 0) {
+          twelveMinusOne = ((1 + oneYear / 100) / (1 + oneMonth / 100)) - 1;
+        }
+
+        // Composite Score = 70% * 12-1M + 30% * 3M
+        let compositeScore = null;
+        if (twelveMinusOne !== null && threeMonth !== null) {
+          compositeScore = 0.7 * twelveMinusOne + 0.3 * (threeMonth / 100);
+        }
+
+        return {
+          name: th.name,
+          bucket,
+          oneMonth,
+          threeMonth,
+          oneYear,
+          twelveMinusOne,
+          compositeScore,
+          signal: null,
+          rank: null
+        };
+      });
+
+      // Also add untracked prices
+      const trackedKeys = new Set(perfTrackedHoldings.map(h => h.name.toLowerCase()));
+      perfLivePrices.forEach(p => {
+        if (!trackedKeys.has(p.name.toLowerCase())) {
+          const bucket = getPerfAssetBucket(p.name);
+          const tr = p.trailingReturns || {};
+          const oneMonth = tr.oneMonth ?? null;
+          const threeMonth = tr.threeMonth ?? null;
+          const oneYear = tr.oneYear ?? null;
+          let twelveMinusOne = null;
+          if (oneMonth !== null && oneYear !== null && (1 + oneMonth / 100) !== 0) {
+            twelveMinusOne = ((1 + oneYear / 100) / (1 + oneMonth / 100)) - 1;
+          }
+          let compositeScore = null;
+          if (twelveMinusOne !== null && threeMonth !== null) {
+            compositeScore = 0.7 * twelveMinusOne + 0.3 * (threeMonth / 100);
+          }
+          rows.push({ name: p.name, bucket, oneMonth, threeMonth, oneYear, twelveMinusOne, compositeScore, signal: null, rank: null });
+        }
+      });
+
+      // Apply bucket filter
+      if (perfBucketFilter !== 'all') {
+        rows = rows.filter(r => r.bucket === parseInt(perfBucketFilter));
+      }
+
+      // Rank within each bucket
+      const bucketGroups = {};
+      rows.forEach(r => {
+        if (!bucketGroups[r.bucket]) bucketGroups[r.bucket] = [];
+        bucketGroups[r.bucket].push(r);
+      });
+
+      Object.values(bucketGroups).forEach(group => {
+        group.sort((a, b) => {
+          if (a.compositeScore === null && b.compositeScore === null) return 0;
+          if (a.compositeScore === null) return 1;
+          if (b.compositeScore === null) return -1;
+          return b.compositeScore - a.compositeScore;
+        });
+        group.forEach((r, idx) => { r.rank = idx + 1; });
+
+        const total = group.length;
+        group.forEach(r => {
+          const tm1 = r.twelveMinusOne;
+          const m3 = r.threeMonth !== null ? r.threeMonth / 100 : null;
+          const score = r.compositeScore;
+          const rank = r.rank;
+          const topTier = total >= 3 ? rank <= Math.ceil(total * 0.33) : rank === 1;
+
+          if (score === null || tm1 === null || m3 === null) {
+            r.signal = 'red';
+          } else if (score < 0 || (tm1 < 0 && m3 < 0)) {
+            r.signal = 'red';
+          } else if (m3 < 0) {
+            r.signal = 'orange';
+          } else if (topTier && tm1 > 0 && m3 > 0) {
+            r.signal = 'green';
+          } else if (score > 0 && m3 > 0) {
+            r.signal = 'yellow';
+          } else {
+            r.signal = 'orange';
+          }
+        });
+      });
+
+      // Sort by composite score descending
+      rows.sort((a, b) => {
+        if (a.compositeScore === null && b.compositeScore === null) return 0;
+        if (a.compositeScore === null) return 1;
+        if (b.compositeScore === null) return -1;
+        return b.compositeScore - a.compositeScore;
+      });
+
+      // Render
+      const fmtPct = (val) => {
+        if (val === null || val === undefined) return '<span class="text-[var(--fg-muted)]">—</span>';
+        const v = val;
+        const cls = v >= 0 ? 'change-positive' : 'change-negative';
+        return `<span class="${cls}">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+      };
+      const fmtDec = (val) => {
+        if (val === null || val === undefined) return '<span class="text-[var(--fg-muted)]">—</span>';
+        const cls = val >= 0 ? 'change-positive' : 'change-negative';
+        return `<span class="${cls}">${val >= 0 ? '+' : ''}${(val * 100).toFixed(2)}%</span>`;
+      };
+
+      const signalLabels = { green: '🟢 Strong', yellow: '🟡 Monitor', orange: '🟠 Weak', red: '🔴 Avoid' };
+      const bucketLabels = { 1: 'B1', 2: 'B2', 3: 'B3', 0: '—' };
+
+      tbody.innerHTML = rows.map(r => {
+        const bucketBadge = `<span class="perf-bucket-badge b${r.bucket}">${bucketLabels[r.bucket] || '—'}</span>`;
+        const sig = r.signal || 'red';
+        const rankClass = r.rank <= 2 ? 'momentum-rank-top' : r.rank <= 4 ? 'momentum-rank-mid' : 'momentum-rank-low';
+
+        return `<tr class="momentum-row-${sig}">
+          <td class="font-medium">${r.name}</td>
+          <td>${bucketBadge}</td>
+          <td class="text-right font-mono">${fmtPct(r.oneMonth)}</td>
+          <td class="text-right font-mono">${fmtPct(r.threeMonth)}</td>
+          <td class="text-right font-mono">${fmtPct(r.oneYear)}</td>
+          <td class="text-right font-mono font-semibold">${fmtDec(r.twelveMinusOne)}</td>
+          <td class="text-right font-mono font-semibold">${fmtDec(r.compositeScore)}</td>
+          <td class="text-center"><span class="momentum-rank ${rankClass}">${r.rank || '—'}</span></td>
+          <td class="text-center"><span class="momentum-signal momentum-signal-${sig}">${signalLabels[sig]}</span></td>
+        </tr>`;
+      }).join('');
+
+      // Show the card
+      if (card) card.classList.remove('hidden');
     }
 
     // Helper: format a period return value for display
