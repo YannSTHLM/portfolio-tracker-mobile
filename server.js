@@ -1,3 +1,5 @@
+"use strict";
+
 const express = require('express');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] });
@@ -347,23 +349,59 @@ app.post('/api/prices', async (req, res) => {
   }
 });
 
-// Also support GET for backward compatibility (legacy)
+// GET endpoint — accepts ticker or tickers query param, with optional name
 app.get('/api/prices', async (req, res) => {
   try {
-    const { holdings } = req.query;
-    const holdingsArray = holdings ? JSON.parse(decodeURIComponent(holdings)) : [];
+    const tickerParam = req.query.ticker;
+    const tickersParam = req.query.tickers;
+    const nameParam = req.query.name;
 
-    // Convert GET format to POST format
-    const assets = holdingsArray.map(h => ({ name: h.name }));
-    req.body = { assets };
+    const tickers = tickerParam
+      ? (Array.isArray(tickerParam) ? tickerParam : [tickerParam])
+      : (tickersParam ? tickersParam.split(',').map(t => t.trim()) : []);
 
-    // Re-handle as POST
-    return app._router.handle(
-      Object.assign({ method: 'POST', url: '/api/prices', body: { assets } }, req),
-      res,
-      () => {}
-    );
+    if (!tickers.length) {
+      return res.status(400).json({ error: 'ticker or tickers query param required' });
+    }
+
+    const results = [];
+    const timestamp = new Date().toISOString();
+
+    console.log(`\n📊 (GET) Fetching prices for ${tickers.length} ticker(s) from Yahoo Finance...`);
+
+    const tasks = tickers.map(async (raw, i) => {
+      const tickerSymbol = raw.trim().toUpperCase();
+      if (!tickerSymbol) return { ticker: raw, error: 'Empty ticker' };
+
+      // Check cache
+      const cached = priceCache.get(tickerSymbol);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`  ✓ ${tickerSymbol} (cached)`);
+        return cached.data;
+      }
+
+      try {
+        const priceData = await fetchYahooPrice(tickerSymbol, nameParam || tickerSymbol);
+        if (priceData) {
+          priceCache.set(tickerSymbol, { timestamp: Date.now(), data: priceData });
+          console.log(`  ✓ ${tickerSymbol}: ${priceData.price} ${priceData.currency}`);
+          return priceData;
+        }
+        return { ticker: tickerSymbol, error: 'Failed to fetch price' };
+      } catch (e) {
+        console.error(`  ✗ ${tickerSymbol}:`, e.message);
+        return { ticker: tickerSymbol, error: e.message };
+      }
+    });
+
+    const settled = await Promise.allSettled(tasks);
+    for (const r of settled) {
+      if (r.status === 'fulfilled') results.push(r.value);
+    }
+
+    res.json({ source: 'Yahoo Finance', timestamp, prices: results });
   } catch (error) {
+    console.error('GET /api/prices error:', error);
     res.status(500).json({ error: error.message });
   }
 });

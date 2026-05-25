@@ -1,8 +1,24 @@
-const CACHE_NAME = 'portfolio-tracker-v1';
+"use strict";
+
+const CACHE_NAME = 'portfolio-tracker-v2';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './css/styles.css',
+  './js/sections/00-core.js',
+  './js/sections/01-carryforward.js',
+  './js/sections/02-rebalancing.js',
+  './js/sections/03-import-export.js',
+  './js/sections/04-parsers.js',
+  './js/sections/05-api-dashboard.js',
+  './js/sections/06-editing-rebalance.js',
+  './js/sections/07-charts.js',
+  './js/sections/08-analytics.js',
+  './js/sections/09-ai-holdings.js',
+  './js/sections/10-retirement-prices.js',
+  './js/sections/11-momentum.js',
+  './js/sections/12-notes.js'
 ];
 
 // Install: cache core assets
