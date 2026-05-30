@@ -321,3 +321,25 @@ function toggleMobileActionDrawer() {
 registerHook('afterSwitchTab', function(tabName) {
   updateMobileNavActive(tabName);
 });
+
+// Auto-hide FAB on scroll down, show on scroll up
+(function() {
+  const fab = document.getElementById('fabNote');
+  if (!fab) return;
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY + 10 && currentScrollY > 200) {
+        fab.classList.add('fab-hidden');
+      } else if (currentScrollY < lastScrollY - 10) {
+        fab.classList.remove('fab-hidden');
+      }
+      lastScrollY = currentScrollY;
+      ticking = false;
+    });
+  }, { passive: true });
+})();

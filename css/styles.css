@@ -876,10 +876,34 @@ tr.excluded-row td {
 
 .mobile-bottom-nav .nav-item.active {
   color: var(--accent-primary);
+  position: relative;
+}
+.mobile-bottom-nav .nav-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--accent-primary);
+  border-radius: 0 0 3px 3px;
 }
 
 .mobile-bottom-nav .nav-item.more-active {
   color: var(--accent-primary);
+  position: relative;
+}
+.mobile-bottom-nav .nav-item.more-active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--accent-primary);
+  border-radius: 0 0 3px 3px;
 }
 
 .mobile-bottom-nav .nav-item:active {
@@ -956,8 +980,13 @@ tr.excluded-row td {
   position: fixed;
   inset: 0;
   z-index: 94;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6); /* Slightly darker fallback */
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+}
+/* Fallback for older Safari without backdrop-filter */
+@supports not (backdrop-filter: blur(4px)) {
+  .mobile-more-overlay { background: rgba(0,0,0,0.75); }
 }
 
 .mobile-more-overlay.visible {
@@ -990,8 +1019,12 @@ tr.excluded-row td {
   position: fixed;
   inset: 0;
   z-index: 99;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+}
+@supports not (backdrop-filter: blur(4px)) {
+  .mobile-action-drawer-overlay { background: rgba(0,0,0,0.75); }
 }
 
 .mobile-action-drawer-overlay.visible {
@@ -1055,6 +1088,12 @@ tr.excluded-row td {
   align-items: center;
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.fab-note.fab-hidden {
+  transform: translateY(80px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .fab-note:active {
@@ -1168,10 +1207,15 @@ tr.excluded-row td {
   /* Ensure chart canvas doesn't get cut off */
   canvas { max-width: 100%; }
 
+  /* Header: prevent overflow on sm-md screens */
+  header .max-w-7xl { overflow-x: auto; }
+  header .flex.items-center.gap-2 { flex-shrink: 0; }
+
   /* Upload zone: compact */
-  .upload-zone { padding: 24px 16px !important; }
-  .upload-zone h3 { font-size: 18px !important; }
-  .upload-zone .w-16 { width: 40px !important; height: 40px !important; }
+  .upload-zone { padding: 20px 16px !important; }
+  .upload-zone h3 { font-size: 16px !important; }
+  .upload-zone p { font-size: 13px !important; }
+  .upload-zone .w-16 { width: 36px !important; height: 36px !important; }
 
   /* Rebalancing grid: stack */
   .grid-cols-1.lg\:grid-cols-2 { grid-template-columns: 1fr !important; }
@@ -1242,11 +1286,23 @@ tr.excluded-row td {
   #referenceTab .flex.gap-2 { gap: 6px; }
 
   /* Note modal */
-  #noteModal .card { 
+  #noteModal .card {
     margin: 16px;
-    max-height: 80vh;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: fixed;
+    inset: 0;
+  }
+
+  /* Fix modals when keyboard is open (iOS) */
+  .fixed.inset-0 .card {
+    position: relative !important;
+    max-height: 85vh;
     overflow-y: auto;
   }
+
+  /* Server status: hide Start Server button on deployed version */
+  .server-controls { display: none !important; }
 }
 
 /* Extra small screens */
