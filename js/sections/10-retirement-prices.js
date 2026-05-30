@@ -5,6 +5,7 @@
 const RETIREMENT_LS_KEY = 'portfolioTracker_retirement';
 let retirementData = { manualPortfolioValue: null, withdrawalRate: CONFIG.DEFAULT_WITHDRAWAL_RATE, yearOverrides: {} };
 let pensionProjectionChart = null;
+let retirementListenersAttached = false;
 
 // External Pension Data (from minPension.se)
 const PENSION_DATA = {
@@ -95,10 +96,13 @@ function populateRetirementForm() {
     const growthInput = document.getElementById('retirementGrowthRate');
     if (growthInput) growthInput.value = retirementData.growthRate;
   }
-  const portfolioValueInput = document.getElementById('retirementTotalValueInput');
-  if (portfolioValueInput) {
-    portfolioValueInput.addEventListener('input', updateRetirementTab);
-    portfolioValueInput.addEventListener('change', updateRetirementTab);
+  if (!retirementListenersAttached) {
+    const portfolioValueInput = document.getElementById('retirementTotalValueInput');
+    if (portfolioValueInput) {
+      portfolioValueInput.addEventListener('input', updateRetirementTab);
+      portfolioValueInput.addEventListener('change', updateRetirementTab);
+    }
+    retirementListenersAttached = true;
   }
   updateRetirementTab();
 }
@@ -122,6 +126,9 @@ function getYearTax(year) {
 
 function applyDefaultWR(val) {
   const wr = parseFloat(val) || 4.7;
+  if (retirementData.yearOverrides && Object.keys(retirementData.yearOverrides).length > 0) {
+    if (!confirm('This will overwrite all per-year custom WR% overrides. Continue?')) return;
+  }
   document.getElementById('retirementDefaultWR').value = wr;
   if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
   Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].wr = wr; });
@@ -131,6 +138,9 @@ function applyDefaultWR(val) {
 
 function applyDefaultTax(val) {
   const tax = parseFloat(val) || 15;
+  if (retirementData.yearOverrides && Object.keys(retirementData.yearOverrides).length > 0) {
+    if (!confirm('This will overwrite all per-year custom Tax% overrides. Continue?')) return;
+  }
   document.getElementById('retirementDefaultTax').value = tax;
   if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
   Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].tax = tax; });
@@ -144,8 +154,9 @@ function setYearWR(year, val) {
   retirementData.yearOverrides[year].wr = parseFloat(val) || 0;
   saveRetirementData();
   const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-  renderRetirementChart(pv);
-  renderRetirementTable(pv);
+  const projection = computeRetirementProjection(pv);
+  renderRetirementChart(pv, projection);
+  renderRetirementTable(pv, projection);
 }
 
 function setYearTax(year, val) {
@@ -154,8 +165,9 @@ function setYearTax(year, val) {
   retirementData.yearOverrides[year].tax = parseFloat(val) || 0;
   saveRetirementData();
   const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-  renderRetirementChart(pv);
-  renderRetirementTable(pv);
+  const projection = computeRetirementProjection(pv);
+  renderRetirementChart(pv, projection);
+  renderRetirementTable(pv, projection);
 }
 
 function updateRetirementTab() {
@@ -169,8 +181,10 @@ function updateRetirementTab() {
   const growthInput = document.getElementById('retirementGrowthRate');
   if (growthInput) retirementData.growthRate = parseFloat(growthInput.value) || 5;
   saveRetirementData();
-  renderRetirementChart(portfolioValue);
-  renderRetirementTable(portfolioValue);
+  // Compute projection once and pass to both renderers (avoids double computation)
+  const projection = computeRetirementProjection(portfolioValue);
+  renderRetirementChart(portfolioValue, projection);
+  renderRetirementTable(portfolioValue, projection);
 }
 
 // Helper: compute yearly retirement projection data with portfolio depletion
@@ -193,10 +207,12 @@ function computeRetirementProjection(portfolioValue) {
     let karinMonthly = 0;
     if (karinAge >= 65) {
       karinMonthly += calculateAllmanMonthly(PENSION_DATA.karin.allman.capital);
-      karinMonthly += PENSION_DATA.karin.privat.capital * 0.04 / 12;
+      // Note: Uses default WR% for private pension amortization
+      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
+      karinMonthly += PENSION_DATA.karin.privat.capital * (defWR / 100) / 12;
     }
     PENSION_DATA.karin.policies.forEach(p => {
-      if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, 4);
+      if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, wrPct);
     });
 
     let yannMonthly = 0;
@@ -204,7 +220,7 @@ function computeRetirementProjection(portfolioValue) {
       yannMonthly += calculateAllmanMonthly(PENSION_DATA.yann.allman.capital);
     }
     PENSION_DATA.yann.policies.forEach(p => {
-      if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, 4);
+      if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, wrPct);
     });
 
     const portfolioStartOfYear = Math.max(currentPortfolio, 0);
@@ -232,12 +248,12 @@ function computeRetirementProjection(portfolioValue) {
   return projection;
 }
 
-function renderRetirementChart(portfolioValue) {
+function renderRetirementChart(portfolioValue, precomputedProjection) {
   const ctx = document.getElementById('pensionProjectionChart');
   if (!ctx) return;
   if (pensionProjectionChart) pensionProjectionChart.destroy();
 
-  const projection = computeRetirementProjection(portfolioValue);
+  const projection = precomputedProjection || computeRetirementProjection(portfolioValue);
   const years = [], grossData = [], netData = [], karinData = [], yannData = [], portfolioData = [], portfolioValueData = [];
 
   projection.forEach(p => {
@@ -279,11 +295,11 @@ function renderRetirementChart(portfolioValue) {
   });
 }
 
-function renderRetirementTable(portfolioValue) {
+function renderRetirementTable(portfolioValue, precomputedProjection) {
   const tbody = document.getElementById('retirementProjectionTable');
   if (!tbody) return;
 
-  const projection = computeRetirementProjection(portfolioValue);
+  const projection = precomputedProjection || computeRetirementProjection(portfolioValue);
   const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
   const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
   let rows = '';
@@ -547,6 +563,7 @@ function renderPerfLivePricesTable() {
         bucket,
         price: null,
         dayChange: null,
+        fiveDay: null,
         ytd: null,
         oneMonth: null,
         threeMonth: null,
@@ -557,7 +574,7 @@ function renderPerfLivePricesTable() {
       };
     }
 
-    const tr = priceData.trailingReturns || {};
+      const tr = priceData.trailingReturns || {};
     return {
       name: th.name,
       symbol: currentSymbol || priceData.symbol || '—',
@@ -565,6 +582,7 @@ function renderPerfLivePricesTable() {
       price: priceData.price,
       currency: priceData.currency || 'SEK',
       dayChange: priceData.changePercent,
+      fiveDay: tr.fiveDay,
       ytd: tr.ytd,
       oneMonth: tr.oneMonth,
       threeMonth: tr.threeMonth,
@@ -588,6 +606,7 @@ function renderPerfLivePricesTable() {
         price: p.price,
         currency: p.currency || 'SEK',
         dayChange: p.changePercent,
+        fiveDay: tr.fiveDay,
         ytd: tr.ytd,
         oneMonth: tr.oneMonth,
         threeMonth: tr.threeMonth,
@@ -618,7 +637,7 @@ function renderPerfLivePricesTable() {
   });
 
   // Update sort icons
-  ['name', 'price', 'dayChange', 'ytd', 'oneMonth', 'threeMonth', 'oneYear', 'threeYear', 'fiveYear', 'tenYear'].forEach(k => {
+  ['name', 'price', 'dayChange', 'fiveDay', 'ytd', 'oneMonth', 'threeMonth', 'oneYear', 'threeYear', 'fiveYear', 'tenYear'].forEach(k => {
     const icon = document.getElementById('perfSortIcon_' + k);
     if (icon) {
       icon.textContent = perfLiveSortKey === k ? (perfLiveSortAsc ? ' ▲' : ' ▼') : '';
@@ -645,6 +664,7 @@ function renderPerfLivePricesTable() {
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+        <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
       </tr>`;
     }
 
@@ -663,6 +683,7 @@ function renderPerfLivePricesTable() {
       <td>${bucketBadge}</td>
       <td class="text-right font-mono">${r.price.toFixed(2)} ${r.currency}</td>
       <td class="text-right font-mono">${dayStr}</td>
+      <td class="text-right font-mono">${fmtR(r.fiveDay)}</td>
       <td class="text-right font-mono">${fmtR(r.ytd)}</td>
       <td class="text-right font-mono">${fmtR(r.oneMonth)}</td>
       <td class="text-right font-mono">${fmtR(r.threeMonth)}</td>
@@ -679,6 +700,8 @@ function renderPerfLivePricesTable() {
 
   // Also render the momentum table
   renderMomentumTable();
+  // Also render the bucket analysis tables in Analytics tab
+  if (typeof renderBucketAnalysisTables === 'function') renderBucketAnalysisTables();
 
   // --- NEW PERFORMANCE FEATURES ---
   // Show search/filter bar
@@ -864,6 +887,16 @@ async function fetchLivePrices() {
         const ref = classificationReference[broker] || [];
         const match = ref.find(r => namesMatch(r.name, th.name));
         if (match && match.symbol) { symbol = match.symbol; break; }
+      }
+      // Fallback: known symbol mappings for common holdings
+      if (!symbol) {
+        const SYMBOL_FALLBACKS = {
+          'Xtrackers MSCI World ex USA UCITS ETF 1C': 'EXUS.L',
+          'Xtrackers MSCI World ex USA': 'EXUS.L'
+        };
+        for (const [key, sym] of Object.entries(SYMBOL_FALLBACKS)) {
+          if (namesMatch(key, th.name)) { symbol = sym; break; }
+        }
       }
       // Skip holdings without a ticker — user must set symbol in Reference tab
       if (!symbol) return;

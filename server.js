@@ -148,6 +148,8 @@ async function calculateReturnsFromChart(ticker) {
       return closest;
     }
 
+    const fiveDaysAgo = new Date(latestDate);
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 7); // 5 trading days ≈ 7 calendar days
     const ytdStart = new Date(latestDate.getFullYear(), 0, 1);
     const oneMonthAgo = new Date(latestDate);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -168,6 +170,7 @@ async function calculateReturnsFromChart(ticker) {
     }
 
     return {
+      fiveDay: calcReturn(findPriceAtDate(fiveDaysAgo)),
       ytd: calcReturn(findPriceAtDate(ytdStart)),
       oneMonth: calcReturn(findPriceAtDate(oneMonthAgo)),
       threeMonth: calcReturn(findPriceAtDate(threeMonthsAgo)),
@@ -178,6 +181,33 @@ async function calculateReturnsFromChart(ticker) {
     };
   } catch (e) {
     console.error(`      chart() failed for ${ticker}:`, e.message);
+    return null;
+  }
+}
+
+// Calculate 5-day return using daily chart data (more accurate than monthly for short-term)
+async function calculateFiveDayReturn(ticker) {
+  try {
+    const now = new Date();
+    const tenDaysAgo = new Date(now);
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 12); // 5 trading days ≈ 7-12 calendar days (account for weekends/holidays)
+
+    const result = await yahooFinance.chart(ticker, {
+      period1: tenDaysAgo.toISOString().split('T')[0],
+      period2: now.toISOString().split('T')[0],
+      interval: '1d'
+    });
+
+    const quotes = result?.quotes?.filter(q => q.close != null) || [];
+    if (quotes.length < 2) return null;
+
+    const latestPrice = quotes[quotes.length - 1].close;
+    // Use the 6th data point from the end (5 trading days back)
+    const fiveDaysBack = quotes.length >= 6 ? quotes[quotes.length - 6] : quotes[0];
+    if (!fiveDaysBack || fiveDaysBack.close == null || fiveDaysBack.close === 0) return null;
+
+    return ((latestPrice - fiveDaysBack.close) / fiveDaysBack.close) * 100;
+  } catch (e) {
     return null;
   }
 }
@@ -228,6 +258,18 @@ async function fetchYahooPrice(ticker, name) {
       if (trailingReturns) {
         console.log(`      trailingReturns from chart()`);
       }
+    }
+
+    // Step 4: Supplement fiveDay from daily chart if missing (quoteSummary doesn't provide it)
+    if (trailingReturns && (trailingReturns.fiveDay == null || isNaN(trailingReturns.fiveDay))) {
+      try {
+        const fiveDayReturn = await calculateFiveDayReturn(ticker);
+        if (fiveDayReturn != null) {
+          if (!trailingReturns) trailingReturns = {};
+          trailingReturns.fiveDay = fiveDayReturn;
+          console.log(`      fiveDay supplemented from daily chart()`);
+        }
+      } catch (e) { /* ignore */ }
     }
 
     return {

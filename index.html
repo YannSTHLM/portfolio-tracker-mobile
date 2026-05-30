@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2310b981'/><rect x='15' y='55' width='15' height='30' rx='3' fill='white'/><rect x='35' y='35' width='15' height='50' rx='3' fill='white'/><rect x='55' y='45' width='15' height='40' rx='3' fill='white'/><rect x='75' y='25' width='15' height='60' rx='3' fill='white'/></svg>">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a0f1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -888,6 +889,7 @@
           <div class="flex items-center gap-3">
             <span id="lastUpdated" class="text-sm text-[var(--fg-muted)] hidden md:block"></span>
 
+            <div class="desktop-header-actions flex items-center gap-3">
             <button onclick="openNoteModal()" class="btn-primary flex items-center gap-2 text-sm whitespace-nowrap" title="Quick Note">
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               <span class="hidden sm:inline">Note</span>
@@ -912,6 +914,12 @@
                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                <span class="hidden sm:inline">API</span>
              </button>
+            </div>
+
+            <!-- Mobile hamburger -->
+            <button class="hamburger-btn" onclick="toggleMobileActionDrawer()" aria-label="Menu">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -1563,6 +1571,7 @@
                           <th>Bucket</th>
                           <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('price')">Price <span id="perfSortIcon_price"></span></th>
                           <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('dayChange')">Day Chg <span id="perfSortIcon_dayChange"></span></th>
+                          <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('fiveDay')">1W <span id="perfSortIcon_fiveDay"></span></th>
                           <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('ytd')">YTD <span id="perfSortIcon_ytd"></span></th>
                           <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('oneMonth')">1M <span id="perfSortIcon_oneMonth"></span></th>
                           <th class="text-right" style="cursor:pointer;" onclick="sortPerfLiveTable('threeMonth')">3M <span id="perfSortIcon_threeMonth"></span></th>
@@ -1632,7 +1641,7 @@
               </div>
             </div>
             <div class="p-6">
-              <div id="momentumEvolutionChartContainer" class="relative" style="min-height:520px;">
+              <div id="momentumEvolutionChartContainer" class="relative" style="min-height:700px;">
                 <canvas id="momentumEvolutionChart"></canvas>
               </div>
               <p id="momentumEvolutionEmpty" class="text-center text-sm text-[var(--fg-muted)] py-10 hidden">
@@ -1675,65 +1684,253 @@
         </div>
         <!-- Analytics Tab -->
         <div id="analyticsTab" class="tab-panel hidden">
-              <!-- AI Holdings Analysis -->
-              <div id="aiAnalysisSection" class="mt-6 animate-fade-in">
-                <div class="card overflow-hidden">
-                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-2">
+              <!-- Bucket Momentum Analysis -->
+              <div id="bucketMomentumSection" class="mt-6 animate-fade-in">
+
+                <!-- How to Read Guide -->
+                <div class="card overflow-hidden mb-6">
+                  <button onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.chevron').classList.toggle('rotate-90')" class="w-full p-4 flex items-center justify-between text-left hover:bg-[var(--bg-hover)] transition-colors">
+                    <div class="flex items-center gap-2">
+                      <span class="text-lg">📖</span>
+                      <h3 class="text-lg font-semibold">How to Read the Momentum Acceleration Table</h3>
+                    </div>
+                    <svg class="chevron w-5 h-5 text-[var(--fg-muted)] transform -rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                  <div class="hidden px-4 pb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <!-- What It Measures -->
+                      <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 flex items-center gap-2"><span>📊</span> What It Measures</h4>
+                        <p class="text-[var(--fg-muted)] leading-relaxed">Each cell compares a <strong class="text-[var(--fg)]">shorter-term</strong> return against a <strong class="text-[var(--fg)]">longer-term</strong> return for the same asset. The difference (delta) tells you whether momentum is <strong class="text-[var(--fg)]">accelerating</strong> or <strong class="text-[var(--fg)]">decelerating</strong>.</p>
+                        <div class="mt-2 p-2 rounded bg-[var(--bg-primary)] font-mono text-xs text-[var(--fg-muted)]">
+                          Delta = Short-term return − Long-term return
+                        </div>
+                      </div>
+                      <!-- Signal Pairs -->
+                      <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 flex items-center gap-2"><span>⏱️</span> Signal Pairs (Short vs Long)</h4>
+                        <ul class="space-y-1.5 text-[var(--fg-muted)]">
+                          <li class="flex items-center gap-2"><span class="font-mono text-xs bg-[var(--bg-primary)] px-1.5 py-0.5 rounded">1W vs 1M</span> Micro momentum · Tactical (days → weeks)</li>
+                          <li class="flex items-center gap-2"><span class="font-mono text-xs bg-[var(--bg-primary)] px-1.5 py-0.5 rounded">1M vs 3M</span> Near-term trend · Tactical (weeks → quarter)</li>
+                          <li class="flex items-center gap-2"><span class="font-mono text-xs bg-[var(--bg-primary)] px-1.5 py-0.5 rounded">3M vs 1Y</span> Medium-term momentum · Strategic</li>
+                          <li class="flex items-center gap-2"><span class="font-mono text-xs bg-[var(--bg-primary)] px-1.5 py-0.5 rounded">1Y vs 3Y</span> Trend establishment · Structural</li>
+                          <li class="flex items-center gap-2"><span class="font-mono text-xs bg-[var(--bg-primary)] px-1.5 py-0.5 rounded">3Y vs 5Y</span> Long-term regime · Secular</li>
+                        </ul>
+                      </div>
+                      <!-- Color Coding -->
+                      <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 flex items-center gap-2"><span>🎨</span> Color Coding</h4>
+                        <div class="space-y-2">
+                          <div class="flex items-center gap-3 p-2 rounded" style="background:rgba(16,185,129,0.12);">
+                            <span class="font-semibold change-positive text-base">📈</span>
+                            <div><strong class="change-positive">Green (+0.5pp)</strong><br><span class="text-xs text-[var(--fg-muted)]">Short-term return exceeds long-term → momentum is <strong>accelerating</strong></span></div>
+                          </div>
+                          <div class="flex items-center gap-3 p-2 rounded" style="background:rgba(239,68,68,0.12);">
+                            <span class="font-semibold change-negative text-base">📉</span>
+                            <div><strong class="change-negative">Red (−0.5pp)</strong><br><span class="text-xs text-[var(--fg-muted)]">Short-term return lags long-term → momentum is <strong>decelerating</strong></span></div>
+                          </div>
+                          <div class="flex items-center gap-3 p-2 rounded" style="background:rgba(148,163,184,0.08);">
+                            <span class="font-semibold text-base">➡️</span>
+                            <div><strong class="text-[var(--fg-muted)]">Gray (±0.5pp)</strong><br><span class="text-xs text-[var(--fg-muted)]">Momentum is <strong>neutral</strong> — no significant shift</span></div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Composite Score -->
+                      <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 flex items-center gap-2"><span>🔢</span> Composite Score</h4>
+                        <p class="text-[var(--fg-muted)] leading-relaxed">The average delta across all five signal pairs. A single number summarizing the overall momentum direction.</p>
+                        <div class="mt-2 space-y-1 text-xs text-[var(--fg-muted)]">
+                          <div><strong class="change-positive">📈 > +0.5pp</strong> — Broad acceleration across timeframes</div>
+                          <div><strong class="text-[var(--fg-muted)]">➡️ ±0.5pp</strong> — Mixed or neutral signals</div>
+                          <div><strong class="change-negative">📉 < −0.5pp</strong> — Broad deceleration across timeframes</div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Quick Interpretation -->
+                    <div class="mt-4 p-3 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)]">
+                      <h4 class="font-semibold mb-2 flex items-center gap-2"><span>💡</span> Quick Interpretation Guide</h4>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[var(--fg-muted)]">
+                        <div class="flex gap-2"><span class="text-[var(--fg)]">•</span> All green across pairs → strong confirmed momentum, consider holding/adding</div>
+                        <div class="flex gap-2"><span class="text-[var(--fg)]">•</span> Green short-term + red long-term → recent improvement, trend may be reversing up</div>
+                        <div class="flex gap-2"><span class="text-[var(--fg)]">•</span> Red short-term + green long-term → still positive long-term but losing steam</div>
+                        <div class="flex gap-2"><span class="text-[var(--fg)]">•</span> All red across pairs → broad deceleration, consider reducing exposure</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bucket 1: Cash/Short -->
+                <div class="card overflow-hidden mb-6">
+                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
                     <div>
-                      <h3 class="text-lg font-semibold">🤖 AI Holdings Analysis</h3>
-                      <p class="text-sm text-[var(--fg-muted)]">Get AI-powered insights on your portfolio diversification, risk, and allocation</p>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                      <button onclick="analyzeHoldingsWithAI()" id="aiAnalyzeBtn" class="btn-primary flex items-center gap-2 text-sm">
-                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                        <span id="aiAnalyzeBtnText">Analyze Holdings with AI</span>
-                      </button>
-                      <span id="aiLoadingSpinner" class="hidden animate-pulse text-[var(--fg-muted)] text-sm">Analyzing…</span>
+                      <h3 class="text-lg font-semibold"><span class="badge badge-bucket-1 mr-2">BUCKET 1</span> Cash / Short Duration</h3>
+                      <p class="text-sm text-[var(--fg-muted)] mt-1">Momentum acceleration signals for cash and short-duration holdings</p>
                     </div>
                   </div>
-                  <div id="aiAnalysisContent" class="hidden p-5 ai-markdown">
+                  <div class="p-4">
+                    <div id="bucket1TableContainer" class="table-container scrollbar-thin">
+                      <div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>
+                    </div>
                   </div>
-                  <div id="aiAnalysisEmpty" class="p-8 text-center text-[var(--fg-muted)]">
-                    <svg class="w-12 h-12 mx-auto mb-3 text-[var(--fg-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <p class="text-sm">Click <strong>"Analyze Holdings with AI"</strong> to get AI-powered insights on your portfolio.</p>
-                    <p class="text-xs mt-1">Requires Z.ai API key configured in Settings.</p>
+                </div>
+
+                <!-- Bucket 2: Fixed Income/Commodities -->
+                <div class="card overflow-hidden mb-6">
+                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                    <div>
+                      <h3 class="text-lg font-semibold"><span class="badge badge-bucket-2 mr-2">BUCKET 2</span> Fixed Income / Commodities</h3>
+                      <p class="text-sm text-[var(--fg-muted)] mt-1">Momentum acceleration signals for fixed income and commodity holdings</p>
+                    </div>
                   </div>
-                  <div id="aiFollowUpSection" class="hidden p-4 border-t border-[var(--border)]">
-                    <h4 class="text-sm font-semibold mb-3 text-[var(--fg-secondary)]">Ask Follow-up Questions</h4>
-                    <div id="aiChatHistory" class="space-y-3 mb-3 max-h-64 overflow-y-auto scrollbar-thin"></div>
-                    <div class="flex gap-2">
-                      <input type="text" id="aiFollowUpInput" placeholder="Ask a question about your holdings..." class="flex-1 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--fg-primary)] focus:border-[var(--accent-primary)] focus:outline-none" disabled>
-                      <button onclick="askFollowUpQuestion()" id="aiFollowUpBtn" class="btn-secondary px-4 py-2 text-sm" disabled>Ask</button>
+                  <div class="p-4">
+                    <div id="bucket2TableContainer" class="table-container scrollbar-thin">
+                      <div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bucket 3: Equity -->
+                <div class="card overflow-hidden mb-6">
+                  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                    <div>
+                      <h3 class="text-lg font-semibold"><span class="badge badge-bucket-3 mr-2">BUCKET 3</span> Equity</h3>
+                      <p class="text-sm text-[var(--fg-muted)] mt-1">Momentum acceleration signals for equity holdings</p>
+                    </div>
+                  </div>
+                  <div class="p-4">
+                    <div id="bucket3TableContainer" class="table-container scrollbar-thin">
+                      <div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Holdings with External Performance Links -->
-              <div id="analyticsHoldingsSection" class="mt-6 animate-fade-in">
-              <div class="card overflow-hidden">
+              <!-- Weighted Momentum Score Chart -->
+              <div class="card overflow-hidden mt-6 animate-fade-in">
                 <div class="p-4 border-b border-[var(--border)]">
-                  <h3 class="text-lg font-semibold">Portfolio Holdings — Performance Links</h3>
-                  <p class="text-sm text-[var(--fg-muted)]">Click the link icon to add an external performance URL for each holding.</p>
+                  <h3 class="text-lg font-semibold">📈 Weighted Momentum Score Over Time</h3>
+                  <p class="text-sm text-[var(--fg-muted)] mt-1">Composite momentum score per asset across saved daily snapshots</p>
                 </div>
-                <div class="table-container scrollbar-thin">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Asset Name</th>
-                        <th>Brokerage</th>
-                        <th>Category</th>
-                        <th>Bucket</th>
-                        <th class="text-right">Market Value (SEK)</th>
-                        <th class="text-right">% of Portfolio</th>
-                        <th>Performance Link</th>
-                      </tr>
-                    </thead>
-                    <tbody id="analyticsHoldingsTable"></tbody>
-                  </table>
+                <div class="p-4">
+                  <div id="momentumScoreChartContainer" style="min-height:700px;position:relative;">
+                    <canvas id="momentumScoreChart"></canvas>
+                  </div>
+                  <div id="momentumScoreChartEmpty" class="text-center text-sm text-[var(--fg-muted)] py-8">
+                    No snapshot data available. Save analytics snapshots to see the weighted momentum score trend over time.
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <!-- Recommendations -->
+              <div class="card overflow-hidden mt-6 animate-fade-in">
+                <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                  <div>
+                    <h3 class="text-lg font-semibold">🎯 Momentum-Acceleration Recommendations</h3>
+                    <p class="text-sm text-[var(--fg-muted)] mt-1">Weighted momentum score + breadth confirmation → Buy/Hold/Sell actions</p>
+                  </div>
+                  <div id="recRegimeBanner" class="hidden"></div>
+                </div>
+                <div class="p-4">
+                  <div id="recommendationsTableContainer" class="table-container scrollbar-thin">
+                    <div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>
+                  </div>
+                  <!-- How to Read This Section -->
+                  <details class="mt-4 text-xs text-[var(--fg-secondary)]" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:12px 16px;">
+                    <summary class="cursor-pointer font-semibold text-sm text-[var(--fg-primary)] select-none" style="list-style:none;">
+                      <span class="inline-flex items-center gap-2">
+                        <span class="text-sm">📖</span> How to Read the Momentum-Acceleration Recommendations
+                        <span class="text-[var(--fg-muted)] text-xs font-normal ml-2">(click to expand)</span>
+                      </span>
+                    </summary>
+                    <div class="mt-3 space-y-4 leading-relaxed">
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Core Idea</h4>
+                        <p>This algorithm does not ask <em>"Has this asset gone up?"</em> — it asks <strong>"Is this asset's momentum getting stronger or weaker?"</strong> across multiple timeframes. An asset is attractive when its shorter-term performance is improving relative to its longer-term performance.</p>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">The Five Signals</h4>
+                        <table style="width:100%;border-collapse:collapse;font-size:0.72rem;">
+                          <thead><tr style="border-bottom:1px solid var(--border);"><th class="text-left py-1 pr-2">Signal</th><th class="text-left py-1 pr-2">Meaning</th><th class="text-left py-1">Type</th></tr></thead>
+                          <tbody>
+                            <tr><td class="py-1 pr-2 font-mono">1W vs 1M</td><td class="py-1 pr-2">Is the last week stronger than the last month?</td><td class="py-1">Micro momentum</td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">1M vs 3M</td><td class="py-1 pr-2">Is the last month stronger than the last quarter?</td><td class="py-1">Tactical trend</td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">3M vs 1Y</td><td class="py-1 pr-2">Is the last quarter stronger than the last year?</td><td class="py-1">Medium-term trend (most important)</td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">1Y vs 3Y</td><td class="py-1 pr-2">Is the last year stronger than the last 3 years?</td><td class="py-1">Structural trend</td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">3Y vs 5Y</td><td class="py-1 pr-2">Is the last 3 years stronger than the last 5 years?</td><td class="py-1">Long-term regime</td></tr>
+                          </tbody>
+                        </table>
+                        <p class="mt-1">Each value is in <strong>percentage points (pp)</strong>: the shorter-period return minus the longer-period return. <span style="color:#34d399;">Positive → momentum accelerating</span>. <span style="color:#f87171;">Negative → momentum decelerating</span>.</p>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Key Columns in the Table</h4>
+                        <ul class="list-disc pl-4 space-y-1">
+                          <li><strong>Wtd Score</strong> — Weighted Momentum Score (0.15×1W + 0.25×1Mvs3M + 0.30×3Mvs1Y + 0.20×1Yvs3Y + 0.10×3Yvs5Y). The 3Mvs1Y carries the most weight because it best captures rebalancing-relevant trends.</li>
+                          <li><strong>Br</strong> — Breadth Score (number of green signals minus number of red signals). Measures how many timeframes agree on direction. +5 = all accelerating, −5 = all decelerating, 0 = mixed.</li>
+                          <li><strong>3Mvs1Y / 1Mvs3M</strong> — The two most actionable signals. Both should be non-red for any buy decision.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Decision Logic (Simplified)</h4>
+                        <table style="width:100%;border-collapse:collapse;font-size:0.72rem;">
+                          <thead><tr style="border-bottom:1px solid var(--border);">
+                            <th class="text-left py-1 pr-2">Wtd Score</th><th class="text-left py-1 pr-2">Breadth</th><th class="text-left py-1 pr-2">Key Signal</th><th class="text-left py-1">Decision</th>
+                          </tr></thead>
+                          <tbody>
+                            <tr><td class="py-1 pr-2 font-mono">> +1.5</td><td class="py-1 pr-2 font-mono">≥ +3</td><td class="py-1 pr-2">3Mvs1Y green</td><td class="py-1"><span style="background:rgba(16,185,129,0.15);color:#34d399;padding:2px 6px;border-radius:8px;font-weight:600;">Strong Buy</span></td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">> +0.5</td><td class="py-1 pr-2 font-mono">≥ +2</td><td class="py-1 pr-2">1Mvs3M & 3Mvs1Y not red</td><td class="py-1"><span style="background:rgba(16,185,129,0.1);color:#34d399;padding:2px 6px;border-radius:8px;font-weight:600;">Buy / Increase</span></td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">> +0.5</td><td class="py-1 pr-2 font-mono">0 to +1</td><td class="py-1 pr-2">Mixed confirmation</td><td class="py-1"><span style="background:rgba(16,185,129,0.06);color:#22c55e;padding:2px 6px;border-radius:8px;font-weight:600;">Mild Buy / Watch</span></td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">±0.5</td><td class="py-1 pr-2 font-mono">Any</td><td class="py-1 pr-2">Mixed or neutral</td><td class="py-1"><span style="background:rgba(148,163,184,0.08);color:#94a3b8;padding:2px 6px;border-radius:8px;font-weight:600;">Hold</span></td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">< −0.5</td><td class="py-1 pr-2 font-mono">≤ −2</td><td class="py-1 pr-2">Broad weakness</td><td class="py-1"><span style="background:rgba(245,158,11,0.1);color:#f59e0b;padding:2px 6px;border-radius:8px;font-weight:600;">Trim</span></td></tr>
+                            <tr><td class="py-1 pr-2 font-mono">< −2.0</td><td class="py-1 pr-2 font-mono">≤ −3</td><td class="py-1 pr-2">Severe weakness</td><td class="py-1"><span style="background:rgba(239,68,68,0.12);color:#f87171;padding:2px 6px;border-radius:8px;font-weight:600;">Strong Trim / Sell</span></td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Portfolio Role & Exposure Adjustments</h4>
+                        <ul class="list-disc pl-4 space-y-1">
+                          <li><strong>Cash / Short-Duration (Bucket 1):</strong> More forgiving — trim signals are overridden unless momentum is severely negative. Defensive assets are not expected to show strong momentum.</li>
+                          <li><strong>Volatile / Thematic (Bucket 3):</strong> Stricter — trim signals for energy, metals, and commodities are kept intact because downside risk is higher.</li>
+                          <li><strong>Duplicate Exposure:</strong> When multiple holdings overlap (e.g., multiple global equity funds), the algorithm flags duplicates. Prefer adding to the strongest/cleanest holding; prefer trimming the weakest/most redundant.</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Market Regime Filter</h4>
+                        <p>The regime banner at the top shows what fraction of assets are accelerating. When most assets are decelerating (<span style="color:#f87171;">Defensive regime</span>), buy signals are automatically downgraded — the algorithm becomes more conservative. Only the strongest confirmed assets should be bought in a weak market.</p>
+                      </div>
+
+                      <div>
+                        <h4 class="font-semibold text-[var(--fg-primary)] mb-1">Golden Rules</h4>
+                        <p class="text-[var(--fg-muted)] italic">"Do not buy because of one green number. Do not sell because of one red number. Act only when several timeframes agree."</p>
+                      </div>
+
+                    </div>
+                  </details>
+                </div>
+              </div>
+
+              <!-- Analytics Snapshots -->
+              <div class="card overflow-hidden mt-6 animate-fade-in">
+                <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                  <div>
+                    <h3 class="text-lg font-semibold">📸 Analytics Snapshots</h3>
+                    <p class="text-sm text-[var(--fg-muted)] mt-1">Save current momentum data to track changes over time</p>
+                  </div>
+                  <button onclick="saveAnalyticsSnapshot()" class="btn-primary btn-sm">
+                    💾 Save Current Snapshot
+                  </button>
+                </div>
+                <div class="p-4">
+                  <div id="analyticsSnapshotList" class="space-y-2">
+                    <div class="text-center text-sm text-[var(--fg-muted)] py-6">No snapshots saved yet. Click "Save Current Snapshot" to capture the current analytics state.</div>
+                  </div>
+                </div>
+              </div>
 
         </div>
 
@@ -1745,14 +1942,6 @@
               <button onclick="addNote()" class="btn-primary text-sm">+ New Note</button>
             </div>
             <div id="notesList" class="space-y-3"></div>
-          </div>
-          <div class="card p-6 mt-6 animate-fade-in">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold">✅ To-Do List</h3>
-              <button onclick="addTodo()" class="btn-primary text-sm">+ New Item</button>
-            </div>
-            <div id="todoProgress" class="text-sm text-[var(--fg-muted)] mb-3"></div>
-            <div id="todosList" class="space-y-2"></div>
           </div>
         </div>
 
@@ -1839,6 +2028,102 @@
   <script src="js/sections/10-retirement-prices.js"></script>
   <script src="js/sections/11-momentum.js"></script>
   <script src="js/sections/12-notes.js"></script>
+
+  <!-- Mobile FAB for notes -->
+  <button class="fab-note" onclick="openNoteModal()" aria-label="Quick Note">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+  </button>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <div class="nav-items">
+      <button class="nav-item active" data-tab="overview" onclick="mobileSwitchTab('overview')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="nav-item" data-tab="holdings" onclick="mobileSwitchTab('holdings')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span>Holdings</span>
+      </button>
+      <button class="nav-item" data-tab="live-prices" onclick="mobileSwitchTab('live-prices')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <span>Perf</span>
+      </button>
+      <button class="nav-item" data-tab="rebalancing" onclick="mobileSwitchTab('rebalancing')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Rebalance</span>
+      </button>
+      <button class="nav-item" onclick="openMobileMoreSheet()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+        <span>More</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile More Sheet -->
+  <div class="mobile-more-overlay" id="mobileMoreOverlay" onclick="closeMobileMoreSheet()"></div>
+  <div class="mobile-more-sheet" id="mobileMoreSheet">
+    <div class="sheet-handle"></div>
+    <button class="sheet-item" onclick="mobileSwitchTab('reference');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Reference Table
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('evolution');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+      Evolution
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('comparison');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Compare
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('snapshots');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      Snapshots
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('analytics');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Analytics
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('retirement');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Retirement
+    </button>
+    <button class="sheet-item" onclick="mobileSwitchTab('notes');closeMobileMoreSheet()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Notes
+    </button>
+  </div>
+
+  <!-- Mobile Action Drawer -->
+  <div class="mobile-action-drawer-overlay" id="mobileActionDrawerOverlay" onclick="toggleMobileActionDrawer()"></div>
+  <div class="mobile-action-drawer" id="mobileActionDrawer">
+    <div class="drawer-header">
+      <h3 class="text-lg font-semibold">Actions</h3>
+      <button onclick="toggleMobileActionDrawer()" class="text-[var(--fg-muted)] hover:text-white" style="min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <button class="drawer-action" onclick="openNoteModal();toggleMobileActionDrawer()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Quick Note
+    </button>
+    <button class="drawer-action" onclick="exportData();toggleMobileActionDrawer()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      Export Data
+    </button>
+    <button class="drawer-action" onclick="document.getElementById('fileInput').click();toggleMobileActionDrawer()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Snapshot
+    </button>
+    <button class="drawer-action" onclick="document.getElementById('importDataInput').click();toggleMobileActionDrawer()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      Import Data
+    </button>
+    <button class="drawer-action" onclick="showApiSettings();toggleMobileActionDrawer()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.066-2.573c-.426-1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-1.066 2.573c-.94 3.31-.826-2.37-2.37a1.724 1.724 0 00-2.573-1.066c-1.543-.94-3.31.826-2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      API Settings
+    </button>
+  </div>
 
   <!-- Quick Note Modal -->
   <div id="noteModal" class="fixed inset-0 z-[100] hidden items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);" onclick="if(event.target===this)closeNoteModal()">

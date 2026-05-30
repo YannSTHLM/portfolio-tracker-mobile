@@ -174,3 +174,150 @@ const hooks = {
 function registerHook(name, fn) {
   if (hooks[name]) hooks[name].push(fn);
 }
+
+// ===== MOBILE NAVIGATION =====
+
+// Tabs accessible via the "More" sheet
+const MORE_TABS = ['reference', 'evolution', 'comparison', 'snapshots', 'analytics', 'retirement', 'notes'];
+
+function mobileSwitchTab(tabName) {
+  // Use the existing switchTab function
+  if (typeof switchTab === 'function') {
+    switchTab(tabName);
+  }
+  // Update mobile nav active state
+  updateMobileNavActive(tabName);
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateMobileNavActive(tabName) {
+  const moreBtn = document.querySelector('.mobile-bottom-nav .nav-item:last-child');
+  const isMoreTab = MORE_TABS.includes(tabName);
+  document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(btn => {
+    btn.classList.remove('active', 'more-active');
+    if (btn.dataset.tab === tabName) {
+      btn.classList.add('active');
+    }
+  });
+  // Highlight the "More" button when a More tab is active
+  if (isMoreTab && moreBtn) {
+    moreBtn.classList.add('more-active');
+  }
+}
+
+function openMobileMoreSheet() {
+  const sheet = document.getElementById('mobileMoreSheet');
+  const overlay = document.getElementById('mobileMoreOverlay');
+  if (sheet) {
+    sheet.style.display = 'block';
+    requestAnimationFrame(() => sheet.classList.add('visible'));
+  }
+  if (overlay) overlay.classList.add('visible');
+}
+
+function closeMobileMoreSheet() {
+  const sheet = document.getElementById('mobileMoreSheet');
+  const overlay = document.getElementById('mobileMoreOverlay');
+  if (sheet) {
+    sheet.classList.remove('visible');
+    setTimeout(() => { sheet.style.display = 'none'; }, 300);
+  }
+  if (overlay) overlay.classList.remove('visible');
+}
+
+function toggleMobileActionDrawer() {
+  const drawer = document.getElementById('mobileActionDrawer');
+  const overlay = document.getElementById('mobileActionDrawerOverlay');
+  if (!drawer || !overlay) return;
+  const isOpen = drawer.classList.contains('visible');
+  if (isOpen) {
+    drawer.classList.remove('visible');
+    overlay.classList.remove('visible');
+    setTimeout(() => { drawer.style.display = 'none'; overlay.style.display = 'none'; }, 300);
+  } else {
+    drawer.style.display = 'block';
+    overlay.style.display = 'block';
+    requestAnimationFrame(() => {
+      drawer.classList.add('visible');
+      overlay.classList.add('visible');
+    });
+  }
+}
+
+// Swipe-to-dismiss for bottom sheets and side drawers
+(function initSwipeGestures() {
+  // Swipe down to close the "More" sheet
+  const sheet = document.getElementById('mobileMoreSheet');
+  if (sheet) {
+    let startY = 0, currentY = 0, isDragging = false;
+    sheet.addEventListener('touchstart', e => {
+      // Only track if scrolled to top within the sheet
+      if (sheet.scrollTop <= 0) {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+      }
+    }, { passive: true });
+    sheet.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 0) {
+        // Dragging down - follow finger
+        sheet.style.transition = 'none';
+        sheet.style.transform = 'translateY(' + diff + 'px)';
+      }
+    }, { passive: true });
+    sheet.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = currentY - startY;
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+      // If dragged more than 100px or 30% of sheet height, close
+      if (diff > 100 || diff > sheet.offsetHeight * 0.3) {
+        closeMobileMoreSheet();
+      }
+      startY = 0;
+      currentY = 0;
+    }, { passive: true });
+  }
+
+  // Swipe right to close the action drawer
+  const drawer = document.getElementById('mobileActionDrawer');
+  if (drawer) {
+    let startX = 0, currentX = 0, isDragging = false;
+    drawer.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+    drawer.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      if (diff > 0) {
+        // Swiping left (closing right drawer)
+        drawer.style.transition = 'none';
+        drawer.style.transform = 'translateX(' + (-diff) + 'px)';
+      }
+    }, { passive: true });
+    drawer.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = startX - currentX;
+      drawer.style.transition = '';
+      drawer.style.transform = '';
+      // If swiped more than 80px or 30% of drawer width, close
+      if (diff > 80 || diff > drawer.offsetWidth * 0.3) {
+        toggleMobileActionDrawer();
+      }
+      startX = 0;
+      currentX = 0;
+    }, { passive: true });
+  }
+})();
+
+// Sync mobile nav active state when switchTab is called from desktop
+registerHook('afterSwitchTab', function(tabName) {
+  updateMobileNavActive(tabName);
+});

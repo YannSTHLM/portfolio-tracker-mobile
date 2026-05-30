@@ -92,9 +92,13 @@ function exportData() {
     }
 
     try {
+        // Helpers to safely read localStorage JSON
+        const readLS = (key) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } };
+        const readLSRaw = (key) => { try { return localStorage.getItem(key) || null; } catch(e) { return null; } };
+
         // Bundle all site data (except API keys) into structured export
         const exportBundle = {
-            version: 1,
+            version: 2,
             exportDate: new Date().toISOString(),
             snapshots: snapshots.map(s => ({
                 date: s.date.toISOString(), dateStr: s.dateStr, holdings: s.holdings,
@@ -104,8 +108,25 @@ function exportData() {
             rebalancingTargets: rebalancingTargets,
             excludedAssets: [...excludedAssets],
             performanceData: performanceData,
-            retirementData: retirementData
+            retirementData: retirementData,
+            // --- New fields (v2) ---
+            analyticsSnapshots: readLS('portfolioTracker_analyticsSnapshots'),
+            momentumSnapshots: readLS('portfolioTracker_momentumSnapshots'),
+            notes: readLS('portfolioTracker_notes'),
+            performanceLinks: readLS('portfolioTracker_perfLinks'),
+            perfLiveData: readLS('portfolioTracker_perfLiveData'),
+            perfTracked: readLS('portfolioTracker_perfTracked'),
+            aiAnalysis: readLS('portfolioTracker_aiAnalysis'),
+            targetSettings: readLS('portfolioTracker_targetSettings'),
+            referenceDate: readLSRaw('portfolioTracker_referenceDate'),
+            rebalancingDuration: readLSRaw('portfolioTracker_rebalancingDuration'),
+            rebalancingCurrentMonth: readLSRaw('portfolioTracker_rebalancingCurrentMonth')
         };
+
+        // Clean out undefined/null values (don't export empty keys)
+        Object.keys(exportBundle).forEach(k => {
+            if (exportBundle[k] === null || exportBundle[k] === undefined) delete exportBundle[k];
+        });
 
         const dataStr = JSON.stringify(exportBundle, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -144,8 +165,12 @@ function handleDataImport(input) {
         try {
             const importedData = JSON.parse(e.target.result);
 
-            // Handle new structured export format (v1)
-            if (importedData && importedData.version === 1 && importedData.snapshots) {
+            // Helper to safely write localStorage (object or raw string)
+            const writeLS = (key, value) => { try { if (value !== null && value !== undefined) localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value)); } catch(e) {} };
+            const restoredItems = [];
+
+            // Handle structured export format v2 or v1
+            if (importedData && (importedData.version === 1 || importedData.version === 2) && importedData.snapshots) {
                 const bundle = importedData;
 
                 // Restore snapshots
@@ -153,39 +178,113 @@ function handleDataImport(input) {
                 snapshots = bundle.snapshots;
                 snapshots.sort((a, b) => a.date - b.date);
                 currentSnapshot = snapshots[snapshots.length - 1];
+                restoredItems.push('snapshots');
 
                 // Restore classification reference
                 if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
                     classificationReference = bundle.classificationReference;
                     try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
+                    restoredItems.push('reference table');
                 }
 
                 // Restore rebalancing targets
                 if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
                     rebalancingTargets = bundle.rebalancingTargets;
                     saveRebalancingTargets();
+                    restoredItems.push('rebalancing targets');
                 }
 
                 // Restore excluded assets
                 if (Array.isArray(bundle.excludedAssets)) {
                     excludedAssets = new Set(bundle.excludedAssets);
                     saveExcludedAssets();
+                    restoredItems.push('excluded assets');
                 }
 
                 // Restore performance data
                 if (bundle.performanceData && bundle.performanceData.assets) {
                     performanceData = bundle.performanceData;
                     savePerformanceData();
+                    restoredItems.push('performance data');
                 }
 
                 // Restore retirement data
                 if (bundle.retirementData) {
                     retirementData = bundle.retirementData;
                     saveRetirementData();
+                    restoredItems.push('retirement data');
+                }
+
+                // --- v2 fields ---
+                if (bundle.analyticsSnapshots) {
+                    writeLS('portfolioTracker_analyticsSnapshots', bundle.analyticsSnapshots);
+                    restoredItems.push('analytics snapshots');
+                }
+                if (bundle.momentumSnapshots) {
+                    writeLS('portfolioTracker_momentumSnapshots', bundle.momentumSnapshots);
+                    restoredItems.push('momentum snapshots');
+                }
+                if (bundle.notes) {
+                    writeLS('portfolioTracker_notes', bundle.notes);
+                    restoredItems.push('notes');
+                }
+                if (bundle.performanceLinks) {
+                    writeLS('portfolioTracker_perfLinks', bundle.performanceLinks);
+                    // Also update the global variable used by ai-holdings
+                    try { performanceLinks = JSON.parse(JSON.stringify(bundle.performanceLinks)); } catch(e) {}
+                    restoredItems.push('performance links');
+                }
+                if (bundle.perfLiveData) {
+                    writeLS('portfolioTracker_perfLiveData', bundle.perfLiveData);
+                    restoredItems.push('live prices');
+                }
+                if (bundle.perfTracked) {
+                    writeLS('portfolioTracker_perfTracked', bundle.perfTracked);
+                    restoredItems.push('tracked holdings');
+                }
+                if (bundle.aiAnalysis) {
+                    writeLS('portfolioTracker_aiAnalysis', bundle.aiAnalysis);
+                    restoredItems.push('AI analysis');
+                }
+                if (bundle.targetSettings) {
+                    writeLS('portfolioTracker_targetSettings', bundle.targetSettings);
+                    restoredItems.push('target settings');
+                }
+                if (bundle.referenceDate) {
+                    writeLS('portfolioTracker_referenceDate', bundle.referenceDate);
+                    restoredItems.push('reference date');
+                }
+                if (bundle.rebalancingDuration) {
+                    writeLS('portfolioTracker_rebalancingDuration', bundle.rebalancingDuration);
+                    restoredItems.push('rebalancing duration');
+                }
+                if (bundle.rebalancingCurrentMonth) {
+                    writeLS('portfolioTracker_rebalancingCurrentMonth', bundle.rebalancingCurrentMonth);
+                    restoredItems.push('rebalancing month');
                 }
 
                 showDashboard();
-                alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data.");
+                // Re-render analytics snapshot history if on analytics tab
+                if (typeof renderAnalyticsSnapshotHistory === 'function') {
+                    setTimeout(() => renderAnalyticsSnapshotHistory(), 300);
+                }
+                // Re-render momentum evolution chart if function exists
+                if (typeof renderMomentumEvolutionChart === 'function') {
+                    setTimeout(() => renderMomentumEvolutionChart(), 400);
+                }
+                // Re-render live prices table if function exists
+                if (typeof renderPerfLivePricesTable === 'function') {
+                    setTimeout(() => renderPerfLivePricesTable(), 500);
+                }
+                // Reload notes into global variable
+                if (typeof loadNotes === 'function') {
+                    try { window._notesData = loadNotes(); } catch(e) {}
+                }
+                // Reload AI analysis into global variable  
+                if (typeof loadAiAnalysis === 'function') {
+                    try { loadAiAnalysis(); } catch(e) {}
+                }
+                alert(`Full data imported successfully!\n\nRestored: ${restoredItems.join(', ')}.`);
 
             // Handle legacy array format (backward compatible)
             } else if (Array.isArray(importedData)) {

@@ -771,9 +771,13 @@ function exportData() {
     }
 
     try {
+        // Helpers to safely read localStorage JSON
+        const readLS = (key) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } };
+        const readLSRaw = (key) => { try { return localStorage.getItem(key) || null; } catch(e) { return null; } };
+
         // Bundle all site data (except API keys) into structured export
         const exportBundle = {
-            version: 1,
+            version: 2,
             exportDate: new Date().toISOString(),
             snapshots: snapshots.map(s => ({
                 date: s.date.toISOString(), dateStr: s.dateStr, holdings: s.holdings,
@@ -783,8 +787,25 @@ function exportData() {
             rebalancingTargets: rebalancingTargets,
             excludedAssets: [...excludedAssets],
             performanceData: performanceData,
-            retirementData: retirementData
+            retirementData: retirementData,
+            // --- New fields (v2) ---
+            analyticsSnapshots: readLS('portfolioTracker_analyticsSnapshots'),
+            momentumSnapshots: readLS('portfolioTracker_momentumSnapshots'),
+            notes: readLS('portfolioTracker_notes'),
+            performanceLinks: readLS('portfolioTracker_perfLinks'),
+            perfLiveData: readLS('portfolioTracker_perfLiveData'),
+            perfTracked: readLS('portfolioTracker_perfTracked'),
+            aiAnalysis: readLS('portfolioTracker_aiAnalysis'),
+            targetSettings: readLS('portfolioTracker_targetSettings'),
+            referenceDate: readLSRaw('portfolioTracker_referenceDate'),
+            rebalancingDuration: readLSRaw('portfolioTracker_rebalancingDuration'),
+            rebalancingCurrentMonth: readLSRaw('portfolioTracker_rebalancingCurrentMonth')
         };
+
+        // Clean out undefined/null values (don't export empty keys)
+        Object.keys(exportBundle).forEach(k => {
+            if (exportBundle[k] === null || exportBundle[k] === undefined) delete exportBundle[k];
+        });
 
         const dataStr = JSON.stringify(exportBundle, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -823,8 +844,12 @@ function handleDataImport(input) {
         try {
             const importedData = JSON.parse(e.target.result);
 
-            // Handle new structured export format (v1)
-            if (importedData && importedData.version === 1 && importedData.snapshots) {
+            // Helper to safely write localStorage (object or raw string)
+            const writeLS = (key, value) => { try { if (value !== null && value !== undefined) localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value)); } catch(e) {} };
+            const restoredItems = [];
+
+            // Handle structured export format v2 or v1
+            if (importedData && (importedData.version === 1 || importedData.version === 2) && importedData.snapshots) {
                 const bundle = importedData;
 
                 // Restore snapshots
@@ -832,39 +857,113 @@ function handleDataImport(input) {
                 snapshots = bundle.snapshots;
                 snapshots.sort((a, b) => a.date - b.date);
                 currentSnapshot = snapshots[snapshots.length - 1];
+                restoredItems.push('snapshots');
 
                 // Restore classification reference
                 if (bundle.classificationReference && bundle.classificationReference.avanza && bundle.classificationReference.nordnet) {
                     classificationReference = bundle.classificationReference;
                     try { localStorage.setItem('portfolioTracker_reference', JSON.stringify(classificationReference)); } catch(e) {}
+                    restoredItems.push('reference table');
                 }
 
                 // Restore rebalancing targets
                 if (bundle.rebalancingTargets && bundle.rebalancingTargets.avanza && bundle.rebalancingTargets.nordnet) {
                     rebalancingTargets = bundle.rebalancingTargets;
                     saveRebalancingTargets();
+                    restoredItems.push('rebalancing targets');
                 }
 
                 // Restore excluded assets
                 if (Array.isArray(bundle.excludedAssets)) {
                     excludedAssets = new Set(bundle.excludedAssets);
                     saveExcludedAssets();
+                    restoredItems.push('excluded assets');
                 }
 
                 // Restore performance data
                 if (bundle.performanceData && bundle.performanceData.assets) {
                     performanceData = bundle.performanceData;
                     savePerformanceData();
+                    restoredItems.push('performance data');
                 }
 
                 // Restore retirement data
                 if (bundle.retirementData) {
                     retirementData = bundle.retirementData;
                     saveRetirementData();
+                    restoredItems.push('retirement data');
+                }
+
+                // --- v2 fields ---
+                if (bundle.analyticsSnapshots) {
+                    writeLS('portfolioTracker_analyticsSnapshots', bundle.analyticsSnapshots);
+                    restoredItems.push('analytics snapshots');
+                }
+                if (bundle.momentumSnapshots) {
+                    writeLS('portfolioTracker_momentumSnapshots', bundle.momentumSnapshots);
+                    restoredItems.push('momentum snapshots');
+                }
+                if (bundle.notes) {
+                    writeLS('portfolioTracker_notes', bundle.notes);
+                    restoredItems.push('notes');
+                }
+                if (bundle.performanceLinks) {
+                    writeLS('portfolioTracker_perfLinks', bundle.performanceLinks);
+                    // Also update the global variable used by ai-holdings
+                    try { performanceLinks = JSON.parse(JSON.stringify(bundle.performanceLinks)); } catch(e) {}
+                    restoredItems.push('performance links');
+                }
+                if (bundle.perfLiveData) {
+                    writeLS('portfolioTracker_perfLiveData', bundle.perfLiveData);
+                    restoredItems.push('live prices');
+                }
+                if (bundle.perfTracked) {
+                    writeLS('portfolioTracker_perfTracked', bundle.perfTracked);
+                    restoredItems.push('tracked holdings');
+                }
+                if (bundle.aiAnalysis) {
+                    writeLS('portfolioTracker_aiAnalysis', bundle.aiAnalysis);
+                    restoredItems.push('AI analysis');
+                }
+                if (bundle.targetSettings) {
+                    writeLS('portfolioTracker_targetSettings', bundle.targetSettings);
+                    restoredItems.push('target settings');
+                }
+                if (bundle.referenceDate) {
+                    writeLS('portfolioTracker_referenceDate', bundle.referenceDate);
+                    restoredItems.push('reference date');
+                }
+                if (bundle.rebalancingDuration) {
+                    writeLS('portfolioTracker_rebalancingDuration', bundle.rebalancingDuration);
+                    restoredItems.push('rebalancing duration');
+                }
+                if (bundle.rebalancingCurrentMonth) {
+                    writeLS('portfolioTracker_rebalancingCurrentMonth', bundle.rebalancingCurrentMonth);
+                    restoredItems.push('rebalancing month');
                 }
 
                 showDashboard();
-                alert("Full data imported successfully!\n\nRestored: snapshots, reference table, rebalancing targets, excluded assets, performance data, retirement data.");
+                // Re-render analytics snapshot history if on analytics tab
+                if (typeof renderAnalyticsSnapshotHistory === 'function') {
+                    setTimeout(() => renderAnalyticsSnapshotHistory(), 300);
+                }
+                // Re-render momentum evolution chart if function exists
+                if (typeof renderMomentumEvolutionChart === 'function') {
+                    setTimeout(() => renderMomentumEvolutionChart(), 400);
+                }
+                // Re-render live prices table if function exists
+                if (typeof renderPerfLivePricesTable === 'function') {
+                    setTimeout(() => renderPerfLivePricesTable(), 500);
+                }
+                // Reload notes into global variable
+                if (typeof loadNotes === 'function') {
+                    try { window._notesData = loadNotes(); } catch(e) {}
+                }
+                // Reload AI analysis into global variable  
+                if (typeof loadAiAnalysis === 'function') {
+                    try { loadAiAnalysis(); } catch(e) {}
+                }
+                alert(`Full data imported successfully!\n\nRestored: ${restoredItems.join(', ')}.`);
 
             // Handle legacy array format (backward compatible)
             } else if (Array.isArray(importedData)) {
@@ -3187,7 +3286,6 @@ function runComparison() {
       </tr>`; 
   }).join('');
 }
-"use strict";
 
 
 // --- ANALYTICS: Historical Performance ---
@@ -3195,6 +3293,10 @@ let performanceData = null;
 let returnsChart = null;
 let perfSortKey = null;
 let perfSortAsc = true;
+
+// Recommendations table sort state
+let recSortKey = null;
+let recSortAsc = true;
 
 const PERF_LS_KEY = 'portfolioTracker_performance';
 
@@ -3624,6 +3726,7 @@ function renderPerformanceContent() {
   renderCorrelationMatrix();
   renderPerformanceHeatmap();
   renderPerformanceTable();
+  renderBucketAnalysisTables();
 }
 
 function renderPerformerCards() {
@@ -3994,12 +4097,893 @@ function loadFromLocalStorage() {
     return true;
   } catch (e) { console.warn('localStorage load failed:', e); return false; }
 }
+
+// --- BUCKET MOMENTUM ACCELERATION TABLES ---
+// Data source: Performance tab (Yahoo Finance live prices via perfLivePrices)
+
+// Signal pairs using Yahoo Finance trailing return periods
+const SIGNAL_PAIRS = [
+  { short: 'fiveDay', long: 'oneMonth', label: '1W vs 1M', tooltip: 'Micro momentum shift · Tactical (days→weeks)' },
+  { short: 'oneMonth', long: 'threeMonth', label: '1M vs 3M', tooltip: 'Near-term trend change · Tactical (weeks→quarter)' },
+  { short: 'threeMonth', long: 'oneYear', label: '3M vs 1Y', tooltip: 'Medium-term momentum · Strategic (quarter→year)' },
+  { short: 'oneYear', long: 'threeYear', label: '1Y vs 3Y', tooltip: 'Trend establishment · Structural' },
+  { short: 'threeYear', long: 'fiveYear', label: '3Y vs 5Y', tooltip: 'Long-term regime · Secular' }
+];
+
+// Computed analytics data (populated by computeBucketAnalysisData, used for snapshots)
+let currentAnalyticsData = null;
+
+// --- ANALYTICS LOCALSTORAGE ---
+const ANALYTICS_LS_KEY = 'portfolioTracker_analyticsSnapshots';
+
+function saveAnalyticsSnapshotToLocalStorage(snapshot) {
+  try {
+    const raw = localStorage.getItem(ANALYTICS_LS_KEY);
+    let snapshots = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(snapshots)) snapshots = [];
+    snapshots.push(snapshot);
+    // Keep last 50 snapshots max
+    if (snapshots.length > 50) snapshots = snapshots.slice(-50);
+    localStorage.setItem(ANALYTICS_LS_KEY, JSON.stringify(snapshots));
+    return true;
+  } catch (e) { console.warn('Failed to save analytics snapshot:', e); return false; }
+}
+
+function loadAnalyticsSnapshotsFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(ANALYTICS_LS_KEY);
+    if (!raw) return [];
+    const snapshots = JSON.parse(raw);
+    return Array.isArray(snapshots) ? snapshots : [];
+  } catch (e) { console.warn('Failed to load analytics snapshots:', e); return []; }
+}
+
+function deleteAnalyticsSnapshot(index) {
+  try {
+    const snapshots = loadAnalyticsSnapshotsFromLocalStorage();
+    if (index >= 0 && index < snapshots.length) {
+      snapshots.splice(index, 1);
+      localStorage.setItem(ANALYTICS_LS_KEY, JSON.stringify(snapshots));
+      return true;
+    }
+  } catch (e) { console.warn('Failed to delete analytics snapshot:', e); }
+  return false;
+}
+
+// Compute structured analytics data from live prices (reusable for both rendering & snapshots)
+function computeBucketAnalysisData() {
+  const buckets = [1, 2, 3];
+  const result = {
+    timestamp: new Date().toISOString(),
+    dateLabel: new Date().toLocaleString(),
+    priceSource: document.getElementById('livePricesTimestamp')?.textContent || 'Unknown',
+    buckets: {}
+  };
+
+  // Build a lookup map from perfLivePrices (Yahoo Finance data)
+  const priceMap = new Map();
+  if (typeof perfLivePrices !== 'undefined' && perfLivePrices && perfLivePrices.length > 0) {
+    perfLivePrices.forEach(p => priceMap.set(p.name.toLowerCase(), p));
+  }
+
+  buckets.forEach(bucketNum => {
+    // Collect assets for this bucket from classificationReference
+    const bucketAssets = [];
+    const seen = new Set();
+
+    ['avanza', 'nordnet'].forEach(brokerage => {
+      (classificationReference[brokerage] || []).forEach(ref => {
+        if (ref.bucket === bucketNum && !seen.has(ref.name)) {
+          seen.add(ref.name);
+          bucketAssets.push({ name: ref.name, brokerage });
+        }
+      });
+    });
+
+    const assets = [];
+    bucketAssets.forEach(asset => {
+      const livePrice = priceMap.get(asset.name.toLowerCase());
+      const signals = [];
+      let compositeScore = null;
+      let compositeCount = 0;
+      let compositeSum = 0;
+
+      SIGNAL_PAIRS.forEach(sp => {
+        let delta = null;
+        if (livePrice && livePrice.trailingReturns) {
+          const shortVal = livePrice.trailingReturns[sp.short];
+          const longVal = livePrice.trailingReturns[sp.long];
+          if (shortVal !== null && shortVal !== undefined && !isNaN(shortVal) &&
+              longVal !== null && longVal !== undefined && !isNaN(longVal)) {
+            delta = shortVal - longVal;
+            compositeSum += delta;
+            compositeCount++;
+          }
+        }
+        signals.push({ label: sp.label, delta: delta !== null ? parseFloat(delta.toFixed(2)) : null });
+      });
+
+      if (compositeCount > 0) {
+        compositeScore = parseFloat((compositeSum / compositeCount).toFixed(2));
+      }
+
+      assets.push({
+        name: asset.name,
+        brokerage: asset.brokerage,
+        compositeScore,
+        signals
+      });
+    });
+
+    result.buckets[bucketNum] = { label: `Bucket ${bucketNum}`, assets };
+  });
+
+  currentAnalyticsData = result;
+  return result;
+}
+
+function renderBucketAnalysisTables() {
+  const data = computeBucketAnalysisData();
+  const hasLiveData = (typeof perfLivePrices !== 'undefined' && perfLivePrices && perfLivePrices.length > 0);
+
+  [1, 2, 3].forEach(bucketNum => {
+    const container = document.getElementById(`bucket${bucketNum}TableContainer`);
+    if (!container) return;
+
+    const bucketData = data.buckets[bucketNum];
+    if (!bucketData || bucketData.assets.length === 0) {
+      container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-8">No assets classified in this bucket.</div>';
+      return;
+    }
+
+    // Check if any asset has data
+    const hasAnyData = bucketData.assets.some(a => a.compositeScore !== null);
+
+    if (!hasLiveData) {
+      container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>';
+      return;
+    }
+    if (!hasAnyData) {
+      container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-8">Live prices loaded but no matching trailing returns found for this bucket.</div>';
+      return;
+    }
+
+    // Build table HTML with per-signal-pair columns
+    const signalLabels = SIGNAL_PAIRS.map(sp => sp.label);
+
+    let html = '<table style="width:100%;border-collapse:collapse;">';
+    html += '<thead><tr>';
+    html += '<th style="min-width:140px;">Asset</th>';
+    html += '<th>Brokerage</th>';
+    html += '<th class="text-center">Composite Score</th>';
+    signalLabels.forEach(label => {
+      html += `<th class="text-center">${label}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    bucketData.assets.forEach(asset => {
+      html += '<tr>';
+      html += `<td class="font-medium">${escapeHtml(asset.name)}</td>`;
+      html += `<td><span class="text-xs text-[var(--fg-muted)]">${asset.brokerage}</span></td>`;
+
+      // Composite Score cell
+      if (asset.compositeScore !== null) {
+        const scoreColor = asset.compositeScore > 0.5 ? 'change-positive' : asset.compositeScore < -0.5 ? 'change-negative' : 'text-[var(--fg-muted)]';
+        const scoreIcon = asset.compositeScore > 0.5 ? '📈' : asset.compositeScore < -0.5 ? '📉' : '➡️';
+        html += `<td class="text-center font-mono text-sm ${scoreColor} font-semibold">${scoreIcon} ${asset.compositeScore >= 0 ? '+' : ''}${asset.compositeScore.toFixed(2)}pp</td>`;
+      } else {
+        html += '<td class="text-center text-[var(--fg-muted)]">—</td>';
+      }
+
+      // Per-signal-pair delta cells with color coding
+      (asset.signals || []).forEach(s => {
+        if (s.delta !== null) {
+          const deltaColor = s.delta > 0.5 ? 'change-positive' : s.delta < -0.5 ? 'change-negative' : 'text-[var(--fg-muted)]';
+          const deltaIcon = s.delta > 0.5 ? '📈' : s.delta < -0.5 ? '📉' : '➡️';
+          html += `<td class="text-center font-mono text-xs ${deltaColor} font-semibold">${deltaIcon} ${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(2)}pp</td>`;
+        } else {
+          html += '<td class="text-center text-[var(--fg-muted)]">—</td>';
+        }
+      });
+
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  });
+
+  // Also refresh recommendations
+  renderRecommendationsTable();
+}
+
+// --- ANALYTICS SNAPSHOT FUNCTIONS ---
+
+function saveAnalyticsSnapshot() {
+  if (!currentAnalyticsData || !currentAnalyticsData.buckets) {
+    alert('No analytics data available. Load live prices in the Performance tab first.');
+    return;
+  }
+
+  // Check if any bucket has data
+  const hasData = [1, 2, 3].some(b => {
+    const bucket = currentAnalyticsData.buckets[b];
+    return bucket && bucket.assets.some(a => a.compositeScore !== null);
+  });
+
+  if (!hasData) {
+    alert('No computed analytics data to snapshot. Ensure live prices are loaded and assets have trailing returns.');
+    return;
+  }
+
+  const snapshot = {
+    id: Date.now(),
+    timestamp: currentAnalyticsData.timestamp,
+    dateLabel: currentAnalyticsData.dateLabel,
+    priceSource: currentAnalyticsData.priceSource,
+    buckets: JSON.parse(JSON.stringify(currentAnalyticsData.buckets))
+  };
+
+  if (saveAnalyticsSnapshotToLocalStorage(snapshot)) {
+    renderAnalyticsSnapshotHistory();
+  } else {
+    alert('Failed to save snapshot.');
+  }
+}
+
+function renderAnalyticsSnapshotHistory() {
+  const container = document.getElementById('analyticsSnapshotList');
+  if (!container) return;
+
+  const snapshots = loadAnalyticsSnapshotsFromLocalStorage();
+
+  if (snapshots.length === 0) {
+    container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-6">No snapshots saved yet. Click "Save Current Snapshot" to capture the current analytics state.</div>';
+    return;
+  }
+
+  // Show most recent first
+  const reversed = [...snapshots].reverse();
+
+  let html = '';
+  reversed.forEach(snapshot => {
+    const assetCount = [1, 2, 3].reduce((sum, b) => {
+      const bucket = snapshot.buckets && snapshot.buckets[b];
+      return sum + (bucket ? bucket.assets.length : 0);
+    }, 0);
+
+    const acceleratingCount = [1, 2, 3].reduce((sum, b) => {
+      const bucket = snapshot.buckets && snapshot.buckets[b];
+      return sum + (bucket ? bucket.assets.filter(a => a.compositeScore !== null && a.compositeScore > 0.5).length : 0);
+    }, 0);
+
+    const deceleratingCount = [1, 2, 3].reduce((sum, b) => {
+      const bucket = snapshot.buckets && snapshot.buckets[b];
+      return sum + (bucket ? bucket.assets.filter(a => a.compositeScore !== null && a.compositeScore < -0.5).length : 0);
+    }, 0);
+
+    html += `
+    <div class="analytics-snapshot-card" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:background 0.15s;" 
+         onmouseenter="this.style.background='var(--bg-hover)'" 
+         onmouseleave="this.style.background='var(--bg-secondary)'"
+         onclick="toggleAnalyticsSnapshotDetail(this, ${snapshot.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="font-semibold text-sm">📸 ${snapshot.dateLabel}</div>
+          <div class="text-xs text-[var(--fg-muted)] mt-1">${assetCount} assets · 📈 ${acceleratingCount} accelerating · 📉 ${deceleratingCount} decelerating</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="event.stopPropagation();deleteAnalyticsSnapshotById(${snapshot.id})" 
+                  class="text-xs text-[var(--fg-muted)] hover:text-red-400 transition-colors" title="Delete snapshot">🗑️</button>
+          <svg class="snapshot-chevron w-4 h-4 text-[var(--fg-muted)] transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </div>
+      </div>
+      <div class="snapshot-detail hidden mt-3 pt-3 border-t border-[var(--border)]">
+        ${renderSnapshotDetailTables(snapshot)}
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderSnapshotDetailTables(snapshot) {
+  const signalLabels = SIGNAL_PAIRS.map(sp => sp.label);
+  let html = '';
+
+  [1, 2, 3].forEach(bucketNum => {
+    const bucketData = snapshot.buckets && snapshot.buckets[bucketNum];
+    if (!bucketData || !bucketData.assets || bucketData.assets.length === 0) return;
+
+    const hasData = bucketData.assets.some(a => a.compositeScore !== null);
+    if (!hasData) return;
+
+    html += `<div class="mb-3">
+      <div class="text-sm font-semibold mb-2">${bucketData.label}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+        <thead><tr>
+          <th style="min-width:120px;text-align:left;padding:4px 6px;">Asset</th>
+          <th style="text-align:left;padding:4px 6px;">Brokerage</th>
+          <th style="text-align:center;padding:4px 6px;">Composite Score</th>`;
+
+    signalLabels.forEach(label => {
+      html += `<th style="text-align:center;padding:4px 6px;">${label}</th>`;
+    });
+
+    html += '</tr></thead><tbody>';
+
+    bucketData.assets.forEach(asset => {
+      html += '<tr>';
+      html += `<td style="padding:4px 6px;font-weight:500;">${escapeHtml(asset.name)}</td>`;
+      html += `<td style="padding:4px 6px;color:var(--fg-muted);">${asset.brokerage}</td>`;
+
+      if (asset.compositeScore !== null) {
+        const scoreColor = asset.compositeScore > 0.5 ? 'color:#34d399;' : asset.compositeScore < -0.5 ? 'color:#f87171;' : 'color:var(--fg-muted);';
+        const scoreIcon = asset.compositeScore > 0.5 ? '📈' : asset.compositeScore < -0.5 ? '📉' : '➡️';
+        html += `<td style="padding:4px 6px;text-align:center;font-weight:600;${scoreColor}">${scoreIcon} ${asset.compositeScore >= 0 ? '+' : ''}${asset.compositeScore.toFixed(2)}</td>`;
+      } else {
+        html += '<td style="padding:4px 6px;text-align:center;color:var(--fg-muted);">—</td>';
+      }
+
+      (asset.signals || []).forEach(s => {
+        if (s.delta !== null) {
+          const deltaColor = s.delta > 0.5 ? 'color:#34d399;' : s.delta < -0.5 ? 'color:#f87171;' : 'color:var(--fg-muted);';
+          html += `<td style="padding:4px 6px;text-align:center;font-weight:600;${deltaColor}">${s.delta >= 0 ? '+' : ''}${s.delta.toFixed(2)}</td>`;
+        } else {
+          html += '<td style="padding:4px 6px;text-align:center;color:var(--fg-muted);">—</td>';
+        }
+      });
+
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+  });
+
+  return html || '<div class="text-xs text-[var(--fg-muted)]">No data in this snapshot.</div>';
+}
+
+function toggleAnalyticsSnapshotDetail(cardElement, snapshotId) {
+  const detail = cardElement.querySelector('.snapshot-detail');
+  const chevron = cardElement.querySelector('.snapshot-chevron');
+  if (detail) {
+    detail.classList.toggle('hidden');
+    if (chevron) {
+      chevron.style.transform = detail.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+  }
+}
+
+function deleteAnalyticsSnapshotById(snapshotId) {
+  if (!confirm('Delete this snapshot?')) return;
+  const snapshots = loadAnalyticsSnapshotsFromLocalStorage();
+  const index = snapshots.findIndex(s => s.id === snapshotId);
+  if (index >= 0) {
+    snapshots.splice(index, 1);
+    localStorage.setItem(ANALYTICS_LS_KEY, JSON.stringify(snapshots));
+    renderAnalyticsSnapshotHistory();
+  }
+}
+
+// --- MOMENTUM-ACCELERATION RECOMMENDATIONS ALGORITHM ---
+
+// Weights for weighted momentum score
+const REC_WEIGHTS = {
+  d1: 0.15, // 1W vs 1M
+  d2: 0.25, // 1M vs 3M
+  d3: 0.30, // 3M vs 1Y
+  d4: 0.20, // 1Y vs 3Y
+  d5: 0.10  // 3Y vs 5Y
+};
+
+// Exposure groups based on category patterns
+const EXPOSURE_GROUPS = {
+  'Global Index': 'Global Developed Equity',
+  'Sweden Index': 'Sweden Equity',
+  'Precious Metals': 'Gold / Mining / Metals',
+  'Base Metals': 'Gold / Mining / Metals',
+  'Materials': 'Gold / Mining / Metals',
+  'Energy': 'Energy / Natural Resources',
+  'Short Duration': 'Cash / Short Duration',
+  'Cash': 'Cash / Short Duration',
+  'Corporate / Credit': 'Fixed Income / Credit',
+  'Credit': 'Fixed Income / Credit',
+  'Mix Term Bond': 'Fixed Income / Credit',
+  'Long Term Bond': 'Fixed Income / Credit',
+  'Agriculture': 'Commodities',
+  'Livestock': 'Commodities',
+  'Communication Services': 'Thematic / Sector',
+  'Consumer Discretionary': 'Thematic / Sector',
+  'Consumer Staples': 'Thematic / Sector',
+  'Financials': 'Thematic / Sector',
+  'Health Care': 'Thematic / Sector',
+  'Industrials': 'Thematic / Sector',
+  'Information Technology': 'Thematic / Sector',
+  'Real Estate': 'Thematic / Sector',
+  'Utilities': 'Thematic / Sector'
+};
+
+// Store current recommendations
+let currentRecommendations = null;
+
+function computeRecommendations() {
+  const data = computeBucketAnalysisData();
+  if (!data || !data.buckets) {
+    currentRecommendations = null;
+    return null;
+  }
+
+  // Build price lookup
+  const priceMap = new Map();
+  if (typeof perfLivePrices !== 'undefined' && perfLivePrices && perfLivePrices.length > 0) {
+    perfLivePrices.forEach(p => priceMap.set(p.name.toLowerCase(), p));
+  }
+
+  // Build position value lookup from currentSnapshot
+  const positionMap = new Map();
+  if (currentSnapshot) {
+    const effective = getEffectiveSnapshot(currentSnapshot);
+    const holdings = (typeof getFilteredHoldings === 'function') ? getFilteredHoldings(effective) : effective.holdings;
+    holdings.forEach(h => {
+      const key = (h.name + '|' + (h.brokerage || '')).toLowerCase();
+      positionMap.set(key, h.value || 0);
+    });
+  }
+
+  // Build category/bucket lookup from classificationReference
+  const assetMeta = new Map();
+  ['avanza', 'nordnet'].forEach(brokerage => {
+    (classificationReference[brokerage] || []).forEach(ref => {
+      const key = (ref.name + '|' + brokerage).toLowerCase();
+      assetMeta.set(key, { category: ref.category, bucket: ref.bucket, brokerage });
+    });
+  });
+
+  // Collect all unique assets across buckets
+  const allAssets = [];
+  const seen = new Set();
+  [1, 2, 3].forEach(bucketNum => {
+    const bucketData = data.buckets[bucketNum];
+    if (!bucketData || !bucketData.assets) return;
+    bucketData.assets.forEach(asset => {
+      const key = (asset.name + '|' + asset.brokerage).toLowerCase();
+      if (!seen.has(key) && asset.compositeScore !== null) {
+        seen.add(key);
+        allAssets.push({ ...asset, bucketAssign: bucketNum });
+      }
+    });
+  });
+
+  if (allAssets.length === 0) {
+    currentRecommendations = null;
+    return null;
+  }
+
+  // Compute acceleration ratio for regime filter
+  const accelerating = allAssets.filter(a => a.compositeScore > 0.5).length;
+  const decelerating = allAssets.filter(a => a.compositeScore < -0.5).length;
+  const accelerationRatio = allAssets.length > 0 ? (accelerating / allAssets.length) * 100 : 0;
+
+  // Regime determination
+  let regime;
+  if (accelerationRatio > 60) regime = 'riskOn';
+  else if (accelerationRatio >= 40) regime = 'mixed';
+  else if (accelerationRatio >= 20) regime = 'weak';
+  else regime = 'defensive';
+
+  // Group assets by exposure for duplicate detection
+  const exposureGroups = {};
+  allAssets.forEach(asset => {
+    const key = (asset.name + '|' + asset.brokerage).toLowerCase();
+    const meta = assetMeta.get(key) || {};
+    const category = meta.category || 'Unassigned';
+    const groupName = EXPOSURE_GROUPS[category] || category;
+    if (!exposureGroups[groupName]) exposureGroups[groupName] = [];
+    exposureGroups[groupName].push({ ...asset, category, bucket: meta.bucket, positionKey: key });
+  });
+
+  // Compute group momentum scores (weighted by position)
+  const groupScores = {};
+  Object.entries(exposureGroups).forEach(([groupName, assets]) => {
+    let totalWeight = 0;
+    let weightedSum = 0;
+    assets.forEach(a => {
+      const key = (a.name + '|' + a.brokerage).toLowerCase();
+      const pos = positionMap.get(key) || 0;
+      if (pos > 0) {
+        weightedSum += pos * (a.compositeScore || 0);
+        totalWeight += pos;
+      }
+    });
+    groupScores[groupName] = {
+      score: totalWeight > 0 ? weightedSum / totalWeight : 0,
+      count: assets.length,
+      overweight: false // placeholder — needs rebalancing target data to determine
+    };
+  });
+
+  // Process each asset
+  const recommendations = allAssets.map(asset => {
+    // Extract deltas from signals array (order: 1Wvs1M, 1Mvs3M, 3Mvs1Y, 1Yvs3Y, 3Yvs5Y)
+    const signals = asset.signals || [];
+    const d1 = signals[0] ? signals[0].delta : null;
+    const d2 = signals[1] ? signals[1].delta : null;
+    const d3 = signals[2] ? signals[2].delta : null;
+    const d4 = signals[3] ? signals[3].delta : null;
+    const d5 = signals[4] ? signals[4].delta : null;
+
+    // Classify signals
+    function classifySignal(delta) {
+      if (delta === null) return 'neutral';
+      if (delta > 0.5) return 'green';
+      if (delta < -0.5) return 'red';
+      return 'neutral';
+    }
+
+    const s1 = classifySignal(d1);
+    const s2 = classifySignal(d2);
+    const s3 = classifySignal(d3);
+    const s4 = classifySignal(d4);
+    const s5 = classifySignal(d5);
+
+    const greenCount = [s1, s2, s3, s4, s5].filter(s => s === 'green').length;
+    const redCount = [s1, s2, s3, s4, s5].filter(s => s === 'red').length;
+    const breadthScore = greenCount - redCount;
+
+    // Weighted momentum score
+    const weightedScore =
+      (REC_WEIGHTS.d1 * (d1 || 0)) +
+      (REC_WEIGHTS.d2 * (d2 || 0)) +
+      (REC_WEIGHTS.d3 * (d3 || 0)) +
+      (REC_WEIGHTS.d4 * (d4 || 0)) +
+      (REC_WEIGHTS.d5 * (d5 || 0));
+
+    // Get metadata
+    const key = (asset.name + '|' + asset.brokerage).toLowerCase();
+    const meta = assetMeta.get(key) || {};
+    const category = meta.category || 'Unassigned';
+    const bucket = meta.bucket || asset.bucketAssign || 3;
+    const exposureGroup = EXPOSURE_GROUPS[category] || category;
+    const positionValue = positionMap.get(key) || 0;
+
+    // --- Decision Logic ---
+    let rawAction = 'Hold';
+    let actionDetails = '';
+
+    // Determine raw action from weighted score + breadth
+    if (weightedScore > 1.5 && breadthScore >= 3 && redCount <= 1 && d3 !== null && d3 > 0.5) {
+      rawAction = 'Strong Buy';
+      actionDetails = 'Multi-timeframe acceleration, confirmed medium-term trend';
+    } else if (weightedScore > 0.5 && breadthScore >= 2 && (d2 === null || d2 >= -0.5) && (d3 === null || d3 >= -0.5)) {
+      rawAction = 'Buy / Increase';
+      actionDetails = 'Broad momentum improvement, key timeframes confirm';
+    } else if (weightedScore > 0.5 && breadthScore >= 1) {
+      rawAction = 'Mild Buy';
+      actionDetails = 'Positive but partial confirmation';
+    } else if (weightedScore < -2.0 && breadthScore <= -3) {
+      rawAction = 'Strong Trim / Sell';
+      actionDetails = 'Severe deceleration across multiple horizons';
+    } else if (weightedScore < -0.5 && breadthScore <= -2) {
+      rawAction = 'Trim';
+      actionDetails = 'Broad weakness, momentum deteriorating';
+    } else if (weightedScore > -0.5 && weightedScore < 0.5) {
+      rawAction = 'Hold';
+      actionDetails = 'Mixed or neutral signals';
+    } else if (weightedScore < -0.5 && breadthScore > -2) {
+      rawAction = 'Hold / Watch';
+      actionDetails = 'Weakening but not yet broad — monitor';
+    } else if (weightedScore > 0.5 && breadthScore < 1) {
+      rawAction = 'Hold / Watch';
+      actionDetails = 'Score positive but lacking breadth confirmation';
+    }
+
+    // --- Portfolio Role Adjustment ---
+    let finalAction = rawAction;
+
+    // Bucket 1 (Cash/Short Duration): more forgiving
+    if (bucket === 1 && (rawAction === 'Trim' || rawAction === 'Strong Trim / Sell')) {
+      if (weightedScore > -1.5 || breadthScore > -3) {
+        finalAction = 'Hold';
+        actionDetails = 'Defensive asset — trim signal overridden';
+      } else {
+        finalAction = 'Trim';
+        actionDetails = 'Weak momentum in defensive asset, but only trim if better alternative exists';
+      }
+    }
+
+    // Bucket 3 volatile categories: stricter
+    const volatileCategories = ['Energy', 'Materials', 'Precious Metals', 'Base Metals'];
+    if (bucket === 3 && volatileCategories.includes(category)) {
+      if (rawAction === 'Trim' && weightedScore < -1.0) {
+        finalAction = 'Strong Trim / Sell';
+        actionDetails = 'Volatile asset with deepening weakness';
+      }
+    }
+
+    // --- Regime Filter Adjustment ---
+    if (regime === 'defensive') {
+      if (finalAction === 'Strong Buy') {
+        finalAction = 'Buy / Increase';
+        actionDetails = 'Downgraded: defensive regime';
+      } else if (finalAction === 'Buy / Increase') {
+        finalAction = 'Mild Buy';
+        actionDetails = 'Downgraded: defensive regime';
+      } else if (finalAction === 'Mild Buy') {
+        finalAction = 'Hold / Watch';
+        actionDetails = 'Downgraded: defensive regime, wait for confirmation';
+      }
+    } else if (regime === 'weak') {
+      if (finalAction === 'Strong Buy') {
+        finalAction = 'Buy / Increase';
+        actionDetails = 'Downgraded: weak regime';
+      } else if (finalAction === 'Mild Buy') {
+        finalAction = 'Hold / Watch';
+        actionDetails = 'Downgraded: weak regime';
+      }
+    }
+
+    // --- Duplicate Exposure ---
+    const groupData = groupScores[exposureGroup];
+    const isDuplicate = groupData && groupData.count >= 2;
+
+    // --- Position Sizing ---
+    let sizeAction = '';
+    if (finalAction === 'Strong Buy') sizeAction = 'Increase 10–20%';
+    else if (finalAction === 'Buy / Increase') sizeAction = 'Increase 10–15%';
+    else if (finalAction === 'Mild Buy') sizeAction = 'Increase 5–10%';
+    else if (finalAction === 'Hold' || finalAction === 'Hold / Watch') sizeAction = '—';
+    else if (finalAction === 'Trim') sizeAction = 'Reduce 10–15%';
+    else if (finalAction === 'Strong Trim / Sell') sizeAction = 'Reduce 15–30%';
+
+    // Calculate SEK suggestion
+    let sizeSEK = '';
+    if (positionValue > 0) {
+      if (finalAction === 'Strong Buy') sizeSEK = `${formatCurrency(positionValue * 0.10)}–${formatCurrency(positionValue * 0.20)}`;
+      else if (finalAction === 'Buy / Increase') sizeSEK = `${formatCurrency(positionValue * 0.10)}–${formatCurrency(positionValue * 0.15)}`;
+      else if (finalAction === 'Mild Buy') sizeSEK = `${formatCurrency(positionValue * 0.05)}–${formatCurrency(positionValue * 0.10)}`;
+      else if (finalAction === 'Trim') sizeSEK = `-${formatCurrency(positionValue * 0.10)}–-${formatCurrency(positionValue * 0.15)}`;
+      else if (finalAction === 'Strong Trim / Sell') sizeSEK = `-${formatCurrency(positionValue * 0.15)}–-${formatCurrency(positionValue * 0.30)}`;
+    }
+
+    // Build reason string
+    let reasonParts = [];
+    if (isDuplicate) reasonParts.push(`Duplicate in "${exposureGroup}"`);
+    if (bucket === 1) reasonParts.push('Defensive role');
+    else if (bucket === 3 && volatileCategories.includes(category)) reasonParts.push('Volatile asset');
+    if (actionDetails) reasonParts.push(actionDetails);
+    const reason = reasonParts.join(' · ');
+
+    return {
+      name: asset.name,
+      brokerage: asset.brokerage,
+      bucket,
+      category,
+      exposureGroup,
+      compositeScore: asset.compositeScore,
+      weightedScore: parseFloat(weightedScore.toFixed(2)),
+      breadthScore,
+      greenCount,
+      redCount,
+      neutralCount: 5 - greenCount - redCount,
+      d3: d3 !== null ? parseFloat(d3.toFixed(2)) : null,
+      d2: d2 !== null ? parseFloat(d2.toFixed(2)) : null,
+      rawAction,
+      finalAction,
+      sizeAction,
+      sizeSEK,
+      reason,
+      isDuplicate,
+      positionValue
+    };
+  });
+
+  // Sort: sell/trim first, then holds, then buys last
+  const actionOrder = {
+    'Strong Trim / Sell': 0,
+    'Trim': 1,
+    'Hold / Watch': 2,
+    'Hold': 3,
+    'Mild Buy': 4,
+    'Buy / Increase': 5,
+    'Strong Buy': 6
+  };
+
+  recommendations.sort((a, b) => {
+    const orderDiff = (actionOrder[a.finalAction] || 3) - (actionOrder[b.finalAction] || 3);
+    if (orderDiff !== 0) return orderDiff;
+    return a.weightedScore - b.weightedScore; // within same action, worst first
+  });
+
+  currentRecommendations = {
+    items: recommendations,
+    regime,
+    accelerationRatio,
+    acceleratingCount: accelerating,
+    deceleratingCount: decelerating,
+    totalCount: allAssets.length
+  };
+
+  return currentRecommendations;
+}
+
+function sortRecTable(key) {
+  if (recSortKey === key) {
+    recSortAsc = !recSortAsc;
+  } else {
+    recSortKey = key;
+    // Sensible defaults: numeric columns default descending (worst first), text columns ascending
+    recSortAsc = (key === 'name' || key === 'action' || key === 'reason');
+  }
+  renderRecommendationsTable();
+}
+
+function renderRecommendationsTable() {
+  const container = document.getElementById('recommendationsTableContainer');
+  const regimeBanner = document.getElementById('recRegimeBanner');
+  if (!container) return;
+
+  const hasLiveData = (typeof perfLivePrices !== 'undefined' && perfLivePrices && perfLivePrices.length > 0);
+
+  if (!hasLiveData) {
+    container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-8">No live price data loaded. Click "Refresh Prices" in the Performance tab first.</div>';
+    if (regimeBanner) regimeBanner.classList.add('hidden');
+    return;
+  }
+
+  const recs = computeRecommendations();
+
+  if (!recs || recs.items.length === 0) {
+    container.innerHTML = '<div class="text-center text-sm text-[var(--fg-muted)] py-8">No recommendation data available. Ensure live prices have trailing returns data.</div>';
+    if (regimeBanner) regimeBanner.classList.add('hidden');
+    return;
+  }
+
+  // Regime banner
+  if (regimeBanner) {
+    const regimeConfig = {
+      riskOn: { emoji: '🟢', label: 'Risk-On', desc: 'Buy signals actionable', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)', color: '#34d399' },
+      mixed: { emoji: '🟡', label: 'Mixed', desc: 'Standard rules apply', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', color: '#fbbf24' },
+      weak: { emoji: '🟠', label: 'Weak', desc: 'Only strongest assets', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', color: '#fbbf24' },
+      defensive: { emoji: '🔴', label: 'Defensive', desc: 'Avoid aggressive buying', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#f87171' }
+    };
+    const cfg = regimeConfig[recs.regime] || regimeConfig.mixed;
+    regimeBanner.classList.remove('hidden');
+    regimeBanner.style.cssText = `background:${cfg.bg};border:1px solid ${cfg.border};border-radius:8px;padding:8px 14px;text-align:center;`;
+    regimeBanner.innerHTML = `<span style="font-size:14px;">${cfg.emoji}</span> <strong style="color:${cfg.color};">${cfg.label} Regime</strong> <span style="font-size:12px;color:var(--fg-muted);">— ${recs.acceleratingCount}/${recs.totalCount} accelerating (${recs.accelerationRatio.toFixed(0)}%) · ${cfg.desc}</span>`;
+  }
+
+  // Sort items based on current sort state
+  let items = [...recs.items];
+  if (recSortKey) {
+    items.sort((a, b) => {
+      let va, vb;
+      switch (recSortKey) {
+        case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
+        case 'bucket': va = a.bucket; vb = b.bucket; break;
+        case 'weightedScore': va = a.weightedScore; vb = b.weightedScore; break;
+        case 'breadthScore': va = a.breadthScore; vb = b.breadthScore; break;
+        case 'd3': va = a.d3 !== null ? a.d3 : (recSortAsc ? Infinity : -Infinity); vb = b.d3 !== null ? b.d3 : (recSortAsc ? Infinity : -Infinity); break;
+        case 'd2': va = a.d2 !== null ? a.d2 : (recSortAsc ? Infinity : -Infinity); vb = b.d2 !== null ? b.d2 : (recSortAsc ? Infinity : -Infinity); break;
+        case 'action': {
+          const actionOrder = { 'Strong Trim / Sell': 0, 'Trim': 1, 'Hold / Watch': 2, 'Hold': 3, 'Mild Buy': 4, 'Buy / Increase': 5, 'Strong Buy': 6 };
+          va = actionOrder[a.finalAction] || 3; vb = actionOrder[b.finalAction] || 3; break;
+        }
+        case 'size': va = a.positionValue; vb = b.positionValue; break;
+        case 'reason': va = a.reason.toLowerCase(); vb = b.reason.toLowerCase(); break;
+        default: return 0;
+      }
+      if (va == vb) return 0;
+      if (va === undefined || va === null) return 1;
+      if (vb === undefined || vb === null) return -1;
+      const cmp = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+      return recSortAsc ? cmp : -cmp;
+    });
+  }
+
+  // Build sorted column headers with sort indicators
+  function sortArrow(colKey) {
+    if (recSortKey !== colKey) return ' <span style="opacity:0.3;">⭥</span>';
+    return recSortAsc ? ' <span>▲</span>' : ' <span>▼</span>';
+  }
+  function sortableHeader(colKey, label, style) {
+    const arrow = sortArrow(colKey);
+    return `<th class="sortable-header" onclick="sortRecTable('${colKey}')" style="${style}cursor:pointer;user-select:none;white-space:nowrap;">${label}${arrow}</th>`;
+  }
+
+  const actionColors = {
+    'Strong Buy': { bg: 'rgba(16,185,129,0.15)', fg: '#34d399', icon: '🚀' },
+    'Buy / Increase': { bg: 'rgba(16,185,129,0.1)', fg: '#34d399', icon: '📈' },
+    'Mild Buy': { bg: 'rgba(16,185,129,0.06)', fg: '#22c55e', icon: '↗️' },
+    'Hold': { bg: 'rgba(148,163,184,0.08)', fg: '#94a3b8', icon: '➡️' },
+    'Hold / Watch': { bg: 'rgba(245,158,11,0.08)', fg: '#fbbf24', icon: '👀' },
+    'Trim': { bg: 'rgba(245,158,11,0.1)', fg: '#f59e0b', icon: '📉' },
+    'Strong Trim / Sell': { bg: 'rgba(239,68,68,0.12)', fg: '#f87171', icon: '🔻' }
+  };
+
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">';
+  html += '<thead><tr>';
+  html += sortableHeader('name', 'Asset', 'min-width:140px;');
+  html += sortableHeader('bucket', 'B', 'width:28px;text-align:center;');
+  html += sortableHeader('weightedScore', 'Wtd Score', 'text-align:center;width:64px;');
+  html += sortableHeader('breadthScore', 'Br', 'text-align:center;width:36px;');
+  html += sortableHeader('d3', '3Mvs1Y', 'text-align:center;width:64px;');
+  html += sortableHeader('d2', '1Mvs3M', 'text-align:center;width:64px;');
+  html += sortableHeader('action', 'Action', 'text-align:center;width:90px;');
+  html += sortableHeader('size', 'Size (SEK)', 'text-align:right;width:110px;');
+  html += sortableHeader('reason', 'Reason', '');
+  html += '</tr></thead><tbody>';
+
+  items.forEach(rec => {
+    const actColor = actionColors[rec.finalAction] || actionColors['Hold'];
+    const bucketClass = rec.bucket === 1 ? 'badge-bucket-1' : rec.bucket === 2 ? 'badge-bucket-2' : 'badge-bucket-3';
+
+    // Signal coloring
+    function signalCell(delta) {
+      if (delta === null) return '<td class="text-center text-[var(--fg-muted)]">—</td>';
+      const color = delta > 0.5 ? 'color:#34d399;' : delta < -0.5 ? 'color:#f87171;' : 'color:var(--fg-muted);';
+      const icon = delta > 0.5 ? '📈' : delta < -0.5 ? '📉' : '➡️';
+      return `<td class="text-center font-mono" style="${color}font-size:0.75rem;">${icon} ${delta >= 0 ? '+' : ''}${delta.toFixed(2)}</td>`;
+    }
+
+    html += '<tr>';
+    html += `<td class="font-medium">${escapeHtml(rec.name)} <span class="text-xs text-[var(--fg-muted)]">${rec.brokerage}</span></td>`;
+    html += `<td class="text-center"><span class="badge ${bucketClass}" style="padding:2px 6px;font-size:10px;">${rec.bucket}</span></td>`;
+
+    // Weighted Score
+    const wsColor = rec.weightedScore > 0.5 ? 'color:#34d399;' : rec.weightedScore < -0.5 ? 'color:#f87171;' : 'color:var(--fg-muted);';
+    html += `<td class="text-center font-mono font-semibold" style="${wsColor}">${rec.weightedScore >= 0 ? '+' : ''}${rec.weightedScore.toFixed(2)}</td>`;
+
+    // Breadth
+    const brColor = rec.breadthScore >= 2 ? 'color:#34d399;' : rec.breadthScore <= -2 ? 'color:#f87171;' : 'color:var(--fg-muted);';
+    html += `<td class="text-center font-mono font-semibold" style="${brColor}">${rec.breadthScore >= 0 ? '+' : ''}${rec.breadthScore}</td>`;
+
+    // Key signals
+    html += signalCell(rec.d3);
+    html += signalCell(rec.d2);
+
+    // Action badge
+    html += `<td class="text-center"><span style="display:inline-block;padding:3px 8px;border-radius:12px;font-size:0.7rem;font-weight:600;background:${actColor.bg};color:${actColor.fg};">${actColor.icon} ${rec.finalAction}</span></td>`;
+
+    // Size
+    html += `<td class="text-right text-xs font-mono text-[var(--fg-secondary)]">${rec.sizeSEK || '—'}</td>`;
+
+    // Reason
+    html += `<td class="text-xs text-[var(--fg-muted)]" style="max-width:260px;white-space:normal;">${escapeHtml(rec.reason)}</td>`;
+
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+
+  // Summary row
+  html += `<div class="mt-3 text-xs text-[var(--fg-muted)] text-center">
+    ${recs.totalCount} assets · 
+    ${recs.items.filter(r => r.finalAction.includes('Buy')).length} buy · 
+    ${recs.items.filter(r => r.finalAction === 'Hold' || r.finalAction === 'Hold / Watch').length} hold · 
+    ${recs.items.filter(r => r.finalAction.includes('Trim')).length} trim/sell
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+// Add hover style for sortable headers
+(function injectRecSortStyles() {
+  if (document.getElementById('rec-sort-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'rec-sort-styles';
+  style.textContent = `.sortable-header:hover { color: var(--fg-primary) !important; }`;
+  document.head.appendChild(style);
+})();
+
 "use strict";
 
 
 // --- AI HOLDINGS ANALYSIS ---
 const AI_ANALYSIS_LS_KEY = 'portfolioTracker_aiAnalysis';
 let aiAnalysisHistory = []; // { role: 'user'|'assistant', content: '...' }
+let aiAbortController = null; // for cancelling in-flight API requests
 
 function loadAiAnalysis() {
   try {
@@ -4022,6 +5006,32 @@ function saveAiAnalysis() {
       history: aiAnalysisHistory
     }));
   } catch (e) { console.warn('Failed to save AI analysis:', e); }
+}
+
+/**
+ * Determine if a Yahoo Finance ticker/symbol is valid for web search.
+ * Returns false only for non-financial placeholders (CASH, not_found).
+ * All real Yahoo Finance tickers (stocks, ETFs, mutual funds) are included.
+ */
+function isSearchableTicker(symbol) {
+  if (!symbol) return false;
+  // Skip if symbol is just "CASH" or null
+  if (symbol === 'CASH' || symbol === 'not_found') return false;
+  // All real Yahoo Finance tickers are searchable (stocks, ETFs, mutual funds)
+  return true;
+}
+
+/**
+ * Extract the company/asset name from a holding name for search queries.
+ * Strips common Swedish fund suffixes and normalizes for web search.
+ */
+function buildSearchableName(name) {
+  if (!name) return '';
+  // For known patterns, extract the meaningful part
+  return name
+    .replace(/\s*(fond|fond a|fond sverige|index|räntefond|ränta kort)$/i, '')
+    .replace(/\s*(a acc sek|a acc|ex mega cap)$/i, '')
+    .trim();
 }
 
 function simpleMarkdownToHtml(text) {
@@ -4069,14 +5079,12 @@ function buildPortfolioSummary() {
   let summary = `## Portfolio Summary\n`;
   summary += `- **Total Value:** ${formatCurrency(ft.totalValue)}\n`;
   summary += `- **Number of Holdings:** ${holdings.length}\n`;
-  summary += `- **Nordnet Value:** ${formatCurrency(currentSnapshot.nordnetValue)} (${ft.totalValue > 0 ? ((currentSnapshot.nordnetValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
-  summary += `- **Avanza Value:** ${formatCurrency(currentSnapshot.avanzaValue)} (${ft.totalValue > 0 ? ((currentSnapshot.avanzaValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
 
   // Bucket allocation
   const bucketAlloc = { 1: 0, 2: 0, 3: 0, 0: 0 };
   holdings.forEach(h => { bucketAlloc[h.bucket] = (bucketAlloc[h.bucket] || 0) + h.value; });
   summary += `\n### Bucket Allocation\n`;
-  Object.keys(bucketAlloc).forEach(b => {
+  Object.keys(bucketAlloc).sort().forEach(b => {
     if (bucketAlloc[b] > 0) {
       const pct = ft.totalValue > 0 ? ((bucketAlloc[b] / ft.totalValue) * 100).toFixed(1) : 0;
       const bname = BUCKETS[b] ? BUCKETS[b].name : 'Unknown';
@@ -4084,43 +5092,71 @@ function buildPortfolioSummary() {
     }
   });
 
-  // Rebalancing targets
-  summary += `\n### Target Allocation\n`;
-  ['avanza', 'nordnet'].forEach(broker => {
-    const targets = rebalancingTargets[broker];
-    if (targets) {
-      summary += `**${broker.charAt(0).toUpperCase() + broker.slice(1)}:**\n`;
-      targets.forEach(t => {
-        if (t.target > 0) summary += `- ${t.name}: ${t.target}%\n`;
-      });
-    }
-  });
+  // Build momentum data from perfLivePrices
+  const priceMap = new Map((typeof perfLivePrices !== 'undefined' ? perfLivePrices : []).map(p => [p.name.toLowerCase(), p]));
+  const bucketLabels = { 1: 'B1 — Cash/Short', 2: 'B2 — Fixed Income', 3: 'B3 — Equity', 0: 'Unclassified' };
 
-  // Individual holdings
-  summary += `\n### All Holdings\n`;
-  summary += `| Asset | Brokerage | Category | Bucket | Value (SEK) | % of Portfolio |\n`;
-  summary += `|-------|-----------|----------|--------|-------------|---------------|\n`;
+  // Group holdings by bucket
+  const grouped = {};
   holdings.forEach(h => {
-    const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
-    const bname = BUCKETS[h.bucket] ? BUCKETS[h.bucket].name : 'Unknown';
-    summary += `| ${h.name} | ${h.brokerage} | ${h.category || 'Unassigned'} | B${h.bucket} (${bname}) | ${Math.round(h.value).toLocaleString('sv-SE')} | ${pct}% |\n`;
+    const b = h.bucket || 0;
+    if (!grouped[b]) grouped[b] = [];
+    grouped[b].push(h);
   });
 
-  // Performance links
-  const links = Object.entries(performanceLinks);
-  if (links.length > 0) {
-    summary += `\n### Performance Links\n`;
-    links.forEach(([key, url]) => summary += `- ${key.replace('|', ' (')})}: ${url}\n`);
-  }
+  // Render momentum table per bucket (B3 → B2 → B1)
+  const bucketOrder = [3, 2, 1, 0];
+  bucketOrder.forEach(b => {
+    const group = grouped[b];
+    if (!group || group.length === 0) return;
 
-  // Performance data
-  if (performanceData && performanceData.assets) {
-    summary += `\n### Historical Performance\n`;
-    performanceData.assets.forEach(a => {
-      const rets = Object.entries(a.returns || {}).map(([k, v]) => `${k}: ${v !== null ? v + '%' : 'N/A'}`).join(', ');
-      summary += `- **${a.name}** (${a.assetType}): ${rets}\n`;
+    const label = bucketLabels[b] || 'Unknown';
+    summary += `\n### ${label}\n\n`;
+    summary += `| Asset | Brokerage | Composite Score | Signal | Notes/Rationale |\n`;
+    summary += `|-------|-----------|-----------------|--------|-----------------|\n`;
+
+    group.forEach(h => {
+      const priceData = priceMap.get(h.name.toLowerCase());
+      const tr = priceData?.trailingReturns || {};
+      const oneMonth = tr.oneMonth ?? null;
+      const threeMonth = tr.threeMonth ?? null;
+      const oneYear = tr.oneYear ?? null;
+
+      // 12-1M Momentum = (1+1Y)/(1+1M) - 1
+      let twelveMinusOne = null;
+      if (oneMonth !== null && oneYear !== null && (1 + oneMonth / 100) !== 0) {
+        twelveMinusOne = ((1 + oneYear / 100) / (1 + oneMonth / 100)) - 1;
+      }
+
+      // Composite Score = 70% * 12-1M + 30% * 3M
+      let compositeScore = null;
+      if (twelveMinusOne !== null && threeMonth !== null) {
+        compositeScore = 0.7 * twelveMinusOne + 0.3 * (threeMonth / 100);
+      }
+
+      // Signal determination
+      const score = compositeScore;
+      const tm1 = twelveMinusOne;
+      const m3 = threeMonth !== null ? threeMonth / 100 : null;
+      let signal;
+      if (score === null || tm1 === null || m3 === null) {
+        signal = '🔴 No Data';
+      } else if (score < 0 || (tm1 < 0 && m3 < 0)) {
+        signal = '🔴 Weak';
+      } else if (m3 < 0) {
+        signal = '🟠 Declining';
+      } else if (score > 0.05 && tm1 > 0 && m3 > 0) {
+        signal = '🟢 Strong';
+      } else if (score > 0 && m3 > 0) {
+        signal = '🟡 Moderate';
+      } else {
+        signal = '🟠 Mixed';
+      }
+
+      const fmtScore = compositeScore !== null ? (compositeScore >= 0 ? '+' : '') + (compositeScore * 100).toFixed(2) + '%' : '—';
+      summary += `| ${h.name} | ${h.brokerage} | ${fmtScore} | ${signal} | *(to be analyzed)* |\n`;
     });
-  }
+  });
 
   return summary;
 }
@@ -4157,7 +5193,7 @@ function renderAiChatHistory() {
   }
   chatEl.innerHTML = followUps.map(msg => {
     if (msg.role === 'user') {
-      return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${msg.content}</div>`;
+      return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${escapeHtml(msg.content)}</div>`;
     } else {
       return `<div class="ai-chat-ai ai-markdown text-sm">${simpleMarkdownToHtml(msg.content)}</div>`;
     }
@@ -4177,6 +5213,19 @@ async function analyzeHoldingsWithAI() {
     return;
   }
 
+  // Warn if re-analyzing would discard follow-up conversation
+  if (aiAnalysisHistory.length > 2) {
+    if (!confirm('Re-analyzing will discard your follow-up conversation. Continue?')) {
+      return;
+    }
+  }
+
+  // Cancel any in-flight request
+  if (aiAbortController) {
+    aiAbortController.abort();
+  }
+  aiAbortController = new AbortController();
+
   const btn = document.getElementById('aiAnalyzeBtn');
   const btnText = document.getElementById('aiAnalyzeBtnText');
   const spinner = document.getElementById('aiLoadingSpinner');
@@ -4186,41 +5235,82 @@ async function analyzeHoldingsWithAI() {
 
   try {
     const portfolioSummary = buildPortfolioSummary();
-    const prompt = `You are a professional portfolio analyst. Analyze the following Swedish portfolio and provide actionable insights.
 
-${portfolioSummary}
+    // --- Build targeted web search query from searchable holdings ---
+    const priceMapForSearch = new Map((typeof perfLivePrices !== 'undefined' ? perfLivePrices : []).map(p => [p.name.toLowerCase(), p]));
+    const effective = getEffectiveSnapshot(currentSnapshot);
+    const holdingsForSearch = getFilteredHoldings(effective);
+    const searchableAssets = [];
 
-Please provide your analysis in the following sections using Markdown formatting:
+    holdingsForSearch.forEach(h => {
+      const pd = priceMapForSearch.get(h.name.toLowerCase());
+      const symbol = pd?.symbol;
+      if (isSearchableTicker(symbol)) {
+        const searchName = buildSearchableName(h.name);
+        searchableAssets.push({ name: searchName, symbol: symbol });
+      }
+    });
 
-## 1. Portfolio Diversification Assessment
-Evaluate how well-diversified the portfolio is across asset classes, sectors, and geographies.
+    // Build a focused search query listing only real stocks/ETFs
+    let webSearchEnabled = false;
+    let searchQuery = '';
+    if (searchableAssets.length > 0) {
+      const assetQueries = searchableAssets.map(a => {
+        // Strip exchange suffix for cleaner search (e.g., "EXUS.DE" → "Xtrackers EXUS ETF")
+        const baseSymbol = a.symbol.replace(/\.[A-Z]+$/, '');
+        return `${a.name} (${baseSymbol}) stock ETF outlook news 2025 2026`;
+      });
+      searchQuery = 'Recent market news and outlook for: ' + assetQueries.join('. ');
+      webSearchEnabled = true;
+      console.log(`🔍 Web search enabled for ${searchableAssets.length} searchable assets:`, searchableAssets.map(a => a.symbol));
+    }
 
-## 2. Risk Analysis
-Identify concentration risks, sector exposure issues, and potential vulnerabilities.
+    // Update loading indicator
+    if (spinner) spinner.textContent = webSearchEnabled ? 'Searching web & analyzing...' : 'Analyzing...';
 
-## 3. Allocation vs Targets
-Compare the current bucket allocation against the target allocation. Highlight significant gaps.
+    const systemPrompt = `You are a professional portfolio analyst specializing in momentum analysis. Analyze the portfolio data provided below.
 
-## 4. Actionable Recommendations
-Provide 3-5 specific, actionable suggestions for rebalancing or improving the portfolio.
+${webSearchEnabled ? `Web search results have been included for the holdings in the portfolio. Use the web search results to provide up-to-date market context, recent news, and analyst sentiment where available. For assets where web results are sparse or not directly relevant, supplement with the provided performance data (trailing returns, momentum scores) to assess their momentum.` : `Use your knowledge of current market conditions, recent earnings reports, sector rotation, and macro trends to provide informed rationale.`}
 
-## 5. Market Context
-Brief commentary on the overall asset mix and general positioning considerations.
+For each asset in each bucket, fill in the "Notes/Rationale" column with a concise 2-3 sentence analysis that:
+1. Explains what's driving the composite momentum score (combining long-term and short-term trends)
+2. Provides market context — recent news, sector trends, earnings, or macro factors affecting this asset
+3. Assesses whether the signal (Strong/Moderate/Declining/Weak) matches the current market situation
 
-Be specific, reference actual holdings and numbers from the portfolio data. Use SEK for any currency references.`;
+Group your response by bucket (B3 → B2 → B1) using the same table format as the input, but with the Notes/Rationale column filled in. Then add a brief summary section with:
+- **Key momentum risks** — assets showing deteriorating momentum
+- **Positive highlights** — assets with strongest momentum signals
+- **Bucket-level assessment** — overall health of each bucket's momentum
+
+Always respond in Markdown format. Be specific and reference actual data from the portfolio.`;
+
+    const userPrompt = `Analyze the momentum of my portfolio holdings. Here is the data:\n\n${portfolioSummary}`;
+
+    // Build request body — include web_search tool if searchable assets exist
+    const requestBody = {
+      model: getApiModel(),
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000
+    };
+
+    if (webSearchEnabled) {
+      requestBody.tools = [{
+        type: 'web_search',
+        web_search: {
+          search_query: searchQuery
+        }
+      }];
+    }
 
     const response = await fetch(getApiUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({
-        model: getApiModel(),
-        messages: [
-          { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data from the portfolio.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000
-      })
+      body: JSON.stringify(requestBody),
+      signal: aiAbortController.signal
     });
 
     if (!response.ok) {
@@ -4231,20 +5321,55 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
     const result = await response.json();
     const content = result.choices?.[0]?.message?.content || 'No analysis could be generated.';
 
+    // Extract web search sources from the response
+    const webSearchResults = result.web_search || [];
+    let sourcesHtml = '';
+    if (webSearchResults.length > 0) {
+      sourcesHtml = '\n\n---\n\n### 📰 Web Search Sources\n';
+      webSearchResults.forEach((src, i) => {
+        const title = src.title || 'Untitled';
+        const link = src.link || '#';
+        const media = src.media || '';
+        sourcesHtml += `${i + 1}. [${title}](${link})${media ? ` — *${media}*` : ''}\n`;
+      });
+    }
+
+    // Store metadata about web search enrichment
+    const fullContent = content + sourcesHtml;
+    const searchBadge = webSearchEnabled
+      ? `<span class="text-xs text-[var(--fg-muted)] ml-2">🔍 Enriched with web search (${searchableAssets.length} assets, ${webSearchResults.length} sources)</span>`
+      : '';
+
     aiAnalysisHistory = [
-      { role: 'user', content: 'Analyze my portfolio holdings' },
-      { role: 'assistant', content: content }
+      { role: 'user', content: userPrompt },
+      { role: 'assistant', content: fullContent }
     ];
     saveAiAnalysis();
-    renderAiAnalysisContent(content);
+    renderAiAnalysisContent(fullContent);
+
+    // Show web search enrichment badge
+    const badgeEl = document.getElementById('aiWebSearchBadge');
+    if (badgeEl) {
+      badgeEl.innerHTML = searchBadge;
+      badgeEl.classList.toggle('hidden', !webSearchEnabled);
+    }
 
   } catch (err) {
+    if (err.name === 'AbortError') {
+      console.log('AI analysis request was cancelled.');
+      return;
+    }
     console.error('AI Holdings Analysis error:', err);
     alert('AI Analysis failed: ' + err.message);
+    // Revert button text on error
+    if (btnText) btnText.textContent = 'Analyze Holdings with AI';
   } finally {
     if (btn) btn.disabled = false;
-    if (btnText) btnText.textContent = 'Re-Analyze Holdings';
+    if (btnText && btnText.textContent === 'Analyzing...') {
+      btnText.textContent = aiAnalysisHistory.length > 0 ? 'Re-Analyze Holdings' : 'Analyze Holdings with AI';
+    }
     if (spinner) spinner.classList.add('hidden');
+    aiAbortController = null;
   }
 }
 
@@ -4271,8 +5396,8 @@ async function askFollowUpQuestion() {
 
   try {
     // Build conversation messages for context
-    const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data when relevant. Keep answers concise.' };
-    const contextMsg = { role: 'user', content: `Here is my portfolio summary for context:\n\n${buildPortfolioSummary()}` };
+    const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst specializing in momentum analysis. Always respond in Markdown format. Be specific, reference actual momentum data and signals when relevant. Keep answers concise.' };
+    const contextMsg = { role: 'user', content: `Here is my portfolio momentum summary for context:\n\n${buildPortfolioSummary()}` };
     const contextReply = aiAnalysisHistory[1] ? { role: 'assistant', content: aiAnalysisHistory[1].content } : null;
 
     const messages = [systemMsg, contextMsg];
@@ -4423,7 +5548,7 @@ if ('serviceWorker' in navigator) {
 
 // Hook: after switchTab — render analytics/retirement/notes tabs
 registerHook('afterSwitchTab', function(tabId) {
-  if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); }
+  if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); renderBucketAnalyticsSnapshots(); }
   if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
   if (tabId === 'notes') { renderNotesTab(); }
 });
@@ -4496,7 +5621,7 @@ function renderReferenceTable() {
 
   const renderSection = (broker, brokerLabel, assets) => {
     const rows = assets.map((asset, index) => `
-      <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
+      <div class="grid grid-cols-[40px_1fr_120px_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
         <div>
           <button onclick="deleteReferenceAsset('${broker}', ${index})" class="text-red-400 hover:text-red-300 p-1" title="Delete">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -4505,6 +5630,10 @@ function renderReferenceTable() {
         <div>
           <input type="text" value="${asset.name}" onchange="updateReferenceAsset('${broker}', ${index}, 'name', this.value)" 
             class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm focus:border-[var(--accent-primary)] outline-none">
+        </div>
+        <div>
+          <input type="text" value="${asset.symbol || ''}" placeholder="e.g. AAPL" onchange="updateReferenceAsset('${broker}', ${index}, 'symbol', this.value)" 
+            class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono focus:border-[var(--accent-secondary)] outline-none" title="Yahoo Finance ticker symbol">
         </div>
         <div>
           <select class="edit-select w-full" onchange="updateReferenceAsset('${broker}', ${index}, 'category', this.value)">
@@ -4522,8 +5651,8 @@ function renderReferenceTable() {
     return `
       <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
         <h4 class="font-semibold mb-3 text-cyan-400">${brokerLabel} <span class="text-xs text-[var(--fg-muted)]">(${assets.length} assets)</span></h4>
-        <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
-          <div></div><div>Asset Name</div><div>Category</div><div>Bucket</div>
+        <div class="grid grid-cols-[40px_1fr_120px_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
+          <div></div><div>Asset Name</div><div>Symbol</div><div>Category</div><div>Bucket</div>
         </div>
         ${rows || '<div class="py-4 text-center text-[var(--fg-muted)]">No assets defined</div>'}
       </div>
@@ -4545,6 +5674,7 @@ function updateReferenceAsset(broker, index, field, value) {
 function addNewAssetRow(broker) {
   const newAsset = {
     name: 'New Asset',
+    symbol: '',
     category: 'Other',
     bucket: 0
   };
@@ -5239,6 +6369,7 @@ function renderPerfLivePricesTable() {
         bucket,
         price: null,
         dayChange: null,
+        fiveDay: null,
         ytd: null,
         oneMonth: null,
         threeMonth: null,
@@ -5249,7 +6380,7 @@ function renderPerfLivePricesTable() {
       };
     }
 
-    const tr = priceData.trailingReturns || {};
+      const tr = priceData.trailingReturns || {};
     return {
       name: th.name,
       symbol: currentSymbol || priceData.symbol || '—',
@@ -5257,6 +6388,7 @@ function renderPerfLivePricesTable() {
       price: priceData.price,
       currency: priceData.currency || 'SEK',
       dayChange: priceData.changePercent,
+      fiveDay: tr.fiveDay,
       ytd: tr.ytd,
       oneMonth: tr.oneMonth,
       threeMonth: tr.threeMonth,
@@ -5280,6 +6412,7 @@ function renderPerfLivePricesTable() {
         price: p.price,
         currency: p.currency || 'SEK',
         dayChange: p.changePercent,
+        fiveDay: tr.fiveDay,
         ytd: tr.ytd,
         oneMonth: tr.oneMonth,
         threeMonth: tr.threeMonth,
@@ -5310,7 +6443,7 @@ function renderPerfLivePricesTable() {
   });
 
   // Update sort icons
-  ['name', 'price', 'dayChange', 'ytd', 'oneMonth', 'threeMonth', 'oneYear', 'threeYear', 'fiveYear', 'tenYear'].forEach(k => {
+  ['name', 'price', 'dayChange', 'fiveDay', 'ytd', 'oneMonth', 'threeMonth', 'oneYear', 'threeYear', 'fiveYear', 'tenYear'].forEach(k => {
     const icon = document.getElementById('perfSortIcon_' + k);
     if (icon) {
       icon.textContent = perfLiveSortKey === k ? (perfLiveSortAsc ? ' ▲' : ' ▼') : '';
@@ -5337,6 +6470,7 @@ function renderPerfLivePricesTable() {
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
         <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
+        <td class="text-right font-mono text-[var(--fg-muted)]">—</td>
       </tr>`;
     }
 
@@ -5355,6 +6489,7 @@ function renderPerfLivePricesTable() {
       <td>${bucketBadge}</td>
       <td class="text-right font-mono">${r.price.toFixed(2)} ${r.currency}</td>
       <td class="text-right font-mono">${dayStr}</td>
+      <td class="text-right font-mono">${fmtR(r.fiveDay)}</td>
       <td class="text-right font-mono">${fmtR(r.ytd)}</td>
       <td class="text-right font-mono">${fmtR(r.oneMonth)}</td>
       <td class="text-right font-mono">${fmtR(r.threeMonth)}</td>
@@ -5371,6 +6506,8 @@ function renderPerfLivePricesTable() {
 
   // Also render the momentum table
   renderMomentumTable();
+  // Also render the bucket analysis tables in Analytics tab
+  if (typeof renderBucketAnalysisTables === 'function') renderBucketAnalysisTables();
 
   // --- NEW PERFORMANCE FEATURES ---
   // Show search/filter bar
@@ -5556,6 +6693,16 @@ async function fetchLivePrices() {
         const ref = classificationReference[broker] || [];
         const match = ref.find(r => namesMatch(r.name, th.name));
         if (match && match.symbol) { symbol = match.symbol; break; }
+      }
+      // Fallback: known symbol mappings for common holdings
+      if (!symbol) {
+        const SYMBOL_FALLBACKS = {
+          'Xtrackers MSCI World ex USA UCITS ETF 1C': 'EXUS.L',
+          'Xtrackers MSCI World ex USA': 'EXUS.L'
+        };
+        for (const [key, sym] of Object.entries(SYMBOL_FALLBACKS)) {
+          if (namesMatch(key, th.name)) { symbol = sym; break; }
+        }
       }
       // Skip holdings without a ticker — user must set symbol in Reference tab
       if (!symbol) return;
@@ -6168,7 +7315,15 @@ function renderMomentumEvolutionChart() {
   // Collect all unique asset names across all snapshots
   const assetNames = new Set();
   snapshots.forEach(s => s.items.forEach(i => assetNames.add(i.name)));
-  const names = Array.from(assetNames).sort();
+  // Sort names by their latest composite score (descending) to match momentum ranking
+  const latestSnapshot = snapshots[snapshots.length - 1];
+  const names = Array.from(assetNames).sort((a, b) => {
+    const aItem = latestSnapshot.items.find(i => i.name === a);
+    const bItem = latestSnapshot.items.find(i => i.name === b);
+    const aScore = aItem && aItem.compositeScore !== null ? aItem.compositeScore : -Infinity;
+    const bScore = bItem && bItem.compositeScore !== null ? bItem.compositeScore : -Infinity;
+    return bScore - aScore;
+  });
 
   // Build labels (dates) sorted chronologically
   const labels = snapshots.map(s => s.date);
@@ -6184,7 +7339,8 @@ function renderMomentumEvolutionChart() {
     const color = palette[idx % palette.length];
     const data = snapshots.map(s => {
       const item = s.items.find(i => i.name === name);
-      return item ? item.compositeScore : null;
+      // Convert to percentage (compositeScore is stored as decimal, e.g. 0.6003 → 60.03)
+      return item && item.compositeScore !== null ? item.compositeScore * 100 : null;
     });
     return {
       label: name,
@@ -6231,7 +7387,8 @@ function renderMomentumEvolutionChart() {
           callbacks: {
             label: function(ctx) {
               const val = ctx.parsed.y;
-              return `${ctx.dataset.label}: ${val.toFixed(1)}`;
+              if (val === null) return `${ctx.dataset.label}: —`;
+              return `${ctx.dataset.label}: ${val >= 0 ? '+' : ''}${val.toFixed(2)}%`;
             }
           }
         }
@@ -6243,10 +7400,10 @@ function renderMomentumEvolutionChart() {
           grid: { color: 'rgba(148, 163, 184, 0.08)' }
         },
         y: {
-          title: { display: true, text: 'Composite Score', color: '#94a3b8' },
+          title: { display: true, text: 'Composite Score (%)', color: '#94a3b8' },
           ticks: {
             color: '#64748b',
-            callback: function(v) { return v.toFixed(0); }
+            callback: function(v) { return v.toFixed(0) + '%'; }
           },
           grid: { color: 'rgba(148, 163, 184, 0.08)' },
           // Draw a horizontal line at 0
@@ -6359,9 +7516,8 @@ function loadDemoData() {
   showDashboard();
 }
 
-// --- NOTES & TODOS MODULE ---
+// --- NOTES MODULE ---
 const NOTES_LS_KEY = 'portfolioTracker_notes';
-const TODOS_LS_KEY = 'portfolioTracker_todos';
 
 function loadNotes() {
   try {
@@ -6395,60 +7551,16 @@ function renderNotes() {
       <div class="bg-[var(--bg-secondary)] rounded-lg p-4 border border-[var(--border-subtle)]">
         <div class="flex items-start justify-between gap-2 mb-2">
           <span class="text-xs text-[var(--fg-muted)]">${dateStr}</span>
-          <button onclick="window.deleteNote(${index})" class="text-[var(--accent-danger)] hover:text-red-300 flex-shrink-0" title="Delete note">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="window.editNote(${index})" class="text-[var(--fg-muted)] hover:text-[var(--accent-primary)]" title="Edit note">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button onclick="window.deleteNote(${index})" class="text-[var(--accent-danger)] hover:text-red-300" title="Delete note">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
         </div>
         <div class="text-sm whitespace-pre-wrap break-words text-[var(--fg-secondary)]">${escapeHtml(note.text)}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function loadTodos() {
-  try {
-    const raw = localStorage.getItem(TODOS_LS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('Failed to load todos:', e);
-    return [];
-  }
-}
-
-function saveTodos(todos) {
-  try {
-    localStorage.setItem(TODOS_LS_KEY, JSON.stringify(todos));
-  } catch (e) {
-    console.warn('Failed to save todos:', e);
-  }
-}
-
-function renderTodos() {
-  const container = document.getElementById('todosList');
-  const progressEl = document.getElementById('todoProgress');
-  if (!container) return;
-  const todos = loadTodos();
-  if (todos.length === 0) {
-    container.innerHTML = '<p class="text-center py-8 text-[var(--fg-muted)]">No to-dos yet. Click "Add To-Do" to get started.</p>';
-    if (progressEl) progressEl.textContent = '';
-    return;
-  }
-  const done = todos.filter(t => t.done).length;
-  if (progressEl) progressEl.textContent = `${done}/${todos.length} done`;
-
-  container.innerHTML = todos.map((todo, index) => {
-    const dateStr = todo.createdAt ? new Date(todo.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-    return `
-      <div class="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group ${todo.done ? 'opacity-60' : ''}">
-        <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="window.toggleTodo(${index}, this.checked)"
-          class="mt-0.5 w-4 h-4 accent-[var(--accent-primary)] cursor-pointer flex-shrink-0">
-        <div class="flex-1 min-w-0">
-          <div class="text-sm ${todo.done ? 'line-through text-[var(--fg-muted)]' : 'text-[var(--fg-primary)]'}">${escapeHtml(todo.text)}</div>
-          <div class="text-xs text-[var(--fg-muted)] mt-0.5">${dateStr}</div>
-        </div>
-        <button onclick="window.deleteTodo(${index})" class="text-[var(--fg-muted)] hover:text-[var(--accent-danger)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="Delete to-do">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
       </div>
     `;
   }).join('');
@@ -6471,35 +7583,25 @@ window.deleteNote = function(index) {
   renderNotes();
 };
 
-window.addTodo = function() {
-  const text = prompt('Enter a to-do item:');
-  if (text === null || text.trim() === '') return;
-  const todos = loadTodos();
-  todos.unshift({ text: text.trim(), done: false, createdAt: new Date().toISOString() });
-  saveTodos(todos);
-  renderTodos();
-};
+// --- Edit Note ---
+let editingNoteIndex = null;
 
-window.toggleTodo = function(index, done) {
-  const todos = loadTodos();
-  if (todos[index]) {
-    todos[index].done = done;
-    saveTodos(todos);
-    renderTodos();
+window.editNote = function(index) {
+  const notes = loadNotes();
+  if (!notes[index]) return;
+  editingNoteIndex = index;
+  const modal = document.getElementById('noteModal');
+  const textarea = document.getElementById('noteTextarea');
+  if (modal && textarea) {
+    textarea.value = notes[index].text || '';
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    setTimeout(function() { textarea.focus(); }, 50);
   }
-};
-
-window.deleteTodo = function(index) {
-  if (!confirm('Delete this to-do?')) return;
-  const todos = loadTodos();
-  todos.splice(index, 1);
-  saveTodos(todos);
-  renderTodos();
 };
 
 function renderNotesTab() {
   renderNotes();
-  renderTodos();
 }
 
 // --- Quick Note Modal ---
@@ -6514,6 +7616,7 @@ window.openNoteModal = function() {
 };
 
 window.closeNoteModal = function() {
+  editingNoteIndex = null;
   const modal = document.getElementById('noteModal');
   const textarea = document.getElementById('noteTextarea');
   if (modal) {
@@ -6530,7 +7633,14 @@ window.saveQuickNote = function() {
   if (!text || text.trim() === '') return;
   
   const notes = loadNotes();
-  notes.unshift({ text: text.trim(), createdAt: new Date().toISOString() });
+  if (editingNoteIndex !== null && notes[editingNoteIndex]) {
+    // Update existing note
+    notes[editingNoteIndex].text = text.trim();
+    notes[editingNoteIndex].updatedAt = new Date().toISOString();
+  } else {
+    // Add new note
+    notes.unshift({ text: text.trim(), createdAt: new Date().toISOString() });
+  }
   saveNotes(notes);
   renderNotes();
   closeNoteModal();

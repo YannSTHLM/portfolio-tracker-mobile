@@ -75,7 +75,16 @@ function renderMomentumEvolutionChart() {
   // Collect all unique asset names across all snapshots
   const assetNames = new Set();
   snapshots.forEach(s => s.items.forEach(i => assetNames.add(i.name)));
-  const names = Array.from(assetNames).sort();
+
+  // Sort names by their latest composite score (descending) to match momentum ranking
+  const latestSnapshot = snapshots[snapshots.length - 1];
+  const names = Array.from(assetNames).sort((a, b) => {
+    const aItem = latestSnapshot.items.find(i => i.name === a);
+    const bItem = latestSnapshot.items.find(i => i.name === b);
+    const aScore = aItem && aItem.compositeScore !== null ? aItem.compositeScore : -Infinity;
+    const bScore = bItem && bItem.compositeScore !== null ? bItem.compositeScore : -Infinity;
+    return bScore - aScore;
+  });
 
   // Build labels (dates) sorted chronologically
   const labels = snapshots.map(s => s.date);
@@ -91,7 +100,8 @@ function renderMomentumEvolutionChart() {
     const color = palette[idx % palette.length];
     const data = snapshots.map(s => {
       const item = s.items.find(i => i.name === name);
-      return item ? item.compositeScore : null;
+      // Convert to percentage (compositeScore is stored as decimal, e.g. 0.6003 → 60.03)
+      return item && item.compositeScore !== null ? item.compositeScore * 100 : null;
     });
     return {
       label: name,
@@ -138,7 +148,8 @@ function renderMomentumEvolutionChart() {
           callbacks: {
             label: function(ctx) {
               const val = ctx.parsed.y;
-              return `${ctx.dataset.label}: ${val.toFixed(1)}`;
+              if (val === null) return `${ctx.dataset.label}: —`;
+              return `${ctx.dataset.label}: ${val >= 0 ? '+' : ''}${val.toFixed(2)}%`;
             }
           }
         }
@@ -150,10 +161,10 @@ function renderMomentumEvolutionChart() {
           grid: { color: 'rgba(148, 163, 184, 0.08)' }
         },
         y: {
-          title: { display: true, text: 'Composite Score', color: '#94a3b8' },
+          title: { display: true, text: 'Composite Score (%)', color: '#94a3b8' },
           ticks: {
             color: '#64748b',
-            callback: function(v) { return v.toFixed(0); }
+            callback: function(v) { return v.toFixed(0) + '%'; }
           },
           grid: { color: 'rgba(148, 163, 184, 0.08)' },
           // Draw a horizontal line at 0
@@ -266,9 +277,8 @@ function loadDemoData() {
   showDashboard();
 }
 
-// --- NOTES & TODOS MODULE ---
+// --- NOTES MODULE ---
 const NOTES_LS_KEY = 'portfolioTracker_notes';
-const TODOS_LS_KEY = 'portfolioTracker_todos';
 
 function loadNotes() {
   try {
@@ -302,60 +312,16 @@ function renderNotes() {
       <div class="bg-[var(--bg-secondary)] rounded-lg p-4 border border-[var(--border-subtle)]">
         <div class="flex items-start justify-between gap-2 mb-2">
           <span class="text-xs text-[var(--fg-muted)]">${dateStr}</span>
-          <button onclick="window.deleteNote(${index})" class="text-[var(--accent-danger)] hover:text-red-300 flex-shrink-0" title="Delete note">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="window.editNote(${index})" class="text-[var(--fg-muted)] hover:text-[var(--accent-primary)]" title="Edit note">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+            <button onclick="window.deleteNote(${index})" class="text-[var(--accent-danger)] hover:text-red-300" title="Delete note">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
         </div>
         <div class="text-sm whitespace-pre-wrap break-words text-[var(--fg-secondary)]">${escapeHtml(note.text)}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function loadTodos() {
-  try {
-    const raw = localStorage.getItem(TODOS_LS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.warn('Failed to load todos:', e);
-    return [];
-  }
-}
-
-function saveTodos(todos) {
-  try {
-    localStorage.setItem(TODOS_LS_KEY, JSON.stringify(todos));
-  } catch (e) {
-    console.warn('Failed to save todos:', e);
-  }
-}
-
-function renderTodos() {
-  const container = document.getElementById('todosList');
-  const progressEl = document.getElementById('todoProgress');
-  if (!container) return;
-  const todos = loadTodos();
-  if (todos.length === 0) {
-    container.innerHTML = '<p class="text-center py-8 text-[var(--fg-muted)]">No to-dos yet. Click "Add To-Do" to get started.</p>';
-    if (progressEl) progressEl.textContent = '';
-    return;
-  }
-  const done = todos.filter(t => t.done).length;
-  if (progressEl) progressEl.textContent = `${done}/${todos.length} done`;
-
-  container.innerHTML = todos.map((todo, index) => {
-    const dateStr = todo.createdAt ? new Date(todo.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
-    return `
-      <div class="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors group ${todo.done ? 'opacity-60' : ''}">
-        <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="window.toggleTodo(${index}, this.checked)"
-          class="mt-0.5 w-4 h-4 accent-[var(--accent-primary)] cursor-pointer flex-shrink-0">
-        <div class="flex-1 min-w-0">
-          <div class="text-sm ${todo.done ? 'line-through text-[var(--fg-muted)]' : 'text-[var(--fg-primary)]'}">${escapeHtml(todo.text)}</div>
-          <div class="text-xs text-[var(--fg-muted)] mt-0.5">${dateStr}</div>
-        </div>
-        <button onclick="window.deleteTodo(${index})" class="text-[var(--fg-muted)] hover:text-[var(--accent-danger)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" title="Delete to-do">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
       </div>
     `;
   }).join('');
@@ -378,35 +344,25 @@ window.deleteNote = function(index) {
   renderNotes();
 };
 
-window.addTodo = function() {
-  const text = prompt('Enter a to-do item:');
-  if (text === null || text.trim() === '') return;
-  const todos = loadTodos();
-  todos.unshift({ text: text.trim(), done: false, createdAt: new Date().toISOString() });
-  saveTodos(todos);
-  renderTodos();
-};
+// --- Edit Note ---
+let editingNoteIndex = null;
 
-window.toggleTodo = function(index, done) {
-  const todos = loadTodos();
-  if (todos[index]) {
-    todos[index].done = done;
-    saveTodos(todos);
-    renderTodos();
+window.editNote = function(index) {
+  const notes = loadNotes();
+  if (!notes[index]) return;
+  editingNoteIndex = index;
+  const modal = document.getElementById('noteModal');
+  const textarea = document.getElementById('noteTextarea');
+  if (modal && textarea) {
+    textarea.value = notes[index].text || '';
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    setTimeout(function() { textarea.focus(); }, 50);
   }
-};
-
-window.deleteTodo = function(index) {
-  if (!confirm('Delete this to-do?')) return;
-  const todos = loadTodos();
-  todos.splice(index, 1);
-  saveTodos(todos);
-  renderTodos();
 };
 
 function renderNotesTab() {
   renderNotes();
-  renderTodos();
 }
 
 // --- Quick Note Modal ---
@@ -421,6 +377,7 @@ window.openNoteModal = function() {
 };
 
 window.closeNoteModal = function() {
+  editingNoteIndex = null;
   const modal = document.getElementById('noteModal');
   const textarea = document.getElementById('noteTextarea');
   if (modal) {
@@ -437,7 +394,14 @@ window.saveQuickNote = function() {
   if (!text || text.trim() === '') return;
   
   const notes = loadNotes();
-  notes.unshift({ text: text.trim(), createdAt: new Date().toISOString() });
+  if (editingNoteIndex !== null && notes[editingNoteIndex]) {
+    // Update existing note
+    notes[editingNoteIndex].text = text.trim();
+    notes[editingNoteIndex].updatedAt = new Date().toISOString();
+  } else {
+    // Add new note
+    notes.unshift({ text: text.trim(), createdAt: new Date().toISOString() });
+  }
   saveNotes(notes);
   renderNotes();
   closeNoteModal();

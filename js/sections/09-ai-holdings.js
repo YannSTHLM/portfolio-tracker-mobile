@@ -4,6 +4,7 @@
 // --- AI HOLDINGS ANALYSIS ---
 const AI_ANALYSIS_LS_KEY = 'portfolioTracker_aiAnalysis';
 let aiAnalysisHistory = []; // { role: 'user'|'assistant', content: '...' }
+let aiAbortController = null; // for cancelling in-flight API requests
 
 function loadAiAnalysis() {
   try {
@@ -26,6 +27,32 @@ function saveAiAnalysis() {
       history: aiAnalysisHistory
     }));
   } catch (e) { console.warn('Failed to save AI analysis:', e); }
+}
+
+/**
+ * Determine if a Yahoo Finance ticker/symbol is valid for web search.
+ * Returns false only for non-financial placeholders (CASH, not_found).
+ * All real Yahoo Finance tickers (stocks, ETFs, mutual funds) are included.
+ */
+function isSearchableTicker(symbol) {
+  if (!symbol) return false;
+  // Skip if symbol is just "CASH" or null
+  if (symbol === 'CASH' || symbol === 'not_found') return false;
+  // All real Yahoo Finance tickers are searchable (stocks, ETFs, mutual funds)
+  return true;
+}
+
+/**
+ * Extract the company/asset name from a holding name for search queries.
+ * Strips common Swedish fund suffixes and normalizes for web search.
+ */
+function buildSearchableName(name) {
+  if (!name) return '';
+  // For known patterns, extract the meaningful part
+  return name
+    .replace(/\s*(fond|fond a|fond sverige|index|räntefond|ränta kort)$/i, '')
+    .replace(/\s*(a acc sek|a acc|ex mega cap)$/i, '')
+    .trim();
 }
 
 function simpleMarkdownToHtml(text) {
@@ -73,14 +100,12 @@ function buildPortfolioSummary() {
   let summary = `## Portfolio Summary\n`;
   summary += `- **Total Value:** ${formatCurrency(ft.totalValue)}\n`;
   summary += `- **Number of Holdings:** ${holdings.length}\n`;
-  summary += `- **Nordnet Value:** ${formatCurrency(currentSnapshot.nordnetValue)} (${ft.totalValue > 0 ? ((currentSnapshot.nordnetValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
-  summary += `- **Avanza Value:** ${formatCurrency(currentSnapshot.avanzaValue)} (${ft.totalValue > 0 ? ((currentSnapshot.avanzaValue / ft.totalValue) * 100).toFixed(1) : 0}%)\n`;
 
   // Bucket allocation
   const bucketAlloc = { 1: 0, 2: 0, 3: 0, 0: 0 };
   holdings.forEach(h => { bucketAlloc[h.bucket] = (bucketAlloc[h.bucket] || 0) + h.value; });
   summary += `\n### Bucket Allocation\n`;
-  Object.keys(bucketAlloc).forEach(b => {
+  Object.keys(bucketAlloc).sort().forEach(b => {
     if (bucketAlloc[b] > 0) {
       const pct = ft.totalValue > 0 ? ((bucketAlloc[b] / ft.totalValue) * 100).toFixed(1) : 0;
       const bname = BUCKETS[b] ? BUCKETS[b].name : 'Unknown';
@@ -88,43 +113,71 @@ function buildPortfolioSummary() {
     }
   });
 
-  // Rebalancing targets
-  summary += `\n### Target Allocation\n`;
-  ['avanza', 'nordnet'].forEach(broker => {
-    const targets = rebalancingTargets[broker];
-    if (targets) {
-      summary += `**${broker.charAt(0).toUpperCase() + broker.slice(1)}:**\n`;
-      targets.forEach(t => {
-        if (t.target > 0) summary += `- ${t.name}: ${t.target}%\n`;
-      });
-    }
-  });
+  // Build momentum data from perfLivePrices
+  const priceMap = new Map((typeof perfLivePrices !== 'undefined' ? perfLivePrices : []).map(p => [p.name.toLowerCase(), p]));
+  const bucketLabels = { 1: 'B1 — Cash/Short', 2: 'B2 — Fixed Income', 3: 'B3 — Equity', 0: 'Unclassified' };
 
-  // Individual holdings
-  summary += `\n### All Holdings\n`;
-  summary += `| Asset | Brokerage | Category | Bucket | Value (SEK) | % of Portfolio |\n`;
-  summary += `|-------|-----------|----------|--------|-------------|---------------|\n`;
+  // Group holdings by bucket
+  const grouped = {};
   holdings.forEach(h => {
-    const pct = ft.totalValue > 0 ? ((h.value / ft.totalValue) * 100).toFixed(2) : '0.00';
-    const bname = BUCKETS[h.bucket] ? BUCKETS[h.bucket].name : 'Unknown';
-    summary += `| ${h.name} | ${h.brokerage} | ${h.category || 'Unassigned'} | B${h.bucket} (${bname}) | ${Math.round(h.value).toLocaleString('sv-SE')} | ${pct}% |\n`;
+    const b = h.bucket || 0;
+    if (!grouped[b]) grouped[b] = [];
+    grouped[b].push(h);
   });
 
-  // Performance links
-  const links = Object.entries(performanceLinks);
-  if (links.length > 0) {
-    summary += `\n### Performance Links\n`;
-    links.forEach(([key, url]) => summary += `- ${key.replace('|', ' (')})}: ${url}\n`);
-  }
+  // Render momentum table per bucket (B3 → B2 → B1)
+  const bucketOrder = [3, 2, 1, 0];
+  bucketOrder.forEach(b => {
+    const group = grouped[b];
+    if (!group || group.length === 0) return;
 
-  // Performance data
-  if (performanceData && performanceData.assets) {
-    summary += `\n### Historical Performance\n`;
-    performanceData.assets.forEach(a => {
-      const rets = Object.entries(a.returns || {}).map(([k, v]) => `${k}: ${v !== null ? v + '%' : 'N/A'}`).join(', ');
-      summary += `- **${a.name}** (${a.assetType}): ${rets}\n`;
+    const label = bucketLabels[b] || 'Unknown';
+    summary += `\n### ${label}\n\n`;
+    summary += `| Asset | Brokerage | Composite Score | Signal | Notes/Rationale |\n`;
+    summary += `|-------|-----------|-----------------|--------|-----------------|\n`;
+
+    group.forEach(h => {
+      const priceData = priceMap.get(h.name.toLowerCase());
+      const tr = priceData?.trailingReturns || {};
+      const oneMonth = tr.oneMonth ?? null;
+      const threeMonth = tr.threeMonth ?? null;
+      const oneYear = tr.oneYear ?? null;
+
+      // 12-1M Momentum = (1+1Y)/(1+1M) - 1
+      let twelveMinusOne = null;
+      if (oneMonth !== null && oneYear !== null && (1 + oneMonth / 100) !== 0) {
+        twelveMinusOne = ((1 + oneYear / 100) / (1 + oneMonth / 100)) - 1;
+      }
+
+      // Composite Score = 70% * 12-1M + 30% * 3M
+      let compositeScore = null;
+      if (twelveMinusOne !== null && threeMonth !== null) {
+        compositeScore = 0.7 * twelveMinusOne + 0.3 * (threeMonth / 100);
+      }
+
+      // Signal determination
+      const score = compositeScore;
+      const tm1 = twelveMinusOne;
+      const m3 = threeMonth !== null ? threeMonth / 100 : null;
+      let signal;
+      if (score === null || tm1 === null || m3 === null) {
+        signal = '🔴 No Data';
+      } else if (score < 0 || (tm1 < 0 && m3 < 0)) {
+        signal = '🔴 Weak';
+      } else if (m3 < 0) {
+        signal = '🟠 Declining';
+      } else if (score > 0.05 && tm1 > 0 && m3 > 0) {
+        signal = '🟢 Strong';
+      } else if (score > 0 && m3 > 0) {
+        signal = '🟡 Moderate';
+      } else {
+        signal = '🟠 Mixed';
+      }
+
+      const fmtScore = compositeScore !== null ? (compositeScore >= 0 ? '+' : '') + (compositeScore * 100).toFixed(2) + '%' : '—';
+      summary += `| ${h.name} | ${h.brokerage} | ${fmtScore} | ${signal} | *(to be analyzed)* |\n`;
     });
-  }
+  });
 
   return summary;
 }
@@ -161,7 +214,7 @@ function renderAiChatHistory() {
   }
   chatEl.innerHTML = followUps.map(msg => {
     if (msg.role === 'user') {
-      return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${msg.content}</div>`;
+      return `<div class="ai-chat-user text-sm"><strong>You:</strong> ${escapeHtml(msg.content)}</div>`;
     } else {
       return `<div class="ai-chat-ai ai-markdown text-sm">${simpleMarkdownToHtml(msg.content)}</div>`;
     }
@@ -181,6 +234,19 @@ async function analyzeHoldingsWithAI() {
     return;
   }
 
+  // Warn if re-analyzing would discard follow-up conversation
+  if (aiAnalysisHistory.length > 2) {
+    if (!confirm('Re-analyzing will discard your follow-up conversation. Continue?')) {
+      return;
+    }
+  }
+
+  // Cancel any in-flight request
+  if (aiAbortController) {
+    aiAbortController.abort();
+  }
+  aiAbortController = new AbortController();
+
   const btn = document.getElementById('aiAnalyzeBtn');
   const btnText = document.getElementById('aiAnalyzeBtnText');
   const spinner = document.getElementById('aiLoadingSpinner');
@@ -190,41 +256,82 @@ async function analyzeHoldingsWithAI() {
 
   try {
     const portfolioSummary = buildPortfolioSummary();
-    const prompt = `You are a professional portfolio analyst. Analyze the following Swedish portfolio and provide actionable insights.
 
-${portfolioSummary}
+    // --- Build targeted web search query from searchable holdings ---
+    const priceMapForSearch = new Map((typeof perfLivePrices !== 'undefined' ? perfLivePrices : []).map(p => [p.name.toLowerCase(), p]));
+    const effective = getEffectiveSnapshot(currentSnapshot);
+    const holdingsForSearch = getFilteredHoldings(effective);
+    const searchableAssets = [];
 
-Please provide your analysis in the following sections using Markdown formatting:
+    holdingsForSearch.forEach(h => {
+      const pd = priceMapForSearch.get(h.name.toLowerCase());
+      const symbol = pd?.symbol;
+      if (isSearchableTicker(symbol)) {
+        const searchName = buildSearchableName(h.name);
+        searchableAssets.push({ name: searchName, symbol: symbol });
+      }
+    });
 
-## 1. Portfolio Diversification Assessment
-Evaluate how well-diversified the portfolio is across asset classes, sectors, and geographies.
+    // Build a focused search query listing only real stocks/ETFs
+    let webSearchEnabled = false;
+    let searchQuery = '';
+    if (searchableAssets.length > 0) {
+      const assetQueries = searchableAssets.map(a => {
+        // Strip exchange suffix for cleaner search (e.g., "EXUS.DE" → "Xtrackers EXUS ETF")
+        const baseSymbol = a.symbol.replace(/\.[A-Z]+$/, '');
+        return `${a.name} (${baseSymbol}) stock ETF outlook news 2025 2026`;
+      });
+      searchQuery = 'Recent market news and outlook for: ' + assetQueries.join('. ');
+      webSearchEnabled = true;
+      console.log(`🔍 Web search enabled for ${searchableAssets.length} searchable assets:`, searchableAssets.map(a => a.symbol));
+    }
 
-## 2. Risk Analysis
-Identify concentration risks, sector exposure issues, and potential vulnerabilities.
+    // Update loading indicator
+    if (spinner) spinner.textContent = webSearchEnabled ? 'Searching web & analyzing...' : 'Analyzing...';
 
-## 3. Allocation vs Targets
-Compare the current bucket allocation against the target allocation. Highlight significant gaps.
+    const systemPrompt = `You are a professional portfolio analyst specializing in momentum analysis. Analyze the portfolio data provided below.
 
-## 4. Actionable Recommendations
-Provide 3-5 specific, actionable suggestions for rebalancing or improving the portfolio.
+${webSearchEnabled ? `Web search results have been included for the holdings in the portfolio. Use the web search results to provide up-to-date market context, recent news, and analyst sentiment where available. For assets where web results are sparse or not directly relevant, supplement with the provided performance data (trailing returns, momentum scores) to assess their momentum.` : `Use your knowledge of current market conditions, recent earnings reports, sector rotation, and macro trends to provide informed rationale.`}
 
-## 5. Market Context
-Brief commentary on the overall asset mix and general positioning considerations.
+For each asset in each bucket, fill in the "Notes/Rationale" column with a concise 2-3 sentence analysis that:
+1. Explains what's driving the composite momentum score (combining long-term and short-term trends)
+2. Provides market context — recent news, sector trends, earnings, or macro factors affecting this asset
+3. Assesses whether the signal (Strong/Moderate/Declining/Weak) matches the current market situation
 
-Be specific, reference actual holdings and numbers from the portfolio data. Use SEK for any currency references.`;
+Group your response by bucket (B3 → B2 → B1) using the same table format as the input, but with the Notes/Rationale column filled in. Then add a brief summary section with:
+- **Key momentum risks** — assets showing deteriorating momentum
+- **Positive highlights** — assets with strongest momentum signals
+- **Bucket-level assessment** — overall health of each bucket's momentum
+
+Always respond in Markdown format. Be specific and reference actual data from the portfolio.`;
+
+    const userPrompt = `Analyze the momentum of my portfolio holdings. Here is the data:\n\n${portfolioSummary}`;
+
+    // Build request body — include web_search tool if searchable assets exist
+    const requestBody = {
+      model: getApiModel(),
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000
+    };
+
+    if (webSearchEnabled) {
+      requestBody.tools = [{
+        type: 'web_search',
+        web_search: {
+          search_query: searchQuery
+        }
+      }];
+    }
 
     const response = await fetch(getApiUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-      body: JSON.stringify({
-        model: getApiModel(),
-        messages: [
-          { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data from the portfolio.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000
-      })
+      body: JSON.stringify(requestBody),
+      signal: aiAbortController.signal
     });
 
     if (!response.ok) {
@@ -235,20 +342,55 @@ Be specific, reference actual holdings and numbers from the portfolio data. Use 
     const result = await response.json();
     const content = result.choices?.[0]?.message?.content || 'No analysis could be generated.';
 
+    // Extract web search sources from the response
+    const webSearchResults = result.web_search || [];
+    let sourcesHtml = '';
+    if (webSearchResults.length > 0) {
+      sourcesHtml = '\n\n---\n\n### 📰 Web Search Sources\n';
+      webSearchResults.forEach((src, i) => {
+        const title = src.title || 'Untitled';
+        const link = src.link || '#';
+        const media = src.media || '';
+        sourcesHtml += `${i + 1}. [${title}](${link})${media ? ` — *${media}*` : ''}\n`;
+      });
+    }
+
+    // Store metadata about web search enrichment
+    const fullContent = content + sourcesHtml;
+    const searchBadge = webSearchEnabled
+      ? `<span class="text-xs text-[var(--fg-muted)] ml-2">🔍 Enriched with web search (${searchableAssets.length} assets, ${webSearchResults.length} sources)</span>`
+      : '';
+
     aiAnalysisHistory = [
-      { role: 'user', content: 'Analyze my portfolio holdings' },
-      { role: 'assistant', content: content }
+      { role: 'user', content: userPrompt },
+      { role: 'assistant', content: fullContent }
     ];
     saveAiAnalysis();
-    renderAiAnalysisContent(content);
+    renderAiAnalysisContent(fullContent);
+
+    // Show web search enrichment badge
+    const badgeEl = document.getElementById('aiWebSearchBadge');
+    if (badgeEl) {
+      badgeEl.innerHTML = searchBadge;
+      badgeEl.classList.toggle('hidden', !webSearchEnabled);
+    }
 
   } catch (err) {
+    if (err.name === 'AbortError') {
+      console.log('AI analysis request was cancelled.');
+      return;
+    }
     console.error('AI Holdings Analysis error:', err);
     alert('AI Analysis failed: ' + err.message);
+    // Revert button text on error
+    if (btnText) btnText.textContent = 'Analyze Holdings with AI';
   } finally {
     if (btn) btn.disabled = false;
-    if (btnText) btnText.textContent = 'Re-Analyze Holdings';
+    if (btnText && btnText.textContent === 'Analyzing...') {
+      btnText.textContent = aiAnalysisHistory.length > 0 ? 'Re-Analyze Holdings' : 'Analyze Holdings with AI';
+    }
     if (spinner) spinner.classList.add('hidden');
+    aiAbortController = null;
   }
 }
 
@@ -275,8 +417,8 @@ async function askFollowUpQuestion() {
 
   try {
     // Build conversation messages for context
-    const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst providing clear, actionable investment insights. Always respond in Markdown format. Be specific and reference actual data when relevant. Keep answers concise.' };
-    const contextMsg = { role: 'user', content: `Here is my portfolio summary for context:\n\n${buildPortfolioSummary()}` };
+    const systemMsg = { role: 'system', content: 'You are a professional portfolio analyst specializing in momentum analysis. Always respond in Markdown format. Be specific, reference actual momentum data and signals when relevant. Keep answers concise.' };
+    const contextMsg = { role: 'user', content: `Here is my portfolio momentum summary for context:\n\n${buildPortfolioSummary()}` };
     const contextReply = aiAnalysisHistory[1] ? { role: 'assistant', content: aiAnalysisHistory[1].content } : null;
 
     const messages = [systemMsg, contextMsg];
@@ -427,7 +569,7 @@ if ('serviceWorker' in navigator) {
 
 // Hook: after switchTab — render analytics/retirement/notes tabs
 registerHook('afterSwitchTab', function(tabId) {
-  if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); }
+  if (tabId === 'analytics') { renderAnalyticsHoldings(); loadAiAnalysis(); renderBucketAnalyticsSnapshots(); }
   if (tabId === 'retirement') { loadRetirementData(); populateRetirementForm(); }
   if (tabId === 'notes') { renderNotesTab(); }
 });
@@ -500,7 +642,7 @@ function renderReferenceTable() {
 
   const renderSection = (broker, brokerLabel, assets) => {
     const rows = assets.map((asset, index) => `
-      <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
+      <div class="grid grid-cols-[40px_1fr_120px_180px_160px] gap-2 items-center py-2 border-b border-[var(--border-subtle)]">
         <div>
           <button onclick="deleteReferenceAsset('${broker}', ${index})" class="text-red-400 hover:text-red-300 p-1" title="Delete">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -509,6 +651,10 @@ function renderReferenceTable() {
         <div>
           <input type="text" value="${asset.name}" onchange="updateReferenceAsset('${broker}', ${index}, 'name', this.value)" 
             class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm focus:border-[var(--accent-primary)] outline-none">
+        </div>
+        <div>
+          <input type="text" value="${asset.symbol || ''}" placeholder="e.g. AAPL" onchange="updateReferenceAsset('${broker}', ${index}, 'symbol', this.value)" 
+            class="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded px-2 py-1 text-sm font-mono focus:border-[var(--accent-secondary)] outline-none" title="Yahoo Finance ticker symbol">
         </div>
         <div>
           <select class="edit-select w-full" onchange="updateReferenceAsset('${broker}', ${index}, 'category', this.value)">
@@ -526,8 +672,8 @@ function renderReferenceTable() {
     return `
       <div class="bg-[var(--bg-secondary)] rounded-lg p-4">
         <h4 class="font-semibold mb-3 text-cyan-400">${brokerLabel} <span class="text-xs text-[var(--fg-muted)]">(${assets.length} assets)</span></h4>
-        <div class="grid grid-cols-[40px_1fr_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
-          <div></div><div>Asset Name</div><div>Category</div><div>Bucket</div>
+        <div class="grid grid-cols-[40px_1fr_120px_180px_160px] gap-2 items-center py-1 border-b border-[var(--border)] text-xs text-[var(--fg-muted)] uppercase font-semibold">
+          <div></div><div>Asset Name</div><div>Symbol</div><div>Category</div><div>Bucket</div>
         </div>
         ${rows || '<div class="py-4 text-center text-[var(--fg-muted)]">No assets defined</div>'}
       </div>
@@ -549,6 +695,7 @@ function updateReferenceAsset(broker, index, field, value) {
 function addNewAssetRow(broker) {
   const newAsset = {
     name: 'New Asset',
+    symbol: '',
     category: 'Other',
     bucket: 0
   };
