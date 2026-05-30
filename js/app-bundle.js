@@ -174,6 +174,153 @@ const hooks = {
 function registerHook(name, fn) {
   if (hooks[name]) hooks[name].push(fn);
 }
+
+// ===== MOBILE NAVIGATION =====
+
+// Tabs accessible via the "More" sheet
+const MORE_TABS = ['reference', 'evolution', 'comparison', 'snapshots', 'analytics', 'retirement', 'notes'];
+
+function mobileSwitchTab(tabName) {
+  // Use the existing switchTab function
+  if (typeof switchTab === 'function') {
+    switchTab(tabName);
+  }
+  // Update mobile nav active state
+  updateMobileNavActive(tabName);
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateMobileNavActive(tabName) {
+  const moreBtn = document.querySelector('.mobile-bottom-nav .nav-item:last-child');
+  const isMoreTab = MORE_TABS.includes(tabName);
+  document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(btn => {
+    btn.classList.remove('active', 'more-active');
+    if (btn.dataset.tab === tabName) {
+      btn.classList.add('active');
+    }
+  });
+  // Highlight the "More" button when a More tab is active
+  if (isMoreTab && moreBtn) {
+    moreBtn.classList.add('more-active');
+  }
+}
+
+function openMobileMoreSheet() {
+  const sheet = document.getElementById('mobileMoreSheet');
+  const overlay = document.getElementById('mobileMoreOverlay');
+  if (sheet) {
+    sheet.style.display = 'block';
+    requestAnimationFrame(() => sheet.classList.add('visible'));
+  }
+  if (overlay) overlay.classList.add('visible');
+}
+
+function closeMobileMoreSheet() {
+  const sheet = document.getElementById('mobileMoreSheet');
+  const overlay = document.getElementById('mobileMoreOverlay');
+  if (sheet) {
+    sheet.classList.remove('visible');
+    setTimeout(() => { sheet.style.display = 'none'; }, 300);
+  }
+  if (overlay) overlay.classList.remove('visible');
+}
+
+function toggleMobileActionDrawer() {
+  const drawer = document.getElementById('mobileActionDrawer');
+  const overlay = document.getElementById('mobileActionDrawerOverlay');
+  if (!drawer || !overlay) return;
+  const isOpen = drawer.classList.contains('visible');
+  if (isOpen) {
+    drawer.classList.remove('visible');
+    overlay.classList.remove('visible');
+    setTimeout(() => { drawer.style.display = 'none'; overlay.style.display = 'none'; }, 300);
+  } else {
+    drawer.style.display = 'block';
+    overlay.style.display = 'block';
+    requestAnimationFrame(() => {
+      drawer.classList.add('visible');
+      overlay.classList.add('visible');
+    });
+  }
+}
+
+// Swipe-to-dismiss for bottom sheets and side drawers
+(function initSwipeGestures() {
+  // Swipe down to close the "More" sheet
+  const sheet = document.getElementById('mobileMoreSheet');
+  if (sheet) {
+    let startY = 0, currentY = 0, isDragging = false;
+    sheet.addEventListener('touchstart', e => {
+      // Only track if scrolled to top within the sheet
+      if (sheet.scrollTop <= 0) {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+      }
+    }, { passive: true });
+    sheet.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 0) {
+        // Dragging down - follow finger
+        sheet.style.transition = 'none';
+        sheet.style.transform = 'translateY(' + diff + 'px)';
+      }
+    }, { passive: true });
+    sheet.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = currentY - startY;
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+      // If dragged more than 100px or 30% of sheet height, close
+      if (diff > 100 || diff > sheet.offsetHeight * 0.3) {
+        closeMobileMoreSheet();
+      }
+      startY = 0;
+      currentY = 0;
+    }, { passive: true });
+  }
+
+  // Swipe right to close the action drawer
+  const drawer = document.getElementById('mobileActionDrawer');
+  if (drawer) {
+    let startX = 0, currentX = 0, isDragging = false;
+    drawer.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+    }, { passive: true });
+    drawer.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      currentX = e.touches[0].clientX;
+      const diff = startX - currentX;
+      if (diff > 0) {
+        // Swiping left (closing right drawer)
+        drawer.style.transition = 'none';
+        drawer.style.transform = 'translateX(' + (-diff) + 'px)';
+      }
+    }, { passive: true });
+    drawer.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = startX - currentX;
+      drawer.style.transition = '';
+      drawer.style.transform = '';
+      // If swiped more than 80px or 30% of drawer width, close
+      if (diff > 80 || diff > drawer.offsetWidth * 0.3) {
+        toggleMobileActionDrawer();
+      }
+      startX = 0;
+      currentX = 0;
+    }, { passive: true });
+  }
+})();
+
+// Sync mobile nav active state when switchTab is called from desktop
+registerHook('afterSwitchTab', function(tabName) {
+  updateMobileNavActive(tabName);
+});
 "use strict";
 
 
@@ -4113,6 +4260,9 @@ const SIGNAL_PAIRS = [
 // Computed analytics data (populated by computeBucketAnalysisData, used for snapshots)
 let currentAnalyticsData = null;
 
+// Weighted Momentum Score chart instance
+let momentumScoreChart = null;
+
 // --- ANALYTICS LOCALSTORAGE ---
 const ANALYTICS_LS_KEY = 'portfolioTracker_analyticsSnapshots';
 
@@ -4295,6 +4445,9 @@ function renderBucketAnalysisTables() {
 
   // Also refresh recommendations
   renderRecommendationsTable();
+
+  // Refresh weighted momentum score chart
+  renderMomentumScoreChart();
 }
 
 // --- ANALYTICS SNAPSHOT FUNCTIONS ---
@@ -4387,6 +4540,9 @@ function renderAnalyticsSnapshotHistory() {
   });
 
   container.innerHTML = html;
+
+  // Refresh weighted momentum score chart when snapshots change
+  renderMomentumScoreChart();
 }
 
 function renderSnapshotDetailTables(snapshot) {
@@ -4465,6 +4621,215 @@ function deleteAnalyticsSnapshotById(snapshotId) {
     localStorage.setItem(ANALYTICS_LS_KEY, JSON.stringify(snapshots));
     renderAnalyticsSnapshotHistory();
   }
+}
+
+// --- WEIGHTED MOMENTUM SCORE CHART ---
+
+function renderMomentumScoreChart() {
+  const canvas = document.getElementById('momentumScoreChart');
+  const container = document.getElementById('momentumScoreChartContainer');
+  const emptyMsg = document.getElementById('momentumScoreChartEmpty');
+  if (!canvas || !container) return;
+
+  const analyticsSnapshots = loadAnalyticsSnapshotsFromLocalStorage();
+
+  // Need at least 1 snapshot with data
+  if (!analyticsSnapshots || analyticsSnapshots.length === 0) {
+    container.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = '';
+    if (momentumScoreChart) { momentumScoreChart.destroy(); momentumScoreChart = null; }
+    return;
+  }
+
+  // Sort chronologically (oldest → newest)
+  const sorted = [...analyticsSnapshots].sort((a, b) => (a.id || 0) - (b.id || 0));
+
+  // Build X-axis labels (date strings)
+  const labels = sorted.map(s => {
+    try {
+      const d = new Date(s.timestamp);
+      return d.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
+    } catch { return s.dateLabel || '?'; }
+  });
+
+  // Collect all unique asset names across all snapshots
+  const assetNames = new Set();
+  sorted.forEach(s => {
+    if (!s.buckets) return;
+    [1, 2, 3].forEach(b => {
+      const bucket = s.buckets[b];
+      if (bucket && bucket.assets) {
+        bucket.assets.forEach(a => {
+          if (a.compositeScore !== null) assetNames.add(a.name);
+        });
+      }
+    });
+  });
+
+  if (assetNames.size === 0) {
+    container.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = '';
+    if (momentumScoreChart) { momentumScoreChart.destroy(); momentumScoreChart = null; }
+    return;
+  }
+
+  // Build a lookup: for each snapshot, map assetName → compositeScore
+  const scoreLookup = sorted.map(s => {
+    const map = {};
+    if (!s.buckets) return map;
+    [1, 2, 3].forEach(b => {
+      const bucket = s.buckets[b];
+      if (bucket && bucket.assets) {
+        bucket.assets.forEach(a => {
+          map[a.name] = a.compositeScore; // may be null
+        });
+      }
+    });
+    return map;
+  });
+
+  // Get latest non-null compositeScore per asset for sorting
+  const latestScores = {};
+  [...sorted].reverse().forEach(s => {
+    if (!s.buckets) return;
+    [1, 2, 3].forEach(b => {
+      const bucket = s.buckets[b];
+      if (bucket && bucket.assets) {
+        bucket.assets.forEach(a => {
+          if (a.compositeScore !== null && latestScores[a.name] === undefined) {
+            latestScores[a.name] = a.compositeScore;
+          }
+        });
+      }
+    });
+  });
+
+  // Sort asset names by latest compositeScore descending (best performer first)
+  const sortedAssetNames = [...assetNames].sort((a, b) => {
+    const sa = latestScores[a] !== undefined ? latestScores[a] : -Infinity;
+    const sb = latestScores[b] !== undefined ? latestScores[b] : -Infinity;
+    return sb - sa;
+  });
+
+  // 15-color palette: blues, pinks, greens, yellows, oranges, purples
+  const palette = [
+    '#60a5fa', // blue
+    '#818cf8', // indigo
+    '#c084fc', // purple
+    '#e879f9', // pink
+    '#f472b6', // rose
+    '#fb7185', // red-pink
+    '#34d399', // emerald
+    '#4ade80', // green
+    '#a3e635', // lime
+    '#facc15', // yellow
+    '#fbbf24', // amber
+    '#fb923c', // orange
+    '#f97316', // deep orange
+    '#a78bfa', // violet
+    '#22d3ee'  // cyan
+  ];
+
+  // Build datasets
+  const datasets = sortedAssetNames.map((name, i) => {
+    const color = palette[i % palette.length];
+    const data = scoreLookup.map(map => {
+      const val = map[name];
+      return val !== undefined && val !== null ? val : null;
+    });
+
+    return {
+      label: name,
+      data,
+      borderColor: color,
+      backgroundColor: color,
+      fill: false,
+      spanGaps: true,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+      tension: 0.1
+    };
+  });
+
+  // Destroy previous chart
+  if (momentumScoreChart) {
+    momentumScoreChart.destroy();
+    momentumScoreChart = null;
+  }
+
+  // Show chart, hide empty message
+  container.style.display = '';
+  if (emptyMsg) emptyMsg.style.display = 'none';
+
+  const ctx = canvas.getContext('2d');
+  momentumScoreChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#94a3b8',
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 16,
+            font: { family: 'DM Sans', size: 11 }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(26, 34, 52, 0.95)',
+          borderColor: 'rgba(45, 58, 82, 0.8)',
+          borderWidth: 1,
+          titleColor: '#f1f5f9',
+          bodyColor: '#94a3b8',
+          padding: 10,
+          titleFont: { family: 'DM Sans', weight: '600' },
+          bodyFont: { family: 'DM Sans' },
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed.y;
+              if (val === null || val === undefined) return null;
+              const sign = val >= 0 ? '+' : '';
+              return `${context.dataset.label}: ${sign}${val.toFixed(2)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(45, 58, 82, 0.4)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'DM Sans', size: 11 },
+            maxRotation: 45,
+            minRotation: 0
+          }
+        },
+        y: {
+          grid: { color: 'rgba(45, 58, 82, 0.4)' },
+          ticks: {
+            color: '#94a3b8',
+            font: { family: 'DM Sans', size: 11 },
+            callback: function(value) { return value.toFixed(1) + '%'; }
+          },
+          title: {
+            display: true,
+            text: 'Wtd Score — Weighted Momentum Score',
+            color: '#94a3b8',
+            font: { family: 'DM Sans', size: 12 }
+          }
+        }
+      }
+    }
+  });
 }
 
 // --- MOMENTUM-ACCELERATION RECOMMENDATIONS ALGORITHM ---
@@ -5827,6 +6192,7 @@ registerHook('beforeIsInSchedule', function(name, broker) {
 const RETIREMENT_LS_KEY = 'portfolioTracker_retirement';
 let retirementData = { manualPortfolioValue: null, withdrawalRate: CONFIG.DEFAULT_WITHDRAWAL_RATE, yearOverrides: {} };
 let pensionProjectionChart = null;
+let retirementListenersAttached = false;
 
 // External Pension Data (from minPension.se)
 const PENSION_DATA = {
@@ -5917,10 +6283,13 @@ function populateRetirementForm() {
     const growthInput = document.getElementById('retirementGrowthRate');
     if (growthInput) growthInput.value = retirementData.growthRate;
   }
-  const portfolioValueInput = document.getElementById('retirementTotalValueInput');
-  if (portfolioValueInput) {
-    portfolioValueInput.addEventListener('input', updateRetirementTab);
-    portfolioValueInput.addEventListener('change', updateRetirementTab);
+  if (!retirementListenersAttached) {
+    const portfolioValueInput = document.getElementById('retirementTotalValueInput');
+    if (portfolioValueInput) {
+      portfolioValueInput.addEventListener('input', updateRetirementTab);
+      portfolioValueInput.addEventListener('change', updateRetirementTab);
+    }
+    retirementListenersAttached = true;
   }
   updateRetirementTab();
 }
@@ -5944,6 +6313,9 @@ function getYearTax(year) {
 
 function applyDefaultWR(val) {
   const wr = parseFloat(val) || 4.7;
+  if (retirementData.yearOverrides && Object.keys(retirementData.yearOverrides).length > 0) {
+    if (!confirm('This will overwrite all per-year custom WR% overrides. Continue?')) return;
+  }
   document.getElementById('retirementDefaultWR').value = wr;
   if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
   Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].wr = wr; });
@@ -5953,6 +6325,9 @@ function applyDefaultWR(val) {
 
 function applyDefaultTax(val) {
   const tax = parseFloat(val) || 15;
+  if (retirementData.yearOverrides && Object.keys(retirementData.yearOverrides).length > 0) {
+    if (!confirm('This will overwrite all per-year custom Tax% overrides. Continue?')) return;
+  }
   document.getElementById('retirementDefaultTax').value = tax;
   if (!retirementData.yearOverrides) retirementData.yearOverrides = {};
   Object.keys(retirementData.yearOverrides).forEach(y => { retirementData.yearOverrides[y].tax = tax; });
@@ -5966,8 +6341,9 @@ function setYearWR(year, val) {
   retirementData.yearOverrides[year].wr = parseFloat(val) || 0;
   saveRetirementData();
   const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-  renderRetirementChart(pv);
-  renderRetirementTable(pv);
+  const projection = computeRetirementProjection(pv);
+  renderRetirementChart(pv, projection);
+  renderRetirementTable(pv, projection);
 }
 
 function setYearTax(year, val) {
@@ -5976,8 +6352,9 @@ function setYearTax(year, val) {
   retirementData.yearOverrides[year].tax = parseFloat(val) || 0;
   saveRetirementData();
   const pv = parseFloat(document.getElementById('retirementTotalValueInput').value) || 0;
-  renderRetirementChart(pv);
-  renderRetirementTable(pv);
+  const projection = computeRetirementProjection(pv);
+  renderRetirementChart(pv, projection);
+  renderRetirementTable(pv, projection);
 }
 
 function updateRetirementTab() {
@@ -5991,8 +6368,10 @@ function updateRetirementTab() {
   const growthInput = document.getElementById('retirementGrowthRate');
   if (growthInput) retirementData.growthRate = parseFloat(growthInput.value) || 5;
   saveRetirementData();
-  renderRetirementChart(portfolioValue);
-  renderRetirementTable(portfolioValue);
+  // Compute projection once and pass to both renderers (avoids double computation)
+  const projection = computeRetirementProjection(portfolioValue);
+  renderRetirementChart(portfolioValue, projection);
+  renderRetirementTable(portfolioValue, projection);
 }
 
 // Helper: compute yearly retirement projection data with portfolio depletion
@@ -6015,10 +6394,12 @@ function computeRetirementProjection(portfolioValue) {
     let karinMonthly = 0;
     if (karinAge >= 65) {
       karinMonthly += calculateAllmanMonthly(PENSION_DATA.karin.allman.capital);
-      karinMonthly += PENSION_DATA.karin.privat.capital * 0.04 / 12;
+      // Note: Uses default WR% for private pension amortization
+      const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
+      karinMonthly += PENSION_DATA.karin.privat.capital * (defWR / 100) / 12;
     }
     PENSION_DATA.karin.policies.forEach(p => {
-      if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, 4);
+      if (isPolicyActive(p, karinAge)) karinMonthly += getPolicyMonthly(p, wrPct);
     });
 
     let yannMonthly = 0;
@@ -6026,7 +6407,7 @@ function computeRetirementProjection(portfolioValue) {
       yannMonthly += calculateAllmanMonthly(PENSION_DATA.yann.allman.capital);
     }
     PENSION_DATA.yann.policies.forEach(p => {
-      if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, 4);
+      if (isPolicyActive(p, yannAge)) yannMonthly += getPolicyMonthly(p, wrPct);
     });
 
     const portfolioStartOfYear = Math.max(currentPortfolio, 0);
@@ -6054,12 +6435,12 @@ function computeRetirementProjection(portfolioValue) {
   return projection;
 }
 
-function renderRetirementChart(portfolioValue) {
+function renderRetirementChart(portfolioValue, precomputedProjection) {
   const ctx = document.getElementById('pensionProjectionChart');
   if (!ctx) return;
   if (pensionProjectionChart) pensionProjectionChart.destroy();
 
-  const projection = computeRetirementProjection(portfolioValue);
+  const projection = precomputedProjection || computeRetirementProjection(portfolioValue);
   const years = [], grossData = [], netData = [], karinData = [], yannData = [], portfolioData = [], portfolioValueData = [];
 
   projection.forEach(p => {
@@ -6101,11 +6482,11 @@ function renderRetirementChart(portfolioValue) {
   });
 }
 
-function renderRetirementTable(portfolioValue) {
+function renderRetirementTable(portfolioValue, precomputedProjection) {
   const tbody = document.getElementById('retirementProjectionTable');
   if (!tbody) return;
 
-  const projection = computeRetirementProjection(portfolioValue);
+  const projection = precomputedProjection || computeRetirementProjection(portfolioValue);
   const defWR = parseFloat(document.getElementById('retirementDefaultWR').value) || 4.7;
   const defTax = parseFloat(document.getElementById('retirementDefaultTax').value) || 15;
   let rows = '';
@@ -6527,7 +6908,7 @@ function renderPerfLivePricesTable() {
 
 function stopServer() {
   // Try to call the shutdown endpoint
-  fetch('http://localhost:3000/api/shutdown', { method: 'POST', cache: 'no-store' })
+  fetch('/api/shutdown', { method: 'POST', cache: 'no-store' })
     .then(() => {})
     .catch(() => {});
   serverRunning = false;
@@ -6540,7 +6921,7 @@ async function checkServerStatus() {
   try {
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 2000);
-    const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+    const resp = await fetch('/api/ping', { signal: ctrl.signal, cache: 'no-store' });
     clearTimeout(timeout);
     serverRunning = resp.ok;
   } catch(e) {
@@ -6598,7 +6979,7 @@ function startServer() {
     try {
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 2000);
-      const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+      const resp = await fetch('/api/ping', { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timeout);
       if (resp.ok) {
         // Server is now running!
@@ -6710,7 +7091,7 @@ async function fetchLivePrices() {
     });
     
     // Check if proxy server is running, otherwise show setup instructions
-    const proxyUrl = 'http://localhost:3000/api/prices';
+    const proxyUrl = '/api/prices';
     
     // First, try to fetch from proxy
     const response = await fetch(proxyUrl, {
@@ -7315,6 +7696,7 @@ function renderMomentumEvolutionChart() {
   // Collect all unique asset names across all snapshots
   const assetNames = new Set();
   snapshots.forEach(s => s.items.forEach(i => assetNames.add(i.name)));
+
   // Sort names by their latest composite score (descending) to match momentum ranking
   const latestSnapshot = snapshots[snapshots.length - 1];
   const names = Array.from(assetNames).sort((a, b) => {

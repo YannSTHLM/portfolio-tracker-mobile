@@ -721,7 +721,7 @@ function renderPerfLivePricesTable() {
 
 function stopServer() {
   // Try to call the shutdown endpoint
-  fetch('http://localhost:3000/api/shutdown', { method: 'POST', cache: 'no-store' })
+  fetch('/api/shutdown', { method: 'POST', cache: 'no-store' })
     .then(() => {})
     .catch(() => {});
   serverRunning = false;
@@ -734,7 +734,7 @@ async function checkServerStatus() {
   try {
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 2000);
-    const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+    const resp = await fetch('/api/ping', { signal: ctrl.signal, cache: 'no-store' });
     clearTimeout(timeout);
     serverRunning = resp.ok;
   } catch(e) {
@@ -792,7 +792,7 @@ function startServer() {
     try {
       const ctrl = new AbortController();
       const timeout = setTimeout(() => ctrl.abort(), 2000);
-      const resp = await fetch('http://localhost:3000/api/ping', { signal: ctrl.signal, cache: 'no-store' });
+      const resp = await fetch('/api/ping', { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timeout);
       if (resp.ok) {
         // Server is now running!
@@ -904,7 +904,7 @@ async function fetchLivePrices() {
     });
     
     // Check if proxy server is running, otherwise show setup instructions
-    const proxyUrl = 'http://localhost:3000/api/prices';
+    const proxyUrl = '/api/prices';
     
     // First, try to fetch from proxy
     const response = await fetch(proxyUrl, {
